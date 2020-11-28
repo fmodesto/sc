@@ -90,7 +90,7 @@ semantics.addOperation('ast', {
                 expression: BinaryOperation.create({
                     operation: op.sourceString.substring(0, op.sourceString.length - 1),
                     lhs: Variable.create({
-                        expression: id.sourceString,
+                        name: id.sourceString,
                         source: this.source.getLineAndColumnMessage(),
                     }),
                     rhs: exp.ast(),
@@ -100,9 +100,9 @@ semantics.addOperation('ast', {
             });
         }
     },
-    Stmt_if(_if, _opp, condition, _cpp, _opb1, consequent, _clb1, alternate) {
+    Stmt_if(_if, _opp, predicate, _cpp, _opb1, consequent, _clb1, alternate) {
         return IfStatement.create({
-            condition: condition.ast(),
+            predicate: predicate.ast(),
             consequent: consequent.ast(),
             alternate: alternate.ast().flat(),
             source: this.source.getLineAndColumnMessage(),
@@ -114,9 +114,9 @@ semantics.addOperation('ast', {
     Else_if(_1, statement) {
         return [statement.ast()];
     },
-    Stmt_while(_while, _opp, condition, _clp, _opb, block, _clb) {
+    Stmt_while(_while, _opp, predicate, _clp, _opb, block, _clb) {
         return WhileStatement.create({
-            condition: condition.ast(),
+            predicate: predicate.ast(),
             block: block.ast(),
             source: this.source.getLineAndColumnMessage(),
         });
@@ -133,9 +133,9 @@ semantics.addOperation('ast', {
             source: this.source.getLineAndColumnMessage(),
         });
     },
-    Exp_if(condition, _1, consequent, _2, alternate) {
+    Exp_if(predicate, _1, consequent, _2, alternate) {
         return TernaryOperation.create({
-            condition: condition.ast(),
+            predicate: predicate.ast(),
             consequent: consequent.ast(),
             alternate: alternate.ast(),
             source: this.source.getLineAndColumnMessage(),

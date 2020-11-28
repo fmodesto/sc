@@ -21,8 +21,24 @@ import {
 import createContext from './context.mjs';
 import CompileError from './error.mjs';
 
+const integerUnaryOperations = ['-', '~'];
+const integerBinaryOperations = ['+', '-', '*', '/', '%', '<<', '>>', '&', '|', '^'];
+
+const logicUnaryOperations = ['!'];
+const logicBinaryOperations = ['&&', '||'];
+
+const relationalOperations = ['<=', '<', '==', '!=', '>=', '>'];
+
 const compatibleType = function (dest, src) {
     return dest === 'bool' || src === dest;
+}
+
+const combineType = function (left, right) {
+    if (left === 'bool' || right === 'bool') {
+        return 'bool';
+    } else {
+        return 'byte';
+    }
 }
 
 Program.analyze = function (context) {
@@ -71,21 +87,20 @@ AssignmentStatement.analyze = function (context) {
     }
     const destType = context.getVarType(this.name);
     let type = this.expression.analyze(context);
-    console.log(destType, type, compatibleType(destType, type));
     if (!compatibleType(destType, type)) {
         throw CompileError.create(this.source, `Type missmatch. Can not convert ${type} to ${destType}`);
     }
 };
 
 IfStatement.analyze = function (context) {
-    this.condition.analyze(context);
+    this.predicate.analyze(context);
     this.consequent.forEach(e => e.analyze(context));
     this.alternate.forEach(e => e.analyze(context));
     return this;
 };
 
 WhileStatement.analyze = function (context) {
-    this.condition.analyze(context);
+    this.predicate.analyze(context);
     this.block.forEach(e => e.analyze(context));
     return this;
 };
@@ -103,15 +118,42 @@ Expression.analyze = function (context) {
 };
 
 TernaryOperation.analyze = function (context) {
-    // console.error(this.kind);
+    this.predicate.analyze(context);
+    let consType = this.consequent.analyze(context);
+    let altType = this.alternate.analyze(context);
+    return combineType(consType, altType);
 };
 
 BinaryOperation.analyze = function (context) {
-    // console.error(this.kind);
+    let lhsType = this.lhs.analyze(context);
+    let rhsType = this.rhs.analyze(context);
+    if (integerBinaryOperations.includes(this.operation)) {
+        if (lhsType === 'bool' || rhsType === 'bool') {
+            throw CompileError.create(this.source, `Invalid types for operation: '${lhsType}' ${this.operation} '${rhsType}'`);
+        }
+        return combineType(lhsType, rhsType);
+    } else if (relationalOperations.includes(this.operation)) {
+        if (lhsType === 'bool' || rhsType === 'bool') {
+            throw CompileError.create(this.source, `Invalid types for operation: '${lhsType}' ${this.operation} '${rhsType}'`);
+        }
+        return 'bool';
+    } else if (logicBinaryOperations.includes(this.operation)) {
+        return 'bool';
+    }
 };
 
 UnaryOperation.analyze = function (context) {
-    // console.error(this.kind);
+    let type = this.expression.analyze(context);
+    if (integerUnaryOperations.includes(this.operation)) {
+        if (type === 'bool') {
+            throw CompileError.create(this.source, `Invalid type for operation: ${this.operation} '${type}'`);
+        }
+        return type;
+    } else if (logicUnaryOperations.includes(this.operation)) {
+        return 'bool';
+    } else {
+        throw new Error(`Unknown operation ${this.operation}`);
+    }
 };
 
 MethodCall.analyze = function (context) {
