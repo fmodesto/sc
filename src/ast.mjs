@@ -50,6 +50,9 @@ const Literal = Expression.create({
 const Variable = Expression.create({
     kind: 'Variable',
 });
+AST.create = function (props) {
+    return Object.freeze(Object.assign(Object.create(this), { kind: this.kind }, props));
+};
 
 export {
     AST,

@@ -1,10 +1,8 @@
 import {
-    AST,
     Program,
     GlobalDeclaration,
     MethodDeclaration,
     Var,
-    Statement,
     AssignmentStatement,
     IfStatement,
     WhileStatement,
@@ -55,15 +53,15 @@ Program.analyze = function (context) {
 GlobalDeclaration.analyze = function (context) {
     const src = this.expression.source;
     this.expression.analyze(context);
-    this.expression = this.expression.optimize();
-    if (!Literal.isPrototypeOf(this.expression)) {
+    let expression = this.expression.optimize();
+    if (!Literal.isPrototypeOf(expression)) {
         throw CompileError.create(src, `Expression must have a constant value`);
     }
     if (context.containsVar(this.name)) {
         throw CompileError.create(this.source, `Variable '${this.name}' already defined`);
     }
-    if (!compatibleType(this.type, this.expression.type)) {
-        throw CompileError.create(this.source, `Type missmatch. Can not convert ${this.expression.type} to ${this.type}`);
+    if (!compatibleType(this.type, expression.type)) {
+        throw CompileError.create(this.source, `Type missmatch. Can not convert ${expression.type} to ${this.type}`);
     }
     context.addVar(this.name, this.type);
 };
@@ -165,7 +163,7 @@ MethodCall.analyze = function (context) {
     if (params.length !== definedParams.length) {
         throw CompileError.create(this.source, `Arity missmatch, expected ${definedParams.length} parameters but found ${params.length}`);
     }
-    definedParams.forEach((destType,i) => {
+    definedParams.forEach((destType, i) => {
         let type = params[i];
         if (!compatibleType(destType, type)) {
             throw CompileError.create(this.parameters[i].source, `Type missmatch. Can not convert ${type} to ${destType}`);

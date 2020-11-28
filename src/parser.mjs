@@ -141,14 +141,14 @@ semantics.addOperation('ast', {
             source: this.source.getLineAndColumnMessage(),
         });
     },
-    Exp0_binary : createBinary,
-    Exp1_binary : createBinary,
-    Exp2_binary : createBinary,
-    Exp3_binary : createBinary,
-    Exp4_binary : createBinary,
-    Exp5_binary : createBinary,
-    Exp6_binary : createBinary,
-    Exp7_binary : createBinary,
+    Exp0_binary: createBinary,
+    Exp1_binary: createBinary,
+    Exp2_binary: createBinary,
+    Exp3_binary: createBinary,
+    Exp4_binary: createBinary,
+    Exp5_binary: createBinary,
+    Exp6_binary: createBinary,
+    Exp7_binary: createBinary,
     Exp8_unary(op, exp) {
         return UnaryOperation.create({
             operation: op.sourceString,
