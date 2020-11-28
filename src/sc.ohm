@@ -1,0 +1,93 @@
+SimpleC {
+   Program     =  directives* Global* Method+
+
+   Global      =  type id "=" Exp ";"
+
+   Method      =  methodType id "(" ListOf<Param, ","> ")" "{" Vars* Statements "}"
+   Param       =  type id
+
+   Vars        =  type ListOf<Var, ","> ";"
+   Var         =  id
+   Statements  =  Stmt* ReturnStmt?
+
+   Stmt        =  id assignop Exp ";"                      -- assignment
+               |  if "(" Exp ")" "{" Statements "}" Else?  -- if
+               |  while "(" Exp ")" "{" Statements "}"     -- while
+               |  MethodCall ";"                           -- do
+
+   Else        = else "{" Statements "}"                   -- block
+               | else Stmt_if                              -- if
+
+   ReturnStmt  = return Exp? ";"
+
+   Exp         =  Exp0 "?" Exp ":" Exp        -- if
+               |  Exp0
+   Exp0        =  Exp0 logorop Exp1           -- binary
+               |  Exp1
+   Exp1        =  Exp1 logandop Exp2          -- binary
+               |  Exp2
+   Exp2        =  Exp2 orop Exp3              -- binary
+               |  Exp3
+   Exp3        =  Exp3 andop Exp4             -- binary
+               |  Exp4
+   Exp4        =  Exp4 relop Exp5             -- binary
+               |  Exp5
+   Exp5        =  Exp5 shiftop Exp6           -- binary
+               |  Exp6
+   Exp6        =  Exp6 addop Exp7             -- binary
+               |  Exp7
+   Exp7        =  Exp7 mulop Exp8             -- binary
+               |  Exp8
+   Exp8        =  prefixop Exp8               -- unary
+               |  Exp9
+   Exp9        =  Literal
+               |  MethodCall
+               |  VarExp
+               |  "(" Exp ")"                 -- parens
+
+   Literal     =  intlit
+               |  hexlit
+               |  boollit
+   VarExp      =  id
+
+
+   MethodCall  =  id "(" ListOf<Exp, ","> ")"
+
+   methodType  = void | type
+
+   type        =  byte | int | bool
+   byte        =  "byte" ~idrest
+   int         =  "int" ~idrest
+   bool        =  "bool" ~idrest
+   void        =  "void" ~idrest
+   true        =  "true" ~idrest
+   false       =  "false" ~idrest
+   if          =  "if" ~idrest
+   else        =  "else" ~idrest
+   while       =  "while" ~idrest
+   return      =  "return" ~idrest
+
+   keyword     =  byte | int | bool | true | false | if | else | while | return | void
+   id          =  ~keyword letter idrest*
+   idrest      =  "_" | alnum
+   intlit      =  ~"0x" digit+
+   hexlit      =  hex
+   hex         =  "0x" hexDigit+
+   hexDigit   :=  "0".."9" | "a".."f" | "A".."F"
+   boollit     =  true | false
+   logorop     =  "||"
+   logandop    =  "&&"
+   orop        =  "|" | "^"
+   andop       =  "&"
+   relop       =  "<=" | "<" | "==" | "!=" | ">=" | ">"
+   shiftop     =  "<<" | ">>"
+   addop       =  "+" | "-"
+   mulop       =  "*" | "/" | "%"
+   prefixop    =  "-" | "!" | "~"
+   assignop    = "=" | "||=" | "|=" | "^=" | "&&=" | "&=" | "+=" | "-=" | "*=" | "/=" | "%=" | "<<=" | ">>="
+
+   directives  =  "#" (~"\n" any)* "\n"
+   space      +=  comment
+   comment     =  "//" (~"\n" any)* "\n"  -- singleLine
+               |  "/*" (~"*/" any)* "*/"  -- multiLine
+}

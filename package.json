@@ -1,0 +1,28 @@
+{
+  "name": "sc-compiler",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/sc.mjs",
+  "exports": {
+    "require": "./",
+    "default": "./src"
+  },
+  "scripts": {
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest --collect-coverage"
+  },
+  "type": "module",
+  "author": "Francisco Modesto",
+  "license": "MIT",
+  "dependencies": {
+    "ohm-js": "^15.2.1",
+    "yargs": "^16.1.1"
+  },
+  "devDependencies": {
+    "eslint": "^7.14.0",
+    "jest": "^26.6.3",
+    "jest-environment-node": "^26.6.2"
+  },
+  "bin": {
+    "sc": "./src/sc.mjs"
+  }
+}
