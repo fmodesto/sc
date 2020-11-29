@@ -8,6 +8,6 @@ void test(byte a, byte b) {
     byte c,d;
 }
 
-void test(byte a, byte b) {
+byte foo2(byte a, byte b) {
     byte c,d;
 }

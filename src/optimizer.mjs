@@ -5,13 +5,17 @@ import {
     Literal,
 } from './ast.mjs';
 
-const isLiteral = (e) => Literal.isPrototypeOf(e);
-const isByteLiteral = (e) => isLiteral(e) && e.type === 'byte';
+const isLiteral = e => Literal.isPrototypeOf(e);
+const isByteLiteral = e => isLiteral(e) && e.type === 'byte';
 
 const createByteLiteral = (value, source) => {
+    let val = (value | 0) & 0xFF;
+    if (val > 127) {
+        val = -(256 - val);
+    }
     return Literal.create({
         type: 'byte',
-        value,
+        value: val,
         source
     });
 }
@@ -43,11 +47,11 @@ UnaryOperation.optimize = function () {
     if (isLiteral(expression)) {
         switch (this.operation) {
             case "-":
-                return createByteLiteral(-this.expression.value, this.expression.source);
+                return createByteLiteral(-expression.value, this.source);
             case "!":
-                return createBoolLiteral(!this.expression.value, this.expression.source);
+                return createBoolLiteral(!expression.value, this.source);
             case "~":
-                return createByteLiteral(~this.expression.value, this.expression.source);
+                return createByteLiteral(~expression.value & 0xFF, this.source);
         }
     }
     return UnaryOperation.create({
@@ -61,9 +65,9 @@ BinaryOperation.optimize = function () {
     let lhs = this.lhs.optimize();
     let rhs = this.rhs.optimize();
     if (isByteLiteral(lhs) && isByteLiteral(rhs)) {
-        return this.foldByteConstants();
+        return this.foldByteConstants(lhs, rhs);
     } else if (isLiteral(lhs) && isLiteral(rhs)) {
-        return this.foldBoolConstants();
+        return this.foldBoolConstants(lhs, rhs);
     }
     return BinaryOperation.create({
         operation: this.operation,
@@ -73,64 +77,64 @@ BinaryOperation.optimize = function () {
     });
 };
 
-BinaryOperation.foldByteConstants = function () {
-    const x = this.lhs.value;
-    const y = this.rhs.value;
+BinaryOperation.foldByteConstants = function (lhs, rhs) {
+    const x = lhs.value;
+    const y = rhs.value;
     switch (this.operation) {
         case '+':
-            return createByteLiteral(x + y, this.lhs.source);
+            return createByteLiteral(x + y, this.source);
         case '-':
-            return createByteLiteral(x - y, this.lhs.source);
+            return createByteLiteral(x - y, this.source);
         case '*':
-            return createByteLiteral(x * y, this.lhs.source);
+            return createByteLiteral(x * y, this.source);
         case '/':
-            return createByteLiteral(x / y, this.lhs.source);
+            return createByteLiteral(x / y, this.source);
         case '%':
-            return createByteLiteral(x % y, this.lhs.source);
+            return createByteLiteral(x % y, this.source);
         case '<<':
-            return createByteLiteral(x << y, this.lhs.source);
+            return createByteLiteral((x << y) & 0xFF, this.source);
         case '>>':
-            return createByteLiteral(x >>> y, this.lhs.source);
+            return createByteLiteral((x & 0xFF) >>> y, this.source);
         case '&':
-            return createByteLiteral(x & y, this.lhs.source);
+            return createByteLiteral((x & 0xFF) & (y & 0xFF), this.source);
         case '|':
-            return createByteLiteral(x | y, this.lhs.source);
+            return createByteLiteral((x & 0xFF) | (y & 0xFF), this.source);
         case '^':
-            return createByteLiteral(x ^ y, this.lhs.source);
+            return createByteLiteral((x & 0xFF) ^ (y & 0xFF), this.source);
         case '<':
-            return createBoolLiteral(x < y, this.lhs.source);
+            return createBoolLiteral(x < y, this.source);
         case '<=':
-            return createBoolLiteral(x <= y, this.lhs.source);
+            return createBoolLiteral(x <= y, this.source);
         case '==':
-            return createBoolLiteral(x === y, this.lhs.source);
+            return createBoolLiteral(x === y, this.source);
         case '!=':
-            return createBoolLiteral(x !== y, this.lhs.source);
+            return createBoolLiteral(x !== y, this.source);
         case '>=':
-            return createBoolLiteral(x >= y, this.lhs.source);
+            return createBoolLiteral(x >= y, this.source);
         case '>':
-            return createBoolLiteral(x > y, this.lhs.source);
+            return createBoolLiteral(x > y, this.source);
         case '&&':
-            return createBoolLiteral(!!x && !!y, this.lhs.source);
+            return createBoolLiteral(!!x && !!y, this.source);
         case '||':
-            return createBoolLiteral(!!x || !!y, this.lhs.source);
+            return createBoolLiteral(!!x || !!y, this.source);
         default:
-            throw new Error('Unknown byte operation to fold: ' + this.op);
+            throw new Error('Unknown byte operation to fold: ' + this.operation);
     }
 }
 
-BinaryOperation.foldBoolConstants = function () {
-    const x = this.lhs.value;
-    const y = this.rhs.value;
-    switch (this.op) {
+BinaryOperation.foldBoolConstants = function (lhs, rhs) {
+    const x = lhs.value;
+    const y = rhs.value;
+    switch (this.operation) {
         case '==':
-            return createBoolLiteral(!!x == !!y, this.lhs.source);
+            return createBoolLiteral(!!x == !!y, this.source);
         case '!=':
-            return createBoolLiteral(!!x !== !!y, this.lhs.source);
+            return createBoolLiteral(!!x !== !!y, this.source);
         case '&&':
-            return createBoolLiteral(!!x && !!y, this.lhs.source);
+            return createBoolLiteral(!!x && !!y, this.source);
         case '||':
-            return createBoolLiteral(!!x || !!y, this.lhs.source);
+            return createBoolLiteral(!!x || !!y, this.source);
         default:
-            throw new Error('Unknown bool operation to fold: ' + this.op);
+            throw new Error('Unknown bool operation to fold: ' + this.operation);
     }
 }

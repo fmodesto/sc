@@ -3,6 +3,7 @@ import {
     GlobalDeclaration,
     MethodDeclaration,
     Var,
+    Statement,
     AssignmentStatement,
     IfStatement,
     WhileStatement,
@@ -27,19 +28,33 @@ const logicBinaryOperations = ['&&', '||'];
 
 const relationalOperations = ['<=', '<', '==', '!=', '>=', '>'];
 
-const compatibleType = function (dest, src) {
-    return dest === 'bool' || src === dest;
+const doesReturn = function (list) {
+    return list.length !== 0 && list[list.length - 1].doesReturn();
 }
 
-const combineType = function (left, right) {
-    if (left === 'bool' || right === 'bool') {
-        return 'bool';
+const compatibleType = function (dest, src) {
+    if (src === dest) {
+        return true;
+    } else if (src === 'void' || dest === 'void') {
+        return false;
+    } else if (dest === 'bool') {
+        return true;
     } else {
-        return 'byte';
+        return false;
     }
 }
 
-Program.analyze = function (context) {
+const combineType = function (source, left, right) {
+    if (left === 'bool' || right === 'bool') {
+        return 'bool';
+    } else if (left === right) {
+        return left;
+    } else {
+        throw CompileError.create(source, `Incompatible types: can not convert between '${left}' and '${right}'`);
+    }
+}
+
+Program.analyze = function (context = createContext()) {
     this.globals.forEach(e => e.analyze(context));
     this.methods.forEach(e => {
         if (context.containsMethod(e.name)) {
@@ -61,15 +76,19 @@ GlobalDeclaration.analyze = function (context) {
         throw CompileError.create(this.source, `Variable '${this.name}' already defined`);
     }
     if (!compatibleType(this.type, expression.type)) {
-        throw CompileError.create(this.source, `Type missmatch. Can not convert ${expression.type} to ${this.type}`);
+        throw CompileError.create(this.source, `Incompatible types: can not convert '${expression.type}' to '${this.type}'`);
     }
     context.addVar(this.name, this.type);
 };
 
 MethodDeclaration.analyze = function (context) {
+    context.addReturnType(this.type);
     this.parameters.forEach(e => e.analyze(context));
     this.vars.forEach(e => e.analyze(context));
     this.statements.forEach(e => e.analyze(context));
+    if (this.type !== 'void' && !doesReturn(this.statements)) {
+        throw CompileError.create(this.source, `Missing return statement`);
+    }
 };
 
 Var.analyze = function (context) {
@@ -81,12 +100,12 @@ Var.analyze = function (context) {
 
 AssignmentStatement.analyze = function (context) {
     if (!context.containsVar(this.name)) {
-        throw CompileError.create(this.source, `Variable ${this.name} not defined`);
+        throw CompileError.create(this.source, `Variable '${this.name}' not defined`);
     }
     const destType = context.getVarType(this.name);
     let type = this.expression.analyze(context);
     if (!compatibleType(destType, type)) {
-        throw CompileError.create(this.source, `Type missmatch. Can not convert ${type} to ${destType}`);
+        throw CompileError.create(this.source, `Incompatible types: can not convert '${type}' to '${destType}'`);
     }
 };
 
@@ -108,18 +127,31 @@ CallStatement.analyze = function (context) {
 };
 
 ReturnStatement.analyze = function (context) {
-    this.expression.forEach(e => e.analyze(context));
+    let destType = context.getReturnType();
+    if (this.expression.length === 0) {
+        if (destType !== 'void') {
+            throw CompileError.create(this.source, `Missing return a value`);
+        }
+    } else {
+        let type = this.expression[0].analyze(context);
+        if (destType === 'void' && type === 'void') {
+            throw CompileError.create(this.source, `Incompatible types: unexpected return value`);
+        }
+        if (!compatibleType(destType, type)) {
+            throw CompileError.create(this.source, `Incompatible types: can not convert '${type}' to '${destType}'`);
+        }
+    }
 };
 
 Expression.analyze = function (context) {
-    console.error(this.kind);
+    throw new Error('Not implemented');
 };
 
 TernaryOperation.analyze = function (context) {
     this.predicate.analyze(context);
     let consType = this.consequent.analyze(context);
     let altType = this.alternate.analyze(context);
-    return combineType(consType, altType);
+    return combineType(this.source, consType, altType);
 };
 
 BinaryOperation.analyze = function (context) {
@@ -129,7 +161,7 @@ BinaryOperation.analyze = function (context) {
         if (lhsType === 'bool' || rhsType === 'bool') {
             throw CompileError.create(this.source, `Invalid types for operation: '${lhsType}' ${this.operation} '${rhsType}'`);
         }
-        return combineType(lhsType, rhsType);
+        return combineType(this.source, lhsType, rhsType);
     } else if (relationalOperations.includes(this.operation)) {
         if (lhsType === 'bool' || rhsType === 'bool') {
             throw CompileError.create(this.source, `Invalid types for operation: '${lhsType}' ${this.operation} '${rhsType}'`);
@@ -144,7 +176,7 @@ UnaryOperation.analyze = function (context) {
     let type = this.expression.analyze(context);
     if (integerUnaryOperations.includes(this.operation)) {
         if (type === 'bool') {
-            throw CompileError.create(this.source, `Invalid type for operation: ${this.operation} '${type}'`);
+            throw CompileError.create(this.source, `Invalid type for operation: ${this.operation}'${type}'`);
         }
         return type;
     } else if (logicUnaryOperations.includes(this.operation)) {
@@ -156,7 +188,7 @@ UnaryOperation.analyze = function (context) {
 
 MethodCall.analyze = function (context) {
     if (!context.containsMethod(this.name)) {
-        throw CompileError.create(this.source, `Method ${this.name} not defined`);
+        throw CompileError.create(this.source, `Method '${this.name}' not defined`);
     }
     let params = this.parameters.map(e => e.analyze(context));
     let definedParams = context.getMethodParameters(this.name);
@@ -166,7 +198,7 @@ MethodCall.analyze = function (context) {
     definedParams.forEach((destType, i) => {
         let type = params[i];
         if (!compatibleType(destType, type)) {
-            throw CompileError.create(this.parameters[i].source, `Type missmatch. Can not convert ${type} to ${destType}`);
+            throw CompileError.create(this.parameters[i].source, `Type missmatch. Can not convert '${type}' to '${destType}'`);
         }
     });
     return context.getMethodType(this.name);
@@ -178,13 +210,19 @@ Literal.analyze = function (context) {
 
 Variable.analyze = function (context) {
     if (!context.containsVar(this.name)) {
-        throw CompileError.create(this.source, `Variable ${this.name} not defined`);
+        throw CompileError.create(this.source, `Variable '${this.name}' not defined`);
     }
     return context.getVarType(this.name);
 };
 
-const analyze = (program) => {
-    program.analyze(createContext());
-};
+Statement.doesReturn = function () {
+    return false;
+}
 
-export default analyze;
+IfStatement.doesReturn = function () {
+    return doesReturn(this.consequent) && doesReturn(this.alternate);
+}
+
+ReturnStatement.doesReturn = function () {
+    return true;
+}

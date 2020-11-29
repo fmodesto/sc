@@ -8,7 +8,8 @@
     "default": "./src"
   },
   "scripts": {
-    "test": "NODE_OPTIONS='--experimental-vm-modules' jest --collect-coverage"
+    "test": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' jest",
+    "coverage": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' jest --collect-coverage"
   },
   "type": "module",
   "author": "Francisco Modesto",
@@ -24,5 +25,10 @@
   },
   "bin": {
     "sc": "./src/sc.mjs"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/{!(error),}.mjs"
+    ]
   }
 }

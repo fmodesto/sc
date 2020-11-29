@@ -12,7 +12,7 @@ SimpleC {
 
    Stmt        =  id assignop Exp ";"                      -- assignment
                |  if "(" Exp ")" "{" Statements "}" Else?  -- if
-               |  while "(" Exp ")" "{" Statements "}"     -- while
+               |  while "(" Exp ")" "{" Stmt* "}"          -- while
                |  MethodCall ";"                           -- do
 
    Else        = else "{" Statements "}"                   -- block

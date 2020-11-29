@@ -1,6 +1,9 @@
 #define byte unsigned char
+#define bool unsigned char
+#define true 1
+#define false 0
 
-byte test = 0;
+bool test = 0;
 
 byte multiply(byte a, byte b) {
     byte res, flag;
@@ -70,8 +73,9 @@ byte shiftr(byte value, byte pos) {
     return value;
 }
 
-int main() {
+byte main() {
     byte a, b;
+    a=1;b=2;
     if (a) {
         shiftr(a, b);
     } else if (b) {
@@ -81,5 +85,5 @@ int main() {
     }
     a = 15;
     b = 1 <<6;
-    return -1;
+    return 0;
 }

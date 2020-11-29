@@ -156,6 +156,9 @@ semantics.addOperation('ast', {
             source: this.source.getLineAndColumnMessage(),
         });
     },
+    Exp9_parens(_1, exp, _2) {
+        return exp.ast();
+    },
     MethodCall(id, _1, exp, _2) {
         return MethodCall.create({
             name: id.sourceString,
@@ -172,14 +175,14 @@ semantics.addOperation('ast', {
     },
     intlit(_) {
         return Literal.create({
-            type: +this.sourceString < 256 ? 'byte' : 'short',
+            type: +this.sourceString < 256 ? 'byte' : 'int',
             value: +this.sourceString,
             source: this.source.getLineAndColumnMessage(),
         });
     },
     hexlit(_) {
         return Literal.create({
-            type: +this.sourceString < 256 ? 'byte' : 'short',
+            type: +this.sourceString < 256 ? 'byte' : 'int',
             value: +this.sourceString,
             source: this.source.getLineAndColumnMessage(),
         });
@@ -192,8 +195,8 @@ semantics.addOperation('ast', {
     }
 });
 
-const parse = (src) => {
-    let m = grammar.match(src);
+const parse = (src, rule) => {
+    let m = grammar.match(src, rule);
     if (m.failed()) {
         throw CompileError.create(m.message);
     }
