@@ -36,16 +36,16 @@ const createRegisters = () => {
         },
         total() {
             return counter;
-        }
+        },
     };
-}
+};
 
 Program.generate = function (context = createContext()) {
     this.globals.forEach(e => context.addVar(e.name, e.type));
     this.methods.forEach(e => context.addMethod(e.name, e.type, e.parameters.map(p => ({ name: p.name, type: p.type }))));
     return [
         ...this.globals.map(e => e.generate(context)).flat(),
-        ...this.methods.map(e => e.generate(context.createContext())).flat()
+        ...this.methods.map(e => e.generate(context.createContext())).flat(),
     ];
 };
 
@@ -62,7 +62,7 @@ GlobalDeclaration.generate = function (context) {
 
 MethodDeclaration.generate = function (context) {
     let register = createRegisters();
-    this.statements.map(e => e.generate(context, register))
+    this.statements.map(e => e.generate(context, register));
     return [];
 };
 
@@ -105,6 +105,6 @@ MethodDeclaration.generate = function (context) {
 //     this.expression.forEach(e => e.analyze(context));
 // };
 
-// Expression.analyze = function (context) {
-//     console.error(this.kind);
-// };
+Expression.analyze = function (context, register) {
+    throw new Error('Not implemented');
+};

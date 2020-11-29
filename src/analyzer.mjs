@@ -30,7 +30,7 @@ const relationalOperations = ['<=', '<', '==', '!=', '>=', '>'];
 
 const doesReturn = function (list) {
     return list.length !== 0 && list[list.length - 1].doesReturn();
-}
+};
 
 const compatibleType = function (dest, src) {
     if (src === dest) {
@@ -42,7 +42,7 @@ const compatibleType = function (dest, src) {
     } else {
         return false;
     }
-}
+};
 
 const combineType = function (source, left, right) {
     if (left === 'bool' || right === 'bool') {
@@ -52,7 +52,7 @@ const combineType = function (source, left, right) {
     } else {
         throw CompileError.create(source, `Incompatible types: can not convert between '${left}' and '${right}'`);
     }
-}
+};
 
 Program.analyze = function (context = createContext()) {
     this.globals.forEach(e => e.analyze(context));
@@ -60,7 +60,7 @@ Program.analyze = function (context = createContext()) {
         if (context.containsMethod(e.name)) {
             throw CompileError.create(e.source, `Method '${e.name}' already defined`);
         }
-        context.addMethod(e.name, e.type, e.parameters.map(p => p.type))
+        context.addMethod(e.name, e.type, e.parameters.map(p => p.type));
     });
     this.methods.forEach(e => e.analyze(context.createContext()));
 };
@@ -217,12 +217,12 @@ Variable.analyze = function (context) {
 
 Statement.doesReturn = function () {
     return false;
-}
+};
 
 IfStatement.doesReturn = function () {
     return doesReturn(this.consequent) && doesReturn(this.alternate);
-}
+};
 
 ReturnStatement.doesReturn = function () {
     return true;
-}
+};

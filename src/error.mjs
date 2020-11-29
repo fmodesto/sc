@@ -8,6 +8,6 @@ const CompileError = {
         if (this.message)
             console.error(this.message);
     }
-}
+};
 
 export default CompileError;

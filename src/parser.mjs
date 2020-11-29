@@ -201,6 +201,6 @@ const parse = (src, rule) => {
         throw CompileError.create(m.message);
     }
     return semantics(m).ast();
-}
+};
 
 export default parse;

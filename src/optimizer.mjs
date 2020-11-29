@@ -5,8 +5,8 @@ import {
     Literal,
 } from './ast.mjs';
 
-const isLiteral = e => Literal.isPrototypeOf(e);
-const isByteLiteral = e => isLiteral(e) && e.type === 'byte';
+const isLiteral = (e) => Literal.isPrototypeOf(e);
+const isByteLiteral = (e) => isLiteral(e) && e.type === 'byte';
 
 const createByteLiteral = (value, source) => {
     let val = (value | 0) & 0xFF;
@@ -16,42 +16,44 @@ const createByteLiteral = (value, source) => {
     return Literal.create({
         type: 'byte',
         value: val,
-        source
+        source,
     });
-}
+};
 
-const createBoolLiteral = (value, source) => {
+const createBoolLiteral = function (value, source) {
     return Literal.create({
         type: 'bool',
         value: value ? 1 : 0,
-        source
+        source,
     });
-}
+};
 
 AST.optimize = function () {
     let properties = {};
-    Object.keys(this).forEach(p => {
+    Object.keys(this).forEach((p) => {
         if (Array.isArray(this[p])) {
-            properties[p] = this[p].map(e => AST.isPrototypeOf(e) ? e.optimize() : e);
+            properties[p] = this[p].map((e) => (AST.isPrototypeOf(e) ? e.optimize() : e));
         } else if (AST.isPrototypeOf(this[p])) {
             properties[p] = this[p].optimize();
         } else {
             properties[p] = this[p];
         }
     });
-    return this.__proto__.create(properties);
+    return Object.getPrototypeOf(this).create(properties);
 };
 
 UnaryOperation.optimize = function () {
     let expression = this.expression.optimize();
     if (isLiteral(expression)) {
         switch (this.operation) {
-            case "-":
+            case '-':
                 return createByteLiteral(-expression.value, this.source);
-            case "!":
+            case '!':
                 return createBoolLiteral(!expression.value, this.source);
-            case "~":
+            case '~':
                 return createByteLiteral(~expression.value & 0xFF, this.source);
+            default:
+                throw new Error(`Unimplemented for operation ${this.operation}`)
         }
     }
     return UnaryOperation.create({
@@ -120,7 +122,7 @@ BinaryOperation.foldByteConstants = function (lhs, rhs) {
         default:
             throw new Error('Unknown byte operation to fold: ' + this.operation);
     }
-}
+};
 
 BinaryOperation.foldBoolConstants = function (lhs, rhs) {
     const x = lhs.value;
@@ -137,4 +139,4 @@ BinaryOperation.foldBoolConstants = function (lhs, rhs) {
         default:
             throw new Error('Unknown bool operation to fold: ' + this.operation);
     }
-}
+};

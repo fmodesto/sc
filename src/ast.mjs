@@ -3,8 +3,8 @@ const AST = {
         return Object.assign(Object.create(this), { kind: this.kind }, props);
     },
     ast() {
-        return JSON.stringify(this, (key, value) => key === 'source' ? undefined : value, 2);
-    }
+        return JSON.stringify(this, (key, value) => (key === 'source' ? undefined : value), 2);
+    },
 };
 const Program = AST.create({
     kind: 'Program',
