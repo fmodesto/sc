@@ -65,7 +65,7 @@ semantics.addOperation('ast', {
         });
     },
     Vars(type, names, _1) {
-        return names.asIteration().ast().map(e => Var.create({
+        return names.asIteration().ast().map((e) => Var.create({
             type: type.sourceString,
             name: e,
             source: this.source.getLineAndColumnMessage(),
@@ -192,7 +192,7 @@ semantics.addOperation('ast', {
             name: this.sourceString,
             source: this.source.getLineAndColumnMessage(),
         });
-    }
+    },
 });
 
 const parse = (src, rule) => {

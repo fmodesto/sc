@@ -7,7 +7,7 @@ const CompileError = {
             console.error(this.source);
         if (this.message)
             console.error(this.message);
-    }
+    },
 };
 
 export default CompileError;

@@ -41,7 +41,7 @@ const valid = `
 
 describe('The syntax checker', () => {
     errors.forEach(([scenario, program]) => {
-        test(`detects the error ${scenario}`, done => {
+        test(`detects the error ${scenario}`, (done) => {
             expect(() => parse(program, 'Stmt')).toThrow();
             done();
         });
@@ -49,7 +49,7 @@ describe('The syntax checker', () => {
 });
 
 describe('The syntax checker', () => {
-    test('accepts the mega program with all syntactic forms', done => {
+    test('accepts the mega program with all syntactic forms', (done) => {
         expect(() => parse(valid)).not.toThrow();
         done();
     });

@@ -120,7 +120,7 @@ BinaryOperation.foldByteConstants = function (lhs, rhs) {
         case '||':
             return createBoolLiteral(!!x || !!y, this.source);
         default:
-            throw new Error('Unknown byte operation to fold: ' + this.operation);
+            throw new Error(`Unknown byte operation to fold: ${  this.operation}`);
     }
 };
 
@@ -137,6 +137,6 @@ BinaryOperation.foldBoolConstants = function (lhs, rhs) {
         case '||':
             return createBoolLiteral(!!x || !!y, this.source);
         default:
-            throw new Error('Unknown bool operation to fold: ' + this.operation);
+            throw new Error(`Unknown bool operation to fold: ${  this.operation}`);
     }
 };

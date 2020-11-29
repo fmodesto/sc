@@ -55,14 +55,14 @@ const combineType = function (source, left, right) {
 };
 
 Program.analyze = function (context = createContext()) {
-    this.globals.forEach(e => e.analyze(context));
-    this.methods.forEach(e => {
+    this.globals.forEach((e) => e.analyze(context));
+    this.methods.forEach((e) => {
         if (context.containsMethod(e.name)) {
             throw CompileError.create(e.source, `Method '${e.name}' already defined`);
         }
-        context.addMethod(e.name, e.type, e.parameters.map(p => p.type));
+        context.addMethod(e.name, e.type, e.parameters.map((p) => p.type));
     });
-    this.methods.forEach(e => e.analyze(context.createContext()));
+    this.methods.forEach((e) => e.analyze(context.createContext()));
 };
 
 GlobalDeclaration.analyze = function (context) {
@@ -70,7 +70,7 @@ GlobalDeclaration.analyze = function (context) {
     this.expression.analyze(context);
     let expression = this.expression.optimize();
     if (!Literal.isPrototypeOf(expression)) {
-        throw CompileError.create(src, `Expression must have a constant value`);
+        throw CompileError.create(src, 'Expression must have a constant value');
     }
     if (context.containsVar(this.name)) {
         throw CompileError.create(this.source, `Variable '${this.name}' already defined`);
@@ -83,11 +83,11 @@ GlobalDeclaration.analyze = function (context) {
 
 MethodDeclaration.analyze = function (context) {
     context.addReturnType(this.type);
-    this.parameters.forEach(e => e.analyze(context));
-    this.vars.forEach(e => e.analyze(context));
-    this.statements.forEach(e => e.analyze(context));
+    this.parameters.forEach((e) => e.analyze(context));
+    this.vars.forEach((e) => e.analyze(context));
+    this.statements.forEach((e) => e.analyze(context));
     if (this.type !== 'void' && !doesReturn(this.statements)) {
-        throw CompileError.create(this.source, `Missing return statement`);
+        throw CompileError.create(this.source, 'Missing return statement');
     }
 };
 
@@ -111,14 +111,14 @@ AssignmentStatement.analyze = function (context) {
 
 IfStatement.analyze = function (context) {
     this.predicate.analyze(context);
-    this.consequent.forEach(e => e.analyze(context));
-    this.alternate.forEach(e => e.analyze(context));
+    this.consequent.forEach((e) => e.analyze(context));
+    this.alternate.forEach((e) => e.analyze(context));
     return this;
 };
 
 WhileStatement.analyze = function (context) {
     this.predicate.analyze(context);
-    this.block.forEach(e => e.analyze(context));
+    this.block.forEach((e) => e.analyze(context));
     return this;
 };
 
@@ -130,12 +130,12 @@ ReturnStatement.analyze = function (context) {
     let destType = context.getReturnType();
     if (this.expression.length === 0) {
         if (destType !== 'void') {
-            throw CompileError.create(this.source, `Missing return a value`);
+            throw CompileError.create(this.source, 'Missing return a value');
         }
     } else {
         let type = this.expression[0].analyze(context);
         if (destType === 'void' && type === 'void') {
-            throw CompileError.create(this.source, `Incompatible types: unexpected return value`);
+            throw CompileError.create(this.source, 'Incompatible types: unexpected return value');
         }
         if (!compatibleType(destType, type)) {
             throw CompileError.create(this.source, `Incompatible types: can not convert '${type}' to '${destType}'`);
@@ -190,7 +190,7 @@ MethodCall.analyze = function (context) {
     if (!context.containsMethod(this.name)) {
         throw CompileError.create(this.source, `Method '${this.name}' not defined`);
     }
-    let params = this.parameters.map(e => e.analyze(context));
+    let params = this.parameters.map((e) => e.analyze(context));
     let definedParams = context.getMethodParameters(this.name);
     if (params.length !== definedParams.length) {
         throw CompileError.create(this.source, `Arity missmatch, expected ${definedParams.length} parameters but found ${params.length}`);

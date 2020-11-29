@@ -75,80 +75,80 @@ const optimize = (exp, rule = 'Exp') => parse(exp, rule).optimize();
 
 describe('Optimize', () => {
     expressions.forEach(([exp, result]) => {
-        test(`${exp} = ${result.value.toString(16)}`, done => {
+        test(`${exp} = ${result.value.toString(16)}`, (done) => {
             let optimized = optimize(exp);
             expect(optimized).toMatchObject(result);
             done();
         });
     });
 
-    test(`Function call`, done => {
+    test('Function call', (done) => {
         let optimized = optimize('foo(2*3, true || false)');
         expect(optimized).toMatchObject({
-            "kind": "MethodCall",
-            "name": "foo",
-            "parameters": [
+            kind: 'MethodCall',
+            name: 'foo',
+            parameters: [
                 {
-                    "kind": "Literal",
-                    "type": "byte",
-                    "value": 6
+                    kind: 'Literal',
+                    type: 'byte',
+                    value: 6,
                 },
                 {
-                    "kind": "Literal",
-                    "type": "bool",
-                    "value": 1
-                }
-            ]
+                    kind: 'Literal',
+                    type: 'bool',
+                    value: 1,
+                },
+            ],
         });
         done();
     });
 
-    test(`Return statement`, done => {
+    test('Return statement', (done) => {
         let optimized = optimize('return 2*3;', 'ReturnStmt');
         expect(optimized).toMatchObject({
-            "kind": "ReturnStatement",
-            "expression": [
+            kind: 'ReturnStatement',
+            expression: [
                 {
-                    "kind": "Literal",
-                    "type": "byte",
-                    "value": 6
-                }
-            ]
+                    kind: 'Literal',
+                    type: 'byte',
+                    value: 6,
+                },
+            ],
         });
         done();
     });
 
-    test(`If statement`, done => {
+    test('If statement', (done) => {
         let optimized = optimize('if (2*3) { a = 1+0; } else { a = 1<<2; }', 'Stmt');
         expect(optimized).toMatchObject({
-            "kind": "IfStatement",
-            "predicate": {
-                "kind": "Literal",
-                "type": "byte",
-                "value": 6
+            kind: 'IfStatement',
+            predicate: {
+                kind: 'Literal',
+                type: 'byte',
+                value: 6,
             },
-            "consequent": [
+            consequent: [
                 {
-                    "kind": "AssignmentStatement",
-                    "name": "a",
-                    "expression": {
-                        "kind": "Literal",
-                        "type": "byte",
-                        "value": 1
-                    }
-                }
+                    kind: 'AssignmentStatement',
+                    name: 'a',
+                    expression: {
+                        kind: 'Literal',
+                        type: 'byte',
+                        value: 1,
+                    },
+                },
             ],
-            "alternate": [
+            alternate: [
                 {
-                    "kind": "AssignmentStatement",
-                    "name": "a",
-                    "expression": {
-                        "kind": "Literal",
-                        "type": "byte",
-                        "value": 4
-                    }
-                }
-            ]
+                    kind: 'AssignmentStatement',
+                    name: 'a',
+                    expression: {
+                        kind: 'Literal',
+                        type: 'byte',
+                        value: 4,
+                    },
+                },
+            ],
         });
         done();
     });
@@ -156,7 +156,7 @@ describe('Optimize', () => {
 
 describe('No Optimized', () => {
     noOptimized.forEach((exp) => {
-        test(`${exp}`, done => {
+        test(`${exp}`, (done) => {
             let original = parse(exp, 'Exp');
             let optimized = original.optimize();
             expect(optimized).toStrictEqual(original);

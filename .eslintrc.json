@@ -28,6 +28,7 @@
         "no-confusing-arrow": "error",
         "arrow-body-style": ["error", "as-needed", {
             "requireReturnForObjectLiteral": false
-        }]
+        }],
+        "prefer-template": "error"
     }
 }

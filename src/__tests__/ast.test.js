@@ -1,9 +1,9 @@
 import parse from '../parser.mjs';
 
-const ast = src => JSON.parse(parse(src).ast());
+const ast = (src) => JSON.parse(parse(src).ast());
 
 describe('AST', () => {
-    test(`Simple program`, done => {
+    test('Simple program', (done) => {
         let src = `
             byte a = 1;
 
@@ -12,53 +12,53 @@ describe('AST', () => {
             }
         `;
         expect(ast(src)).toStrictEqual({
-            "kind": "Program",
-            "globals": [
+            kind: 'Program',
+            globals: [
                 {
-                    "kind": "GlobalDeclaration",
-                    "type": "byte",
-                    "name": "a",
-                    "expression": {
-                        "kind": "Literal",
-                        "type": "byte",
-                        "value": 1
-                    }
-                }
+                    kind: 'GlobalDeclaration',
+                    type: 'byte',
+                    name: 'a',
+                    expression: {
+                        kind: 'Literal',
+                        type: 'byte',
+                        value: 1,
+                    },
+                },
             ],
-            "methods": [
+            methods: [
                 {
-                    "kind": "MethodDeclaration",
-                    "type": "byte",
-                    "name": "foo",
-                    "parameters": [
+                    kind: 'MethodDeclaration',
+                    type: 'byte',
+                    name: 'foo',
+                    parameters: [
                         {
-                            "kind": "Var",
-                            "type": "byte",
-                            "name": "b"
-                        }
+                            kind: 'Var',
+                            type: 'byte',
+                            name: 'b',
+                        },
                     ],
-                    "vars": [],
-                    "statements": [
+                    vars: [],
+                    statements: [
                         {
-                            "kind": "ReturnStatement",
-                            "expression": [
+                            kind: 'ReturnStatement',
+                            expression: [
                                 {
-                                    "kind": "BinaryOperation",
-                                    "operation": "+",
-                                    "lhs": {
-                                        "kind": "Variable",
-                                        "name": "a"
+                                    kind: 'BinaryOperation',
+                                    operation: '+',
+                                    lhs: {
+                                        kind: 'Variable',
+                                        name: 'a',
                                     },
-                                    "rhs": {
-                                        "kind": "Variable",
-                                        "name": "b"
-                                    }
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
+                                    rhs: {
+                                        kind: 'Variable',
+                                        name: 'b',
+                                    },
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
         });
         done();
     });

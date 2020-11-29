@@ -15,7 +15,7 @@ const context = {
         };
     },
     addReturnType(type) {
-        this[`return`] = type;
+        this['return'] = type;
     },
     getVarType(name) {
         return this[`var_${name}`];
@@ -27,14 +27,14 @@ const context = {
         return this[`method_${name}`].parameters;
     },
     getReturnType() {
-        return this[`return`];
+        return this['return'];
     },
     createContext() {
         return Object.create(this);
     },
     isLocal(name) {
         return this.hasOwnProperty(`var_${name}`);
-    }
+    },
 };
 
 export default () => context.createContext();

@@ -26,7 +26,7 @@ const compile = (text, options) => {
         console.log(program.ast());
         return;
     }
-    program.generate().forEach(e => console.log(e));
+    program.generate().forEach((e) => console.log(e));
 };
 
 readFile(argv._[0], 'utf-8', (error, text) => {
