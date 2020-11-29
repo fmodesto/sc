@@ -1,5 +1,5 @@
-import parse from '../parser.mjs';
-import '../optimizer.mjs';
+import parse from '../src/parser.js';
+import '../src/optimizer.js';
 
 const byte = (value) => ({ type: 'byte', value: value });
 const bool = (value) => ({ type: 'bool', value: value ? 1 : 0 });

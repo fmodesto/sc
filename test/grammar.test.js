@@ -1,4 +1,4 @@
-import parse from '../parser.mjs';
+import parse from '../src/parser.js';
 
 const errors = [
     ['keyword as id', 'if = 5;'],

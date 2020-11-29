@@ -16,9 +16,9 @@ import {
     MethodCall,
     Literal,
     Variable,
-} from './ast.mjs';
-import createContext from './context.mjs';
-import CompileError from './error.mjs';
+} from './ast.js';
+import createContext from './context.js';
+import CompileError from './error.js';
 
 const integerUnaryOperations = ['-', '~'];
 const integerBinaryOperations = ['+', '-', '*', '/', '%', '<<', '>>', '&', '|', '^'];

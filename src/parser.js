@@ -16,8 +16,8 @@ import {
     MethodCall,
     Literal,
     Variable,
-} from './ast.mjs';
-import CompileError from './error.mjs';
+} from './ast.js';
+import CompileError from './error.js';
 
 const grammar = ohm.grammar(fs.readFileSync('src/sc.ohm'));
 const semantics = grammar.createSemantics();

@@ -3,7 +3,7 @@ import {
     BinaryOperation,
     UnaryOperation,
     Literal,
-} from './ast.mjs';
+} from './ast.js';
 
 const isLiteral = (e) => Literal.isPrototypeOf(e);
 const isByteLiteral = (e) => isLiteral(e) && e.type === 'byte';
@@ -53,7 +53,7 @@ UnaryOperation.optimize = function () {
             case '~':
                 return createByteLiteral(~expression.value & 0xFF, this.source);
             default:
-                throw new Error(`Unimplemented for operation ${this.operation}`)
+                throw new Error(`Unimplemented for operation ${this.operation}`);
         }
     }
     return UnaryOperation.create({

@@ -1,4 +1,4 @@
-import parse from '../parser.mjs';
+import parse from '../src/parser.js';
 
 const ast = (src) => JSON.parse(parse(src).ast());
 

@@ -1,6 +1,6 @@
-import parse from '../parser.mjs';
-import '../optimizer.mjs';
-import '../analyzer.mjs';
+import parse from '../src/parser.js';
+import '../src/optimizer.js';
+import '../src/analyzer.js';
 
 const check = (src) => () => parse(src).analyze();
 

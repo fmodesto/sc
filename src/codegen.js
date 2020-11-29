@@ -17,8 +17,8 @@ import {
     MethodCall,
     Literal,
     Variable,
-} from './ast.mjs';
-import createContext from './context.mjs';
+} from './ast.js';
+import createContext from './context.js';
 
 const createRegisters = () => {
     let available = [];

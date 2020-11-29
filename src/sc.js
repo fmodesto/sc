@@ -2,11 +2,11 @@
 
 import yargs from 'yargs';
 import { readFile } from 'fs';
-import parse from './parser.mjs';
-import CompileError from './error.mjs';
-import './analyzer.mjs';
-import './codegen.mjs';
-import './optimizer.mjs';
+import parse from './parser.js';
+import CompileError from './error.js';
+import './analyzer.js';
+import './codegen.js';
+import './optimizer.js';
 
 const { argv } = yargs(process.argv.slice(2))
     .usage('$0 [-a] [-o] filename')

@@ -30,6 +30,7 @@
             "requireReturnForObjectLiteral": false
         }],
         "prefer-template": "error",
-        "eqeqeq": ["error", "always"]
+        "eqeqeq": ["error", "always"],
+        "semi": ["error", "always"]
     }
 }
