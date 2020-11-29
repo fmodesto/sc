@@ -70,13 +70,14 @@ BinaryOperation.optimize = function () {
         return this.foldByteConstants(lhs, rhs);
     } else if (isLiteral(lhs) && isLiteral(rhs)) {
         return this.foldBoolConstants(lhs, rhs);
+    } else {
+        return BinaryOperation.create({
+            operation: this.operation,
+            lhs,
+            rhs,
+            source: this.source,
+        });
     }
-    return BinaryOperation.create({
-        operation: this.operation,
-        lhs,
-        rhs,
-        source: this.source,
-    });
 };
 
 BinaryOperation.foldByteConstants = function (lhs, rhs) {
@@ -120,7 +121,7 @@ BinaryOperation.foldByteConstants = function (lhs, rhs) {
         case '||':
             return createBoolLiteral(!!x || !!y, this.source);
         default:
-            throw new Error(`Unknown byte operation to fold: ${  this.operation}`);
+            throw new Error(`Unknown byte operation to fold: ${this.operation}`);
     }
 };
 
@@ -129,7 +130,7 @@ BinaryOperation.foldBoolConstants = function (lhs, rhs) {
     const y = rhs.value;
     switch (this.operation) {
         case '==':
-            return createBoolLiteral(!!x == !!y, this.source);
+            return createBoolLiteral(!!x === !!y, this.source);
         case '!=':
             return createBoolLiteral(!!x !== !!y, this.source);
         case '&&':
@@ -137,6 +138,6 @@ BinaryOperation.foldBoolConstants = function (lhs, rhs) {
         case '||':
             return createBoolLiteral(!!x || !!y, this.source);
         default:
-            throw new Error(`Unknown bool operation to fold: ${  this.operation}`);
+            throw new Error(`Unknown bool operation to fold: ${this.operation}`);
     }
 };

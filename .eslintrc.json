@@ -29,6 +29,7 @@
         "arrow-body-style": ["error", "as-needed", {
             "requireReturnForObjectLiteral": false
         }],
-        "prefer-template": "error"
+        "prefer-template": "error",
+        "eqeqeq": ["error", "always"]
     }
 }
