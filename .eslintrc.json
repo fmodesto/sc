@@ -3,34 +3,41 @@
         "ecmaVersion": 6,
         "sourceType": "module"
     },
+    "overrides": [
+        {
+            "files": [
+                "**/*.js"
+            ],
+            "env": {
+                "node": true
+            }
+        },
+        {
+            "files": [
+                "**/*.test.js"
+            ],
+            "env": {
+                "jest": true
+            }
+        }
+    ],
     // "extends": "airbnb-base",
     "rules": {
         "indent": ["error", 4, { "SwitchCase": 1 }],
-        "comma-dangle": ["error",
-            {
-                "arrays": "always-multiline",
-                "objects": "always-multiline",
-                "imports": "always-multiline",
-                "exports": "always-multiline",
-                "functions": "always-multiline"
-            }
-        ],
+        "comma-dangle": ["error", "always-multiline" ],
         "no-multiple-empty-lines": ["error", { "max": 2, "maxEOF": 0 }],
         "arrow-parens": ["error", "always"],
         "quotes": ["error", "single", { "avoidEscape": true }],
         "quote-props": ["error", "as-needed"],
-        "space-before-function-paren": ["error", {
-            "anonymous": "always",
-            "named": "never"
-        }],
+        "space-before-function-paren": ["error", { "anonymous": "always", "named": "never" }],
         "default-case": "error",
         "no-proto": "error",
         "no-confusing-arrow": "error",
-        "arrow-body-style": ["error", "as-needed", {
-            "requireReturnForObjectLiteral": false
-        }],
+        "arrow-body-style": ["error", "as-needed", { "requireReturnForObjectLiteral": false }],
         "prefer-template": "error",
         "eqeqeq": ["error", "always"],
-        "semi": ["error", "always"]
+        "semi": ["error", "always"],
+        "no-unused-vars": ["error", { "vars": "all", "args": "after-used", "ignoreRestSiblings": true, "argsIgnorePattern": "^_" }],
+        "no-undef": "error"
     }
 }

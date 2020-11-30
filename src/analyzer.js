@@ -143,7 +143,7 @@ ReturnStatement.analyze = function (context) {
     }
 };
 
-Expression.analyze = function (context) {
+Expression.analyze = function () {
     throw new Error('Not implemented');
 };
 
@@ -204,7 +204,7 @@ MethodCall.analyze = function (context) {
     return context.getMethodType(this.name);
 };
 
-Literal.analyze = function (context) {
+Literal.analyze = function () {
     return this.type;
 };
 

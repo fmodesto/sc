@@ -1,22 +1,22 @@
 import {
-    AST,
+    // AST,
     Program,
     GlobalDeclaration,
     MethodDeclaration,
-    Var,
-    Statement,
-    AssignmentStatement,
-    IfStatement,
-    WhileStatement,
-    CallStatement,
-    ReturnStatement,
+    // Var,
+    // Statement,
+    // AssignmentStatement,
+    // IfStatement,
+    // WhileStatement,
+    // CallStatement,
+    // ReturnStatement,
     Expression,
-    TernaryOperation,
-    BinaryOperation,
-    UnaryOperation,
-    MethodCall,
-    Literal,
-    Variable,
+    // TernaryOperation,
+    // BinaryOperation,
+    // UnaryOperation,
+    // MethodCall,
+    // Literal,
+    // Variable,
 } from './ast.js';
 import createContext from './context.js';
 
@@ -49,7 +49,7 @@ Program.generate = function (context = createContext()) {
     ];
 };
 
-GlobalDeclaration.generate = function (context) {
+GlobalDeclaration.generate = function () {
     let value = this.expression.optimize().value;
     if (this.type === 'bool') {
         return [`.BYTE ${this.name} ${value ? 1 : 0}`];
@@ -105,6 +105,6 @@ MethodDeclaration.generate = function (context) {
 //     this.expression.forEach(e => e.analyze(context));
 // };
 
-Expression.analyze = function (context, register) {
+Expression.analyze = function (_context, _register) {
     throw new Error('Not implemented');
 };
