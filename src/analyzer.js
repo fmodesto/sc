@@ -62,7 +62,7 @@ Program.analyze = function (context = createContext()) {
         }
         context.addMethod(e.name, e.type, e.parameters.map((p) => p.type));
     });
-    this.methods.forEach((e) => e.analyze(context.createContext()));
+    this.methods.forEach((e) => e.analyze(context.createContext(e.name)));
 };
 
 GlobalDeclaration.analyze = function (context) {
@@ -82,7 +82,6 @@ GlobalDeclaration.analyze = function (context) {
 };
 
 MethodDeclaration.analyze = function (context) {
-    context.addReturnType(this.type);
     this.parameters.forEach((e) => e.analyze(context));
     this.vars.forEach((e) => e.analyze(context));
     this.statements.forEach((e) => e.analyze(context));
@@ -127,7 +126,7 @@ CallStatement.analyze = function (context) {
 };
 
 ReturnStatement.analyze = function (context) {
-    let destType = context.getReturnType();
+    let destType = context.getMethodType();
     if (this.expression.length === 0) {
         if (destType !== 'void') {
             throw CompileError.create(this.source, 'Missing return a value');

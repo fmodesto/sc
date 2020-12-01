@@ -14,23 +14,20 @@ const context = {
             parameters,
         };
     },
-    addReturnType(type) {
-        this['return'] = type;
+    getCurrentMethod() {
+        return this.currentMethod;
     },
     getVarType(name) {
         return this[`var_${name}`];
     },
-    getMethodType(name) {
+    getMethodType(name = this.currentMethod) {
         return this[`method_${name}`].type;
     },
-    getMethodParameters(name) {
+    getMethodParameters(name = this.currentMethod) {
         return this[`method_${name}`].parameters;
     },
-    getReturnType() {
-        return this['return'];
-    },
-    createContext() {
-        return Object.create(this);
+    createContext(method) {
+        return Object.assign(Object.create(this), { currentMethod: method });
     },
     isLocal(name) {
         return this.hasOwnProperty(`var_${name}`);
