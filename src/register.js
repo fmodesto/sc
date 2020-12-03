@@ -20,8 +20,10 @@ const createRegister = (prefix) => {
         getGenerated() {
             return generated;
         },
+        getInUse() {
+            return generated.filter((e) => !available.includes(e));
+        },
     };
 };
-
 
 export default createRegister;

@@ -11,15 +11,20 @@ import {
     // CallStatement,
     // ReturnStatement,
     Expression,
-    // TernaryOperation,
+    TernaryOperation,
     BinaryOperation,
     UnaryOperation,
-    // MethodCall,
+    MethodCall,
     Literal,
     Variable,
+    Statement,
 } from './ast.js';
 import createContext from './context.js';
 import createRegister from './register.js';
+
+let label_index = 0;
+const createLabel = () => `label_${label_index++}`;
+const resetLabels = () => label_index = 0;
 
 Program.generate = function (context = createContext()) {
     this.globals.forEach((e) => context.addVar(e.name, e.type));
@@ -46,6 +51,11 @@ MethodDeclaration.generate = function (context) {
     this.statements.map((e) => e.generate(context, register));
     return [];
 };
+
+Statement.generate = function () {
+    throw new Error('Not implemented');
+};
+
 
 // Var.analyze = function (context) {
 //     if (context.containsVar(this.name)) {
@@ -167,8 +177,41 @@ const binary = {
     },
 };
 
-Expression.generate = function (_context, _register) {
+const moveInstruction = function (dest, src) {
+    if (dest === src) {
+        return [];
+    }
+    return [`MOV ${dest},${src}`];
+};
+
+Expression.generate = function () {
     throw new Error('Not implemented');
+};
+
+TernaryOperation.generate = function (context, register) {
+    let elseLabel = createLabel();
+    let endLabel = createLabel();
+    let { address: tmp1, instructions: pred } = this.predicate.generate(context, register);
+    register.release(tmp1);
+    let { address: tmp2, instructions: cons } = this.consequent.generate(context, register);
+    register.release(tmp2);
+    let { address: tmp3, instructions: alt } = this.alternate.generate(context, register);
+    register.release(tmp3);
+    let dest = register.fetch();
+    return {
+        address: dest,
+        instructions: [
+            ...pred,
+            `JZ ${elseLabel},${tmp1}`,
+            ...cons,
+            ...moveInstruction(dest, tmp2),
+            `JMP ${endLabel}`,
+            `${elseLabel}:`,
+            ...alt,
+            ...moveInstruction(dest, tmp3),
+            `${endLabel}:`,
+        ],
+    };
 };
 
 BinaryOperation.generate = function (context, register) {
@@ -187,6 +230,22 @@ UnaryOperation.generate = function (context, register) {
     return unary[this.operation](dest, exp);
 };
 
+MethodCall.generate = function (context, register) {
+    let params = this.parameters.map((e) => e.generate(context, register));
+    let setParams = context.getMethodParameters(this.name).map(({ name }, i) => `MOV ${this.name}_${name},${params[i].address}`);
+    params.forEach(({ address }) => register.release(address));
+    let dest = register.fetch();
+    return {
+        address: dest,
+        instructions: [
+            ...params.map((e) => e.instructions).flat(),
+            ...setParams,
+            `CALL ${this.name}`,
+            `MOV ${dest},${this.name}_return`,
+        ],
+    };
+};
+
 Literal.generate = function () {
     let value = `#${this.value}`;
     return {
@@ -201,4 +260,8 @@ Variable.generate = function (context) {
         address: name,
         instructions: [],
     };
+};
+
+export {
+    resetLabels,
 };

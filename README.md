@@ -1,1 +1,2 @@
-# sc
+# Simple-C Compiler
+

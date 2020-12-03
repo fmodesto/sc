@@ -1,18 +1,25 @@
 import parse from '../src/parser.js';
 import '../src/analyzer.js';
-import '../src/codegen.js';
+import { resetLabels } from '../src/codegen.js';
 import createContext from '../src/context.js';
 import createRegister from '../src/register.js';
 
 const generateExp = (exp, context, register) => parse(exp, 'Exp').generate(context, register).instructions;
 
-describe('Analyzer detect error programs', () => {
+describe('Generate code for expression', () => {
     let globalContext = createContext();
     globalContext.addVar('a', 'byte');
     globalContext.addVar('b', 'byte');
+    globalContext.addMethod('test', 'byte', [{ name: 'p1', type: 'byte' }, { name: 'p2', type: 'byte' }]);
+    globalContext.addMethod('foo', 'byte', [{ name: 'p1', type: 'byte' }, { name: 'p2', type: 'byte' }, { name: 'p3', type: 'byte' }]);
+    globalContext.addMethod('bar', 'byte', [{ name: 'p1', type: 'byte' }, { name: 'p2', type: 'byte' }]);
     let context = globalContext.createContext('test');
     context.addVar('p1', 'byte');
     context.addVar('p2', 'byte');
+
+    beforeEach(() => {
+        resetLabels();
+    });
 
     const simple = [
         ['a + b', 'ADD test_0,a,b'],
@@ -48,5 +55,141 @@ describe('Analyzer detect error programs', () => {
             expect(generateExp(exp, context, register)).toEqual([expected]);
             done();
         });
+    });
+
+    test('Complex expression', (done) => {
+        let register = createRegister(context.getCurrentMethod());
+        expect(generateExp('-7 + a * 5 + 5 * (b+3) << 2', context, register)).toEqual([
+            'NEG test_0,#7',
+            'MUL test_1,a,#5',
+            'ADD test_1,test_0,test_1',
+            'ADD test_0,b,#3',
+            'MUL test_0,#5,test_0',
+            'ADD test_0,test_1,test_0',
+            'SHL test_0,test_0,#2',
+        ]);
+        expect(register.getGenerated()).toEqual([
+            'test_0',
+            'test_1',
+        ]);
+        expect(register.getInUse()).toEqual([
+            'test_0',
+        ]);
+        done();
+    });
+
+    test('Multiple temps expression', (done) => {
+        let register = createRegister(context.getCurrentMethod());
+        expect(generateExp('-(2*3) + ((a/-4) * (b+3))', context, register)).toEqual([
+            'MUL test_0,#2,#3',
+            'NEG test_0,test_0',
+            'NEG test_1,#4',
+            'DIV test_1,a,test_1',
+            'ADD test_2,b,#3',
+            'MUL test_2,test_1,test_2',
+            'ADD test_2,test_0,test_2',
+        ]);
+        expect(register.getGenerated()).toEqual([
+            'test_0',
+            'test_1',
+            'test_2',
+        ]);
+        expect(register.getInUse()).toEqual([
+            'test_2',
+        ]);
+        done();
+    });
+
+    test('Method call', (done) => {
+        let register = createRegister(context.getCurrentMethod());
+        expect(generateExp('foo(a, 3, p1)', context, register)).toEqual([
+            'MOV foo_p1,a',
+            'MOV foo_p2,#3',
+            'MOV foo_p3,test_p1',
+            'CALL foo',
+            'MOV test_0,foo_return',
+        ]);
+        expect(register.getGenerated()).toEqual([
+            'test_0',
+        ]);
+        expect(register.getInUse()).toEqual([
+            'test_0',
+        ]);
+        done();
+    });
+
+    test('Complex call expression', (done) => {
+        let register = createRegister(context.getCurrentMethod());
+        expect(generateExp('5 % foo(a * 7, 3 + (a / 2) - p1, (p1 + 2) << 3) - 9', context, register)).toEqual([
+            'MUL test_0,a,#7',
+            'DIV test_1,a,#2',
+            'ADD test_1,#3,test_1',
+            'SUB test_1,test_1,test_p1',
+            'ADD test_2,test_p1,#2',
+            'SHL test_2,test_2,#3',
+            'MOV foo_p1,test_0',
+            'MOV foo_p2,test_1',
+            'MOV foo_p3,test_2',
+            'CALL foo',
+            'MOV test_2,foo_return',
+            'MOD test_2,#5,test_2',
+            'SUB test_2,test_2,#9',
+        ]);
+        expect(register.getGenerated()).toEqual([
+            'test_0',
+            'test_1',
+            'test_2',
+        ]);
+        expect(register.getInUse()).toEqual([
+            'test_2',
+        ]);
+        done();
+    });
+
+    test('Ternary expression', (done) => {
+        let register = createRegister(context.getCurrentMethod());
+        expect(generateExp('a ? 1 : 2', context, register)).toEqual([
+            'JZ label_0,a',
+            'MOV test_0,#1',
+            'JMP label_1',
+            'label_0:',
+            'MOV test_0,#2',
+            'label_1:',
+        ]);
+        expect(register.getGenerated()).toEqual([
+            'test_0',
+        ]);
+        expect(register.getInUse()).toEqual([
+            'test_0',
+        ]);
+        done();
+    });
+
+    test('Complex ternary expression', (done) => {
+        let register = createRegister(context.getCurrentMethod());
+        expect(generateExp('a + b ? foo(1,2,3) : bar(a,b) << 1', context, register)).toEqual([
+            'ADD test_0,a,b',
+            'JZ label_0,test_0',
+            'MOV foo_p1,#1',
+            'MOV foo_p2,#2',
+            'MOV foo_p3,#3',
+            'CALL foo',
+            'MOV test_0,foo_return',
+            'JMP label_1',
+            'label_0:',
+            'MOV bar_p1,a',
+            'MOV bar_p2,b',
+            'CALL bar',
+            'MOV test_0,bar_return',
+            'SHL test_0,test_0,#1',
+            'label_1:',
+        ]);
+        expect(register.getGenerated()).toEqual([
+            'test_0',
+        ]);
+        expect(register.getInUse()).toEqual([
+            'test_0',
+        ]);
+        done();
     });
 });
