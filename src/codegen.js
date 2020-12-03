@@ -1,23 +1,20 @@
 import {
-    // AST,
+    AST,
     Program,
     GlobalDeclaration,
     MethodDeclaration,
-    // Var,
-    // Statement,
-    // AssignmentStatement,
-    // IfStatement,
-    // WhileStatement,
-    // CallStatement,
-    // ReturnStatement,
-    Expression,
+    Var,
+    AssignmentStatement,
+    IfStatement,
+    WhileStatement,
+    CallStatement,
+    ReturnStatement,
     TernaryOperation,
     BinaryOperation,
     UnaryOperation,
     MethodCall,
     Literal,
     Variable,
-    Statement,
 } from './ast.js';
 import createContext from './context.js';
 import createRegister from './register.js';
@@ -25,6 +22,18 @@ import createRegister from './register.js';
 let label_index = 0;
 const createLabel = () => `label_${label_index++}`;
 const resetLabels = () => label_index = 0;
+
+const moveInstruction = function (dest, src) {
+    if (dest === src) {
+        return [];
+    }
+    return [`MOV ${dest},${src}`];
+};
+const variable = (context, name) => (context.isLocal(name) ? `${context.getCurrentMethod()}_${name}` : `${name}`);
+
+AST.generate = function () {
+    throw new Error('Not implemented');
+};
 
 Program.generate = function (context = createContext()) {
     this.globals.forEach((e) => context.addVar(e.name, e.type));
@@ -46,55 +55,109 @@ GlobalDeclaration.generate = function () {
     }
 };
 
+const returnAddress = function (name, type) {
+    if (type === 'void') {
+        return [];
+    } else if (type === 'bool' || type === 'byte') {
+        return [`.BYTE ${name}_return 0`];
+    } else {
+        throw new Error(`Unknown type ${this.type}`);
+    }
+};
+
 MethodDeclaration.generate = function (context) {
+    this.parameters.forEach((e) => context.addVar(e.name, e.type));
+    this.vars.forEach((e) => context.addVar(e.name, e.type));
+
+    let params = this.parameters.map((e) => e.generate(context)).flat();
+    let vars = this.vars.map((e) => e.generate(context)).flat();
+    let ret = returnAddress(this.name, this.type);
+
     let register = createRegister(context.getCurrentMethod());
-    this.statements.map((e) => e.generate(context, register));
-    return [];
+    let instructions = this.statements.map((e) => e.generate(context, register)).flat();
+    return [
+        `.FUNCTION ${this.name}`,
+        ...ret,
+        ...params,
+        ...vars,
+        ...instructions,
+        `${this.name}_end:`,
+        `.RETURN ${this.name}`,
+    ];
 };
 
-Statement.generate = function () {
-    throw new Error('Not implemented');
+Var.generate = function (context) {
+    return [
+        `.BYTE ${variable(context, this.name)} 0`,
+    ];
 };
 
+AssignmentStatement.generate = function (context, register) {
+    let { address, instructions } = this.expression.generate(context, register);
+    register.release(address);
+    return [
+        ...instructions,
+        ...moveInstruction(variable(context, this.name), address),
+    ];
+};
 
-// Var.analyze = function (context) {
-//     if (context.containsVar(this.name)) {
-//         throw CompileError.create(this.source, `Variable '${this.name}' already defined`);
-//     }
-//     context.addVar(this.name, this.type);
-// };
+IfStatement.generate = function (context, register) {
+    let elseLabel = createLabel();
+    let endLabel = createLabel();
+    let { address, instructions: pred } = this.predicate.generate(context, register);
+    register.release(address);
+    let cons = this.consequent.map((e) => e.generate(context, register)).flat();
+    let alt = this.alternate.map((e) => e.generate(context, register)).flat();
+    return [
+        ...pred,
+        `JZ ${elseLabel},${address}`,
+        ...cons,
+        `JMP ${endLabel}`,
+        `${elseLabel}:`,
+        ...alt,
+        `${endLabel}:`,
+    ];
+};
 
-// AssignmentStatement.analyze = function (context) {
-//     if (!context.containsVar(this.name)) {
-//         throw CompileError.create(this.source, `Variable ${this.name} not defined`);
-//     }
-//     const destType = context.getVarType(this.name);
-//     let type = this.expression.analyze(context);
-//     if (!compatibleType(destType, type)) {
-//         throw CompileError.create(this.source, `Type missmatch. Can not convert ${type} to ${destType}`);
-//     }
-// };
+WhileStatement.generate = function (context, register) {
+    let whileLabel = createLabel();
+    let endLabel = createLabel();
+    let { address, instructions: pred } = this.predicate.generate(context, register);
+    register.release(address);
+    let block = this.block.map((e) => e.generate(context, register)).flat();
+    return [
+        `${whileLabel}:`,
+        ...pred,
+        `JZ ${endLabel},${address}`,
+        ...block,
+        `JMP ${whileLabel}`,
+        `${endLabel}:`,
+    ];
+};
 
-// IfStatement.analyze = function (context) {
-//     this.predicate.analyze(context);
-//     this.consequent.forEach(e => e.analyze(context));
-//     this.alternate.forEach(e => e.analyze(context));
-//     return this;
-// };
+CallStatement.generate = function (context, register) {
+    let { address, instructions } = this.expression.generate(context, register);
+    register.release(address);
+    return [
+        ...instructions.slice(0, -1),
+    ];
+};
 
-// WhileStatement.analyze = function (context) {
-//     this.predicate.analyze(context);
-//     this.block.forEach(e => e.analyze(context));
-//     return this;
-// };
-
-// CallStatement.analyze = function (context) {
-//     this.expression.analyze(context);
-// };
-
-// ReturnStatement.analyze = function (context) {
-//     this.expression.forEach(e => e.analyze(context));
-// };
+ReturnStatement.generate = function (context, register) {
+    if (this.expression.length === 0) {
+        return [
+            `JMP ${context.getCurrentMethod()}_end`,
+        ];
+    } else {
+        let { address, instructions } = this.expression[0].generate(context, register);
+        register.release(address);
+        return [
+            ...instructions,
+            `MOV ${context.getCurrentMethod()}_return,${address}`,
+            `JMP ${context.getCurrentMethod()}_end`,
+        ];
+    }
+};
 
 const createUnary = function (op, dest, { address, instructions }) {
     return {
@@ -177,17 +240,6 @@ const binary = {
     },
 };
 
-const moveInstruction = function (dest, src) {
-    if (dest === src) {
-        return [];
-    }
-    return [`MOV ${dest},${src}`];
-};
-
-Expression.generate = function () {
-    throw new Error('Not implemented');
-};
-
 TernaryOperation.generate = function (context, register) {
     let elseLabel = createLabel();
     let endLabel = createLabel();
@@ -255,9 +307,8 @@ Literal.generate = function () {
 };
 
 Variable.generate = function (context) {
-    let name = context.isLocal(this.name) ? `${context.getCurrentMethod()}_${this.name}` : `${this.name}`;
     return {
-        address: name,
+        address: variable(context, this.name),
         instructions: [],
     };
 };
