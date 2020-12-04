@@ -1,10 +1,11 @@
 import parse from '../src/parser.js';
 import '../src/analyzer.js';
-import { resetLabels } from '../src/codegen.js';
+import '../src/codegen.js';
 import createContext from '../src/context.js';
 import createRegister from '../src/register.js';
 
 const generateExp = (exp, context, register) => parse(exp, 'Exp').generate(context, register).instructions;
+const generate = (code) => parse(code).generate();
 
 describe('Generate code for expression', () => {
     let globalContext = createContext();
@@ -16,10 +17,6 @@ describe('Generate code for expression', () => {
     let context = globalContext.createContext('test');
     context.addVar('p1', 'byte');
     context.addVar('p2', 'byte');
-
-    beforeEach(() => {
-        resetLabels();
-    });
 
     const simple = [
         ['a + b', 'ADD test_0,a,b'],
@@ -149,12 +146,12 @@ describe('Generate code for expression', () => {
     test('Ternary expression', (done) => {
         let register = createRegister(context.getCurrentMethod());
         expect(generateExp('a ? 1 : 2', context, register)).toEqual([
-            'JZ label_0,a',
+            'JZ test_label_0,a',
             'MOV test_0,#1',
-            'JMP label_1',
-            'label_0:',
+            'JMP test_label_1',
+            'test_label_0:',
             'MOV test_0,#2',
-            'label_1:',
+            'test_label_1:',
         ]);
         expect(register.getGenerated()).toEqual([
             'test_0',
@@ -169,20 +166,20 @@ describe('Generate code for expression', () => {
         let register = createRegister(context.getCurrentMethod());
         expect(generateExp('a + b ? foo(1,2,3) : bar(a,b) << 1', context, register)).toEqual([
             'ADD test_0,a,b',
-            'JZ label_0,test_0',
+            'JZ test_label_0,test_0',
             'MOV foo_p1,#1',
             'MOV foo_p2,#2',
             'MOV foo_p3,#3',
             'CALL foo',
             'MOV test_0,foo_return',
-            'JMP label_1',
-            'label_0:',
+            'JMP test_label_1',
+            'test_label_0:',
             'MOV bar_p1,a',
             'MOV bar_p2,b',
             'CALL bar',
             'MOV test_0,bar_return',
             'SHL test_0,test_0,#1',
-            'label_1:',
+            'test_label_1:',
         ]);
         expect(register.getGenerated()).toEqual([
             'test_0',
@@ -192,4 +189,239 @@ describe('Generate code for expression', () => {
         ]);
         done();
     });
+});
+
+describe('Generate code', () => {
+
+    test('Empty function', (done) => {
+        let code = `
+            void foo() {}
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.LOCALS',
+            '.TMP',
+            '.CODE',
+            'foo_end:',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test('Empty function return', (done) => {
+        let code = `
+            void foo() {
+                return;
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.LOCALS',
+            '.TMP',
+            '.CODE',
+            'JMP foo_end',
+            'foo_end:',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test('Generate vars', (done) => {
+        let code = `
+            byte a = 73;
+            void foo(byte b) {
+                byte c;
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.BYTE a 73',
+            '.FUNCTION foo',
+            '.BYTE foo_b 0',
+            '.LOCALS',
+            '.BYTE foo_c 0',
+            '.TMP',
+            '.CODE',
+            'foo_end:',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test('Generate return function', (done) => {
+        let code = `
+            byte foo(byte a) {
+                return a;
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_return 0',
+            '.BYTE foo_a 0',
+            '.LOCALS',
+            '.TMP',
+            '.CODE',
+            'MOV foo_return,foo_a',
+            'JMP foo_end',
+            'foo_end:',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test('Generate return expression', (done) => {
+        let code = `
+            byte foo(byte a) {
+                return a + 1;
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_return 0',
+            '.BYTE foo_a 0',
+            '.LOCALS',
+            '.TMP',
+            '.BYTE foo_0 0',
+            '.CODE',
+            'ADD foo_0,foo_a,#1',
+            'MOV foo_return,foo_0',
+            'JMP foo_end',
+            'foo_end:',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test('Generate if statement', (done) => {
+        let code = `
+            byte foo(byte a) {
+                if (a) {
+                    return 10 / a;
+                }
+                return 0;
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_return 0',
+            '.BYTE foo_a 0',
+            '.LOCALS',
+            '.TMP',
+            '.BYTE foo_0 0',
+            '.CODE',
+            'JZ foo_label_1,foo_a',
+            'DIV foo_0,#10,foo_a',
+            'MOV foo_return,foo_0',
+            'JMP foo_end',
+            'foo_label_1:',
+            'MOV foo_return,#0',
+            'JMP foo_end',
+            'foo_end:',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test('Generate if statement', (done) => {
+        let code = `
+            byte foo(byte a) {
+                if (a) {
+                    return 10 / a;
+                } else {
+                    return 0;
+                }
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_return 0',
+            '.BYTE foo_a 0',
+            '.LOCALS',
+            '.TMP',
+            '.BYTE foo_0 0',
+            '.CODE',
+            'JZ foo_label_0,foo_a',
+            'DIV foo_0,#10,foo_a',
+            'MOV foo_return,foo_0',
+            'JMP foo_end',
+            'JMP foo_label_1',
+            'foo_label_0:',
+            'MOV foo_return,#0',
+            'JMP foo_end',
+            'foo_label_1:',
+            'foo_end:',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test('Generate while statement', (done) => {
+        let code = `
+            byte foo(byte a) {
+                byte b;
+                b = 0;
+                while (a) {
+                    a <<= 1;
+                    b += 1;
+                }
+                return b;
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_return 0',
+            '.BYTE foo_a 0',
+            '.LOCALS',
+            '.BYTE foo_b 0',
+            '.TMP',
+            '.BYTE foo_0 0',
+            '.CODE',
+            'MOV foo_b,#0',
+            'foo_label_0:',
+            'JZ foo_label_1,foo_a',
+            'SHL foo_0,foo_a,#1',
+            'MOV foo_a,foo_0',
+            'ADD foo_0,foo_b,#1',
+            'MOV foo_b,foo_0',
+            'JMP foo_label_0',
+            'foo_label_1:',
+            'MOV foo_return,foo_b',
+            'JMP foo_end',
+            'foo_end:',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test('Generate call statement', (done) => {
+        let code = `
+            void bar(byte a) {
+            }
+
+            void foo(byte a) {
+                bar(a);
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION bar',
+            '.BYTE bar_a 0',
+            '.LOCALS',
+            '.TMP',
+            '.CODE',
+            'bar_end:',
+            '.RETURN bar',
+
+            '.FUNCTION foo',
+            '.BYTE foo_a 0',
+            '.LOCALS',
+            '.TMP',
+            '.BYTE foo_0 0',
+            '.CODE',
+            'MOV bar_a,foo_a',
+            'CALL bar',
+            'foo_end:',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
 });

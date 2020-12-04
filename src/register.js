@@ -2,6 +2,7 @@ const createRegister = (prefix) => {
     let generated = [];
     let available = [];
     let counter = 0;
+    let label = 0;
     return {
         fetch() {
             if (available.length !== 0) {
@@ -22,6 +23,9 @@ const createRegister = (prefix) => {
         },
         getInUse() {
             return generated.filter((e) => !available.includes(e));
+        },
+        generateLabel() {
+            return `${prefix}_label_${label++}`;
         },
     };
 };
