@@ -62,40 +62,6 @@ const returnAddress = function (name, type) {
     }
 };
 
-// const parseInstruction = function (code) {
-//     let [instruction, params] = code.split(' ');
-//     let [dest, src1, src2] = params ? params.split(',') : [];
-//     return {
-//         instruction,
-//         dest,
-//         src1,
-//         src2,
-//     };
-// };
-
-// const generateInstruction = function (ins) {
-//     return `${ins.instruction} ${[ins.dest, ins.src1, ins.src2].filter((e) => e).join()}`;
-// };
-
-// const cleanUp = function (code, register) {
-//     for (let i = 1; i < code.length - 1; i++) {
-//         let ins = parseInstruction(code[i]);
-//         if (ins.instruction === 'MOV' && ins.dest === ins.src1) {
-//             code[i] = null;
-//         } else if (ins.instruction === 'MOV' && register.getGenerated().includes(ins.src1)) {
-//             let prev = parseInstruction(code[i-1]);
-//             if (prev.dest === ins.src1) {
-//                 prev.dest = ins.dest;
-//                 code[i-1] = generateInstruction(prev);
-//                 code[i] = null;
-//             }
-//         } else if (ins.instruction === 'JMP' && code[i+1] === `${ins.dest}:`) {
-//             code[i] = null;
-//         }
-//     }
-//     return code.filter((e) => e);
-// };
-
 MethodDeclaration.generate = function (context) {
     this.parameters.forEach((e) => context.addVar(e.name, e.type));
     this.vars.forEach((e) => context.addVar(e.name, e.type));
@@ -107,14 +73,14 @@ MethodDeclaration.generate = function (context) {
     let register = createRegister(context.getCurrentMethod());
     let instructions = this.statements.map((e) => e.generate(context, register)).flat();
     let tmps = register.getGenerated().map((e) => `.BYTE ${e} 0`);
+
+    const prefix = (label, array) => (array.length ? [label, ...array] : []);
     return [
         `.FUNCTION ${this.name}`,
         ...ret,
         ...params,
-        '.LOCALS',
-        ...vars,
-        '.TMP',
-        ...tmps,
+        ...prefix('.LOCALS', vars),
+        ...prefix('.TMP', tmps),
         '.CODE',
         ...instructions,
         `${this.name}_end:`,

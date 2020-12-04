@@ -19,7 +19,7 @@ import {
 } from './ast.js';
 import CompileError from './error.js';
 
-const grammar = ohm.grammar(fs.readFileSync('src/sc.ohm'));
+const grammar = ohm.grammar(fs.readFileSync('compiler/src/sc.ohm'));
 const semantics = grammar.createSemantics();
 
 function createBinary(lhs, op, rhs) {

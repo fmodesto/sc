@@ -10,7 +10,7 @@
   "scripts": {
     "test": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' jest",
     "test:coverage": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' jest --collect-coverage",
-    "lint": "eslint src --ext .js",
+    "lint": "eslint compiler --ext .js",
     "lint:fix": "npm run lint -- --fix"
   },
   "type": "module",
@@ -28,13 +28,13 @@
     "jest-environment-node": "^26.6.2"
   },
   "bin": {
-    "sc": "src/sc.js"
+    "sc": "compiler/src/sc.js"
   },
   "jest": {
     "collectCoverageFrom": [
-      "src/**/*.js",
-      "!src/error.js",
-      "!src/sc.js"
+      "compiler/src/**/*.js",
+      "!compiler/src/error.js",
+      "!compiler/src/sc.js"
     ]
   }
 }

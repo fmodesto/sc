@@ -199,8 +199,6 @@ describe('Generate code', () => {
         `;
         expect(generate(code)).toEqual([
             '.FUNCTION foo',
-            '.LOCALS',
-            '.TMP',
             '.CODE',
             'foo_end:',
             '.RETURN foo',
@@ -216,8 +214,6 @@ describe('Generate code', () => {
         `;
         expect(generate(code)).toEqual([
             '.FUNCTION foo',
-            '.LOCALS',
-            '.TMP',
             '.CODE',
             'JMP foo_end',
             'foo_end:',
@@ -226,7 +222,7 @@ describe('Generate code', () => {
         done();
     });
 
-    test('Generate vars', (done) => {
+    test('Vars', (done) => {
         let code = `
             byte a = 73;
             void foo(byte b) {
@@ -239,7 +235,6 @@ describe('Generate code', () => {
             '.BYTE foo_b 0',
             '.LOCALS',
             '.BYTE foo_c 0',
-            '.TMP',
             '.CODE',
             'foo_end:',
             '.RETURN foo',
@@ -247,7 +242,7 @@ describe('Generate code', () => {
         done();
     });
 
-    test('Generate return function', (done) => {
+    test('Return function', (done) => {
         let code = `
             byte foo(byte a) {
                 return a;
@@ -257,8 +252,6 @@ describe('Generate code', () => {
             '.FUNCTION foo',
             '.BYTE foo_return 0',
             '.BYTE foo_a 0',
-            '.LOCALS',
-            '.TMP',
             '.CODE',
             'MOV foo_return,foo_a',
             'JMP foo_end',
@@ -268,7 +261,7 @@ describe('Generate code', () => {
         done();
     });
 
-    test('Generate return expression', (done) => {
+    test('Return expression', (done) => {
         let code = `
             byte foo(byte a) {
                 return a + 1;
@@ -278,7 +271,6 @@ describe('Generate code', () => {
             '.FUNCTION foo',
             '.BYTE foo_return 0',
             '.BYTE foo_a 0',
-            '.LOCALS',
             '.TMP',
             '.BYTE foo_0 0',
             '.CODE',
@@ -291,7 +283,7 @@ describe('Generate code', () => {
         done();
     });
 
-    test('Generate if statement', (done) => {
+    test('If statement', (done) => {
         let code = `
             byte foo(byte a) {
                 if (a) {
@@ -304,7 +296,6 @@ describe('Generate code', () => {
             '.FUNCTION foo',
             '.BYTE foo_return 0',
             '.BYTE foo_a 0',
-            '.LOCALS',
             '.TMP',
             '.BYTE foo_0 0',
             '.CODE',
@@ -321,7 +312,7 @@ describe('Generate code', () => {
         done();
     });
 
-    test('Generate if statement', (done) => {
+    test('If-else statement', (done) => {
         let code = `
             byte foo(byte a) {
                 if (a) {
@@ -335,7 +326,6 @@ describe('Generate code', () => {
             '.FUNCTION foo',
             '.BYTE foo_return 0',
             '.BYTE foo_a 0',
-            '.LOCALS',
             '.TMP',
             '.BYTE foo_0 0',
             '.CODE',
@@ -354,7 +344,7 @@ describe('Generate code', () => {
         done();
     });
 
-    test('Generate while statement', (done) => {
+    test('While statement', (done) => {
         let code = `
             byte foo(byte a) {
                 byte b;
@@ -392,7 +382,7 @@ describe('Generate code', () => {
         done();
     });
 
-    test('Generate call statement', (done) => {
+    test('Call statement', (done) => {
         let code = `
             void bar(byte a) {
             }
@@ -404,15 +394,12 @@ describe('Generate code', () => {
         expect(generate(code)).toEqual([
             '.FUNCTION bar',
             '.BYTE bar_a 0',
-            '.LOCALS',
-            '.TMP',
             '.CODE',
             'bar_end:',
             '.RETURN bar',
 
             '.FUNCTION foo',
             '.BYTE foo_a 0',
-            '.LOCALS',
             '.TMP',
             '.BYTE foo_0 0',
             '.CODE',
