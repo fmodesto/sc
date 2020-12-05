@@ -149,9 +149,9 @@ describe('Generate code for expression', () => {
             'JZ test_label_0,a',
             'MOV test_0,#1',
             'JMP test_label_1',
-            'test_label_0:',
+            '.LABEL test_label_0',
             'MOV test_0,#2',
-            'test_label_1:',
+            '.LABEL test_label_1',
         ]);
         expect(register.getGenerated()).toEqual([
             'test_0',
@@ -173,13 +173,13 @@ describe('Generate code for expression', () => {
             'CALL foo',
             'MOV test_0,foo_return',
             'JMP test_label_1',
-            'test_label_0:',
+            '.LABEL test_label_0',
             'MOV bar_p1,a',
             'MOV bar_p2,b',
             'CALL bar',
             'MOV test_0,bar_return',
             'SHL test_0,test_0,#1',
-            'test_label_1:',
+            '.LABEL test_label_1',
         ]);
         expect(register.getGenerated()).toEqual([
             'test_0',
@@ -200,7 +200,7 @@ describe('Generate code', () => {
         expect(generate(code)).toEqual([
             '.FUNCTION foo',
             '.CODE',
-            'foo_end:',
+            '.LABEL foo_end',
             '.RETURN foo',
         ]);
         done();
@@ -216,7 +216,7 @@ describe('Generate code', () => {
             '.FUNCTION foo',
             '.CODE',
             'JMP foo_end',
-            'foo_end:',
+            '.LABEL foo_end',
             '.RETURN foo',
         ]);
         done();
@@ -236,7 +236,7 @@ describe('Generate code', () => {
             '.LOCALS',
             '.BYTE foo_c 0',
             '.CODE',
-            'foo_end:',
+            '.LABEL foo_end',
             '.RETURN foo',
         ]);
         done();
@@ -255,7 +255,7 @@ describe('Generate code', () => {
             '.CODE',
             'MOV foo_return,foo_a',
             'JMP foo_end',
-            'foo_end:',
+            '.LABEL foo_end',
             '.RETURN foo',
         ]);
         done();
@@ -277,7 +277,7 @@ describe('Generate code', () => {
             'ADD foo_0,foo_a,#1',
             'MOV foo_return,foo_0',
             'JMP foo_end',
-            'foo_end:',
+            '.LABEL foo_end',
             '.RETURN foo',
         ]);
         done();
@@ -303,10 +303,10 @@ describe('Generate code', () => {
             'DIV foo_0,#10,foo_a',
             'MOV foo_return,foo_0',
             'JMP foo_end',
-            'foo_label_1:',
+            '.LABEL foo_label_1',
             'MOV foo_return,#0',
             'JMP foo_end',
-            'foo_end:',
+            '.LABEL foo_end',
             '.RETURN foo',
         ]);
         done();
@@ -334,11 +334,11 @@ describe('Generate code', () => {
             'MOV foo_return,foo_0',
             'JMP foo_end',
             'JMP foo_label_1',
-            'foo_label_0:',
+            '.LABEL foo_label_0',
             'MOV foo_return,#0',
             'JMP foo_end',
-            'foo_label_1:',
-            'foo_end:',
+            '.LABEL foo_label_1',
+            '.LABEL foo_end',
             '.RETURN foo',
         ]);
         done();
@@ -366,17 +366,17 @@ describe('Generate code', () => {
             '.BYTE foo_0 0',
             '.CODE',
             'MOV foo_b,#0',
-            'foo_label_0:',
+            '.LABEL foo_label_0',
             'JZ foo_label_1,foo_a',
             'SHL foo_0,foo_a,#1',
             'MOV foo_a,foo_0',
             'ADD foo_0,foo_b,#1',
             'MOV foo_b,foo_0',
             'JMP foo_label_0',
-            'foo_label_1:',
+            '.LABEL foo_label_1',
             'MOV foo_return,foo_b',
             'JMP foo_end',
-            'foo_end:',
+            '.LABEL foo_end',
             '.RETURN foo',
         ]);
         done();
@@ -395,7 +395,7 @@ describe('Generate code', () => {
             '.FUNCTION bar',
             '.BYTE bar_a 0',
             '.CODE',
-            'bar_end:',
+            '.LABEL bar_end',
             '.RETURN bar',
 
             '.FUNCTION foo',
@@ -405,7 +405,7 @@ describe('Generate code', () => {
             '.CODE',
             'MOV bar_a,foo_a',
             'CALL bar',
-            'foo_end:',
+            '.LABEL foo_end',
             '.RETURN foo',
         ]);
         done();

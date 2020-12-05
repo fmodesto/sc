@@ -17,7 +17,7 @@ const optimize = function (instructions) {
         if (e[0] === 'MOV' && tmps.includes(e[2]) && prev[1] === e[2]) {
             prev[1] = e[1];
             e[0] = 'NOP';
-        } else if (e[0] === 'JMP' && next[0] === `${e[1]}:`) {
+        } else if (e[0] === 'JMP' && next[0] === '.LABEL' && next[1] === e[1]) {
             e[0] = 'NOP';
         } else if (e[0] === 'MOV' && e[1] === e[2]) {
             e[0] = 'NOP';

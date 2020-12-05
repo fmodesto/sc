@@ -19,22 +19,22 @@ describe('Optimizes vm code', () => {
                 .CODE
                 MOV multiply_res,#0
                 MOV multiply_flag,#1
-                multiply_label_0:
+                .LABEL multiply_label_0
                 JZ multiply_label_1,multiply_flag
                 AND multiply_0,multiply_flag,multiply_b
                 JZ multiply_label_3,multiply_0
                 ADD multiply_0,multiply_res,multiply_a
                 MOV multiply_res,multiply_0
-                multiply_label_3:
+                .LABEL multiply_label_3
                 SHL multiply_0,multiply_a,#1
                 MOV multiply_a,multiply_0
                 SHL multiply_0,multiply_flag,#1
                 MOV multiply_flag,multiply_0
                 JMP multiply_label_0
-                multiply_label_1:
+                .LABEL multiply_label_1
                 MOV multiply_return,multiply_res
                 JMP multiply_end
-                multiply_end:
+                .LABEL multiply_end
             .RETRUN multiply`;
 
         expect(optimize(src)).toEqual([
@@ -50,18 +50,18 @@ describe('Optimizes vm code', () => {
             ['.CODE'],
             ['MOV', 'multiply_res', '#0'],
             ['MOV', 'multiply_flag', '#1'],
-            ['multiply_label_0:'],
+            ['.LABEL', 'multiply_label_0'],
             ['JZ', 'multiply_label_1', 'multiply_flag'],
             ['AND', 'multiply_0', 'multiply_flag', 'multiply_b'],
             ['JZ', 'multiply_label_3', 'multiply_0'],
             ['ADD', 'multiply_res', 'multiply_res', 'multiply_a'],
-            ['multiply_label_3:'],
+            ['.LABEL', 'multiply_label_3'],
             ['SHL', 'multiply_a', 'multiply_a', '#1'],
             ['SHL', 'multiply_flag', 'multiply_flag', '#1'],
             ['JMP', 'multiply_label_0'],
-            ['multiply_label_1:'],
+            ['.LABEL', 'multiply_label_1'],
             ['MOV', 'multiply_return', 'multiply_res'],
-            ['multiply_end:'],
+            ['.LABEL', 'multiply_end'],
             ['.RETRUN', 'multiply'],
         ]);
         done();

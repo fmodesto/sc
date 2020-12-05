@@ -83,7 +83,7 @@ MethodDeclaration.generate = function (context) {
         ...prefix('.TMP', tmps),
         '.CODE',
         ...instructions,
-        `${this.name}_end:`,
+        `.LABEL ${this.name}_end`,
         `.RETURN ${this.name}`,
     ];
 };
@@ -115,7 +115,7 @@ IfStatement.generate = function (context, register) {
             ...pred,
             `JZ ${endLabel},${address}`,
             ...cons,
-            `${endLabel}:`,
+            `.LABEL ${endLabel}`,
         ];
     } else {
         return [
@@ -123,9 +123,9 @@ IfStatement.generate = function (context, register) {
             `JZ ${elseLabel},${address}`,
             ...cons,
             `JMP ${endLabel}`,
-            `${elseLabel}:`,
+            `.LABEL ${elseLabel}`,
             ...alt,
-            `${endLabel}:`,
+            `.LABEL ${endLabel}`,
         ];
     }
 };
@@ -137,12 +137,12 @@ WhileStatement.generate = function (context, register) {
     register.release(address);
     let block = this.block.map((e) => e.generate(context, register)).flat();
     return [
-        `${whileLabel}:`,
+        `.LABEL ${whileLabel}`,
         ...pred,
         `JZ ${endLabel},${address}`,
         ...block,
         `JMP ${whileLabel}`,
-        `${endLabel}:`,
+        `.LABEL ${endLabel}`,
     ];
 };
 
@@ -269,10 +269,10 @@ TernaryOperation.generate = function (context, register) {
             ...cons,
             ...moveInstruction(dest, tmp2),
             `JMP ${endLabel}`,
-            `${elseLabel}:`,
+            `.LABEL ${elseLabel}`,
             ...alt,
             ...moveInstruction(dest, tmp3),
-            `${endLabel}:`,
+            `.LABEL ${endLabel}`,
         ],
     };
 };
