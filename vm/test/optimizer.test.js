@@ -32,6 +32,7 @@ describe('Optimizes vm code', () => {
                 MOV multiply_flag,multiply_0
                 JMP multiply_label_0
                 .LABEL multiply_label_1
+                MOV multiply_res,multiply_res
                 MOV multiply_return,multiply_res
                 JMP multiply_end
                 .LABEL multiply_end

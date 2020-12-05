@@ -33,7 +33,9 @@
     "collectCoverageFrom": [
       "compiler/src/**/*.js",
       "!compiler/src/error.js",
-      "!compiler/src/sc.js"
+      "!compiler/src/sc.js",
+      "vm/src/**/*.js",
+      "!vm/src/vm.js"
     ]
   }
 }
