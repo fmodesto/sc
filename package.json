@@ -2,10 +2,8 @@
   "name": "sc-compiler",
   "version": "1.0.0",
   "description": "",
-  "main": "src/sc.mjs",
   "exports": {
-    "require": "./",
-    "default": "./src"
+    "require": "./"
   },
   "scripts": {
     "test": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' jest",
@@ -28,7 +26,8 @@
     "jest-environment-node": "^26.6.2"
   },
   "bin": {
-    "sc": "compiler/src/sc.js"
+    "sc": "compiler/src/sc.js",
+    "vm": "vm/src/vm.js"
   },
   "jest": {
     "collectCoverageFrom": [
