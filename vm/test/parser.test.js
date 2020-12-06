@@ -1,6 +1,6 @@
 import parseVm from '../src/parser.js';
 
-const parse = (src) => parseVm(src).map((e) => e.instruction);
+const parse = (src) => parseVm(src);
 
 describe('Parses vm code', () => {
 

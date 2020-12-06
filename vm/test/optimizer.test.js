@@ -1,7 +1,7 @@
 import parseVm from '../src/parser.js';
 import optimizeVm from '../src/optimizer.js';
 
-const optimize = (src) => optimizeVm(parseVm(src)).map((e) => e.instruction);
+const optimize = (src) => optimizeVm(parseVm(src));
 
 describe('Optimizes vm code', () => {
 

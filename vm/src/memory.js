@@ -5,7 +5,7 @@ const memory = function (instructions) {
         calls: [],
     };
     let scopes = [current];
-    instructions.forEach(({ instruction }) => {
+    instructions.forEach((instruction) => {
         if (instruction[0] === '.FUNCTION') {
             current = {
                 name: instruction[1],

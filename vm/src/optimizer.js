@@ -1,7 +1,7 @@
 const optimize = function (instructions) {
     let tmp = false;
     let tmps = [];
-    instructions.forEach(({ instruction: e }, i) => {
+    instructions.forEach((e, i) => {
         if (e[0] === '.FUNCTION') {
             tmps = [];
         } else if (e[0] === '.TMP') {
@@ -12,8 +12,8 @@ const optimize = function (instructions) {
             tmp = false;
         }
 
-        let prev = i - 1 >= 0 ? instructions[i - 1].instruction : [];
-        let next = i + 1 < instructions.length ? instructions[i + 1].instruction : [];
+        let prev = i - 1 >= 0 ? instructions[i - 1] : [];
+        let next = i + 1 < instructions.length ? instructions[i + 1] : [];
         if (e[0] === 'MOV' && tmps.includes(e[2]) && prev[1] === e[2]) {
             prev[1] = e[1];
             e[0] = 'NOP';
@@ -23,7 +23,7 @@ const optimize = function (instructions) {
             e[0] = 'NOP';
         }
     });
-    return instructions.filter((e) => e.instruction[0] !== 'NOP');
+    return instructions.filter((e) => e[0] !== 'NOP');
 };
 
 export default optimize;
