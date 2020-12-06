@@ -185,6 +185,9 @@ const unary = {
         return createUnary('NEG', dest, src);
     },
     '~'(dest, src) {
+        return createUnary('INV', dest, src);
+    },
+    '!'(dest, src) {
         return createUnary('NOT', dest, src);
     },
 };

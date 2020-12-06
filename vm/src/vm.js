@@ -5,6 +5,7 @@ import { readFile } from 'fs';
 import parse from './parser.js';
 import optimize from './optimizer.js';
 import memory from './memory.js';
+import generate from './codegen.js';
 
 
 const { argv } = yargs(process.argv.slice(2))
@@ -19,8 +20,11 @@ const compile = (text, options) => {
     if (options.o) {
         program = optimize(program);
     }
-    memory(program);
-    // program.forEach(({instruction}) => console.log(instruction.join(' ')));
+    let instructions = [
+        ...memory(program),
+        ...generate(program),
+    ];
+    console.log(instructions.join('\n'));
 };
 
 readFile(argv._[0], 'utf-8', (error, text) => {

@@ -1,0 +1,173 @@
+.BYTE test 0
+.FUNCTION multiply
+.BYTE multiply_return 0
+.BYTE multiply_a 0
+.BYTE multiply_b 0
+.LOCALS
+.BYTE multiply_res 0
+.BYTE multiply_flag 0
+.TMP
+.BYTE multiply_0 0
+.CODE
+MOV multiply_res,#0
+MOV multiply_flag,#1
+.LABEL multiply_label_0
+JZ multiply_label_1,multiply_flag
+AND multiply_0,multiply_flag,multiply_b
+JZ multiply_label_3,multiply_0
+ADD multiply_0,multiply_res,multiply_a
+MOV multiply_res,multiply_0
+.LABEL multiply_label_3
+SHL multiply_0,multiply_a,#1
+MOV multiply_a,multiply_0
+SHL multiply_0,multiply_flag,#1
+MOV multiply_flag,multiply_0
+JMP multiply_label_0
+.LABEL multiply_label_1
+MOV multiply_return,multiply_res
+JMP multiply_end
+.LABEL multiply_end
+.RETURN multiply
+.FUNCTION divide
+.BYTE divide_return 0
+.BYTE divide_a 0
+.BYTE divide_b 0
+.LOCALS
+.BYTE divide_q 0
+.BYTE divide_r 0
+.BYTE divide_flag 0
+.TMP
+.BYTE divide_0 0
+.CODE
+MOV divide_q,#0
+MOV divide_r,#0
+MOV divide_flag,#128
+.LABEL divide_label_0
+JZ divide_label_1,divide_flag
+SHL divide_0,divide_r,#1
+MOV divide_r,divide_0
+AND divide_0,divide_flag,divide_a
+JZ divide_label_3,divide_0
+OR divide_0,divide_r,#1
+MOV divide_r,divide_0
+.LABEL divide_label_3
+GTE divide_0,divide_r,divide_b
+JZ divide_label_5,divide_0
+SUB divide_0,divide_r,divide_b
+MOV divide_r,divide_0
+OR divide_0,divide_q,divide_flag
+MOV divide_q,divide_0
+.LABEL divide_label_5
+SHR divide_0,divide_flag,#1
+MOV divide_flag,divide_0
+JMP divide_label_0
+.LABEL divide_label_1
+MOV divide_return,divide_q
+JMP divide_end
+.LABEL divide_end
+.RETURN divide
+.FUNCTION mod
+.BYTE mod_return 0
+.BYTE mod_a 0
+.BYTE mod_b 0
+.LOCALS
+.BYTE mod_q 0
+.BYTE mod_r 0
+.BYTE mod_flag 0
+.TMP
+.BYTE mod_0 0
+.CODE
+MOV mod_q,#0
+MOV mod_r,#0
+MOV mod_flag,#128
+.LABEL mod_label_0
+JZ mod_label_1,mod_flag
+SHL mod_0,mod_r,#1
+MOV mod_r,mod_0
+AND mod_0,mod_flag,mod_a
+JZ mod_label_3,mod_0
+OR mod_0,mod_r,#1
+MOV mod_r,mod_0
+.LABEL mod_label_3
+GTE mod_0,mod_r,mod_b
+JZ mod_label_5,mod_0
+SUB mod_0,mod_r,mod_b
+MOV mod_r,mod_0
+OR mod_0,mod_q,mod_flag
+MOV mod_q,mod_0
+.LABEL mod_label_5
+SHR mod_0,mod_flag,#1
+MOV mod_flag,mod_0
+JMP mod_label_0
+.LABEL mod_label_1
+MOV mod_return,mod_r
+JMP mod_end
+.LABEL mod_end
+.RETURN mod
+.FUNCTION shiftl
+.BYTE shiftl_return 0
+.BYTE shiftl_value 0
+.BYTE shiftl_pos 0
+.TMP
+.BYTE shiftl_0 0
+.CODE
+.LABEL shiftl_label_0
+JZ shiftl_label_1,shiftl_pos
+SHL shiftl_0,shiftl_value,#1
+MOV shiftl_value,shiftl_0
+SUB shiftl_0,shiftl_pos,#1
+MOV shiftl_pos,shiftl_0
+JMP shiftl_label_0
+.LABEL shiftl_label_1
+MOV shiftl_return,shiftl_value
+JMP shiftl_end
+.LABEL shiftl_end
+.RETURN shiftl
+.FUNCTION shiftr
+.BYTE shiftr_return 0
+.BYTE shiftr_value 0
+.BYTE shiftr_pos 0
+.TMP
+.BYTE shiftr_0 0
+.CODE
+.LABEL shiftr_label_0
+JZ shiftr_label_1,shiftr_pos
+SHR shiftr_0,shiftr_value,#1
+MOV shiftr_value,shiftr_0
+SUB shiftr_0,shiftr_pos,#1
+MOV shiftr_pos,shiftr_0
+JMP shiftr_label_0
+.LABEL shiftr_label_1
+MOV shiftr_return,shiftr_value
+JMP shiftr_end
+.LABEL shiftr_end
+.RETURN shiftr
+.FUNCTION main
+.BYTE main_return 0
+.LOCALS
+.BYTE main_a 0
+.BYTE main_b 0
+.TMP
+.BYTE main_0 0
+.CODE
+MOV main_a,#1
+MOV main_b,#2
+JZ main_label_0,main_a
+MOV shiftr_value,main_a
+MOV shiftr_pos,main_b
+CALL shiftr
+JMP main_label_1
+.LABEL main_label_0
+JZ main_label_2,main_b
+MOV main_a,#3
+JMP main_label_3
+.LABEL main_label_2
+MOV main_b,#2
+.LABEL main_label_3
+.LABEL main_label_1
+MOV main_a,#15
+MOV main_b,#64
+MOV main_return,#0
+JMP main_end
+.LABEL main_end
+.RETURN main

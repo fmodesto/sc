@@ -9,17 +9,17 @@
 .TMP
 .BYTE gcd_0 0
 .CODE
-gcd_label_0:
+.LABEL gcd_label_0
 JZ gcd_label_1,gcd_a
 MOD gcd_0,gcd_b,gcd_a
 MOV gcd_c,gcd_0
 MOV gcd_b,gcd_a
 MOV gcd_a,gcd_c
 JMP gcd_label_0
-gcd_label_1:
+.LABEL gcd_label_1
 MOV gcd_return,gcd_b
 JMP gcd_end
-gcd_end:
+.LABEL gcd_end
 .RETURN gcd
 .FUNCTION max
 .BYTE max_return 0
@@ -32,12 +32,12 @@ GT max_0,max_a,max_b
 JZ max_label_0,max_0
 MOV max_0,max_a
 JMP max_label_1
-max_label_0:
+.LABEL max_label_0
 MOV max_0,max_b
-max_label_1:
+.LABEL max_label_1
 MOV max_return,max_0
 JMP max_end
-max_end:
+.LABEL max_end
 .RETURN max
 .FUNCTION lcm
 .BYTE lcm_return 0
@@ -54,7 +54,7 @@ DIV lcm_0,lcm_a,lcm_0
 MUL lcm_0,lcm_0,lcm_b
 MOV lcm_return,lcm_0
 JMP lcm_end
-lcm_end:
+.LABEL lcm_end
 .RETURN lcm
 .FUNCTION main
 .TMP
@@ -70,5 +70,5 @@ MOV main_0,max_return
 MOV lcm_a,main_0
 MOV lcm_b,#49
 CALL lcm
-main_end:
+.LABEL main_end
 .RETURN main
