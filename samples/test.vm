@@ -28,44 +28,6 @@ MOV multiply_return,multiply_res
 JMP multiply_end
 .LABEL multiply_end
 .RETURN multiply
-.FUNCTION divide
-.BYTE divide_return 0
-.BYTE divide_a 0
-.BYTE divide_b 0
-.LOCALS
-.BYTE divide_q 0
-.BYTE divide_r 0
-.BYTE divide_flag 0
-.TMP
-.BYTE divide_0 0
-.CODE
-MOV divide_q,#0
-MOV divide_r,#0
-MOV divide_flag,#128
-.LABEL divide_label_0
-JZ divide_label_1,divide_flag
-SHL divide_0,divide_r,#1
-MOV divide_r,divide_0
-AND divide_0,divide_flag,divide_a
-JZ divide_label_3,divide_0
-OR divide_0,divide_r,#1
-MOV divide_r,divide_0
-.LABEL divide_label_3
-GTE divide_0,divide_r,divide_b
-JZ divide_label_5,divide_0
-SUB divide_0,divide_r,divide_b
-MOV divide_r,divide_0
-OR divide_0,divide_q,divide_flag
-MOV divide_q,divide_0
-.LABEL divide_label_5
-SHR divide_0,divide_flag,#1
-MOV divide_flag,divide_0
-JMP divide_label_0
-.LABEL divide_label_1
-MOV divide_return,divide_q
-JMP divide_end
-.LABEL divide_end
-.RETURN divide
 .FUNCTION mod
 .BYTE mod_return 0
 .BYTE mod_a 0

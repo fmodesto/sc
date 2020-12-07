@@ -1,0 +1,194 @@
+    .BYTE test 0
+
+.FUNCTION mul8
+    .BYTE mul8_return 0
+    .BYTE mul8_a 0
+    .BYTE mul8_b 0
+    .LOCALS
+    .BYTE mul8_res 0
+    .BYTE mul8_flag 0
+    .BYTE mul8_sign 0
+    .TMP
+    .BYTE mul8_0 0
+    .CODE
+    MOV mul8_flag,#1
+    MOV mul8_res,#0
+    .LABEL mul8_vm_0
+    JZ mul8_vm_1,mul8_flag
+    AND mul8_0,mul8_flag,mul8_b
+    JZ mul8_vm_3,mul8_0
+    ADD mul8_0,mul8_res,mul8_a
+    MOV mul8_res,mul8_0
+    .LABEL mul8_vm_3
+    SHL mul8_0,mul8_a,#1
+    MOV mul8_a,mul8_0
+    SHL mul8_0,mul8_flag,#1
+    MOV mul8_flag,mul8_0
+    JMP mul8_vm_0
+    .LABEL mul8_vm_1
+    MOV mul8_return,mul8_res
+    JMP mul8_end
+    .LABEL mul8_end
+.RETURN mul8
+
+.FUNCTION div8
+    .BYTE div8_return 0
+    .BYTE div8_a 0
+    .BYTE div8_b 0
+    .LOCALS
+    .BYTE div8_q 0
+    .BYTE div8_r 0
+    .BYTE div8_flag 0
+    .BYTE div8_sign 0
+    .TMP
+    .BYTE div8_0 0
+    .CODE
+    MOV div8_q,#0
+    MOV div8_r,#0
+    MOV div8_sign,#0
+    LT div8_0,div8_a,#0
+    JZ div8_vm_1,div8_0
+    NEG div8_0,div8_a
+    MOV div8_a,div8_0
+    MOV div8_sign,#1
+    .LABEL div8_vm_1
+    LT div8_0,div8_b,#0
+    JZ div8_vm_3,div8_0
+    NEG div8_0,div8_b
+    MOV div8_b,div8_0
+    XOR div8_0,div8_sign,#1
+    MOV div8_sign,div8_0
+    .LABEL div8_vm_3
+    MOV div8_flag,#128
+    .LABEL div8_vm_4
+    JZ div8_vm_5,div8_flag
+    SHL div8_0,div8_r,#1
+    MOV div8_r,div8_0
+    AND div8_0,div8_flag,div8_a
+    JZ div8_vm_7,div8_0
+    OR div8_0,div8_r,#1
+    MOV div8_r,div8_0
+    .LABEL div8_vm_7
+    GTE div8_0,div8_r,div8_b
+    JZ div8_vm_9,div8_0
+    SUB div8_0,div8_r,div8_b
+    MOV div8_r,div8_0
+    OR div8_0,div8_q,div8_flag
+    MOV div8_q,div8_0
+    .LABEL div8_vm_9
+    SHR div8_0,div8_flag,#1
+    MOV div8_flag,div8_0
+    JMP div8_vm_4
+    .LABEL div8_vm_5
+    JZ div8_vm_10,div8_sign
+    NEG div8_0,div8_q
+    JMP div8_vm_11
+    .LABEL div8_vm_10
+    MOV div8_0,div8_q
+    .LABEL div8_vm_11
+    MOV div8_return,div8_0
+    JMP div8_end
+    .LABEL div8_end
+.RETURN div8
+
+.FUNCTION mod8
+    .BYTE mod8_return 0
+    .BYTE mod8_a 0
+    .BYTE mod8_b 0
+    .LOCALS
+    .BYTE mod8_q 0
+    .BYTE mod8_r 0
+    .BYTE mod8_flag 0
+    .BYTE mod8_sign 0
+    .TMP
+    .BYTE mod8_0 0
+    .CODE
+    MOV mod8_q,#0
+    MOV mod8_r,#0
+    MOV mod8_sign,#0
+    LT mod8_0,mod8_a,#0
+    JZ mod8_vm_1,mod8_0
+    NEG mod8_0,mod8_a
+    MOV mod8_a,mod8_0
+    MOV mod8_sign,#1
+    .LABEL mod8_vm_1
+    LT mod8_0,mod8_b,#0
+    JZ mod8_vm_3,mod8_0
+    NEG mod8_0,mod8_b
+    MOV mod8_b,mod8_0
+    .LABEL mod8_vm_3
+    MOV mod8_flag,#128
+    .LABEL mod8_vm_4
+    JZ mod8_vm_5,mod8_flag
+    SHL mod8_0,mod8_r,#1
+    MOV mod8_r,mod8_0
+    AND mod8_0,mod8_flag,mod8_a
+    JZ mod8_vm_7,mod8_0
+    OR mod8_0,mod8_r,#1
+    MOV mod8_r,mod8_0
+    .LABEL mod8_vm_7
+    GTE mod8_0,mod8_r,mod8_b
+    JZ mod8_vm_9,mod8_0
+    SUB mod8_0,mod8_r,mod8_b
+    MOV mod8_r,mod8_0
+    OR mod8_0,mod8_q,mod8_flag
+    MOV mod8_q,mod8_0
+    .LABEL mod8_vm_9
+    SHR mod8_0,mod8_flag,#1
+    MOV mod8_flag,mod8_0
+    JMP mod8_vm_4
+    .LABEL mod8_vm_5
+    JZ mod8_vm_10,mod8_sign
+    NEG mod8_0,mod8_r
+    JMP mod8_vm_11
+    .LABEL mod8_vm_10
+    MOV mod8_0,mod8_r
+    .LABEL mod8_vm_11
+    MOV mod8_return,mod8_0
+    JMP mod8_end
+    .LABEL mod8_end
+.RETURN mod8
+
+.FUNCTION shl8
+    .BYTE shl8_return 0
+    .BYTE shl8_a 0
+    .BYTE shl8_b 0
+    .TMP
+    .BYTE shl8_0 0
+    .CODE
+    AND shl8_0,shl8_b,#7
+    MOV shl8_b,shl8_0
+    .LABEL shl8_vm_0
+    JZ shl8_vm_1,shl8_b
+    SHL shl8_0,shl8_a,#1
+    MOV shl8_a,shl8_0
+    SUB shl8_0,shl8_b,#1
+    MOV shl8_b,shl8_0
+    JMP shl8_vm_0
+    .LABEL shl8_vm_1
+    MOV shl8_return,shl8_a
+    JMP shl8_end
+    .LABEL shl8_end
+.RETURN shl8
+
+.FUNCTION shr8
+    .BYTE shr8_return 0
+    .BYTE shr8_a 0
+    .BYTE shr8_b 0
+    .TMP
+    .BYTE shr8_0 0
+    .CODE
+    AND shr8_0,shr8_b,#7
+    MOV shr8_b,shr8_0
+    .LABEL shr8_vm_0
+    JZ shr8_vm_1,shr8_b
+    SHR shr8_0,shr8_a,#1
+    MOV shr8_a,shr8_0
+    SUB shr8_0,shr8_b,#1
+    MOV shr8_b,shr8_0
+    JMP shr8_vm_0
+    .LABEL shr8_vm_1
+    MOV shr8_return,shr8_a
+    JMP shr8_end
+    .LABEL shr8_end
+.RETURN shr8

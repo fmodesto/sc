@@ -25,7 +25,7 @@ const createRegister = (prefix) => {
             return generated.filter((e) => !available.includes(e));
         },
         generateLabel() {
-            return `${prefix}_label_${label++}`;
+            return `${prefix}_vm_${label++}`;
         },
     };
 };

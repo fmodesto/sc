@@ -281,12 +281,58 @@ TernaryOperation.generate = function (context, register) {
 };
 
 BinaryOperation.generate = function (context, register) {
-    let lhs = this.lhs.generate(context, register);
-    let rhs = this.rhs.generate(context, register);
-    register.release(lhs.address);
-    register.release(rhs.address);
-    let dest = register.fetch();
-    return binary[this.operation](dest, lhs, rhs);
+    if (this.operation === '&&') {
+        let falseLabel = register.generateLabel();
+        let endLabel = register.generateLabel();
+        let lhs = this.lhs.generate(context, register);
+        register.release(lhs.address);
+        let rhs = this.rhs.generate(context, register);
+        register.release(rhs.address);
+        let dest = register.fetch();
+        return {
+            address: dest,
+            instructions: [
+                ...lhs.instructions,
+                `JZ ${falseLabel},${lhs.address}`,
+                ...rhs.instructions,
+                `JZ ${falseLabel},${rhs.address}`,
+                `MOV ${dest},#1`,
+                `JMP ${endLabel}`,
+                `.LABEL ${falseLabel}`,
+                `MOV ${dest},#0`,
+                `.LABEL ${endLabel}`,
+            ],
+        };
+    } else if (this.operation === '||') {
+        let trueLabel = register.generateLabel();
+        let endLabel = register.generateLabel();
+        let lhs = this.lhs.generate(context, register);
+        register.release(lhs.address);
+        let rhs = this.rhs.generate(context, register);
+        register.release(rhs.address);
+        let dest = register.fetch();
+        return {
+            address: dest,
+            instructions: [
+                ...lhs.instructions,
+                `JNZ ${trueLabel},${lhs.address}`,
+                ...rhs.instructions,
+                `JNZ ${trueLabel},${rhs.address}`,
+                `MOV ${dest},#0`,
+                `JMP ${endLabel}`,
+                `.LABEL ${trueLabel}`,
+                `MOV ${dest},#1`,
+                `.LABEL ${endLabel}`,
+            ],
+        };
+    } else {
+        let lhs = this.lhs.generate(context, register);
+        let rhs = this.rhs.generate(context, register);
+        register.release(lhs.address);
+        register.release(rhs.address);
+        let dest = register.fetch();
+        return binary[this.operation](dest, lhs, rhs);
+    }
 };
 
 UnaryOperation.generate = function (context, register) {

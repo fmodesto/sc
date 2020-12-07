@@ -76,6 +76,33 @@ describe('Generate code for expression', () => {
         done();
     });
 
+    test('Logic expression', (done) => {
+        let register = createRegister(context.getCurrentMethod());
+        expect(generateExp('a && (b || p1)', context, register)).toEqual([
+            'JZ test_vm_0,a',
+            'JNZ test_vm_2,b',
+            'JNZ test_vm_2,test_p1',
+            'MOV test_0,#0',
+            'JMP test_vm_3',
+            '.LABEL test_vm_2',
+            'MOV test_0,#1',
+            '.LABEL test_vm_3',
+            'JZ test_vm_0,test_0',
+            'MOV test_0,#1',
+            'JMP test_vm_1',
+            '.LABEL test_vm_0',
+            'MOV test_0,#0',
+            '.LABEL test_vm_1',
+        ]);
+        expect(register.getGenerated()).toEqual([
+            'test_0',
+        ]);
+        expect(register.getInUse()).toEqual([
+            'test_0',
+        ]);
+        done();
+    });
+
     test('Multiple temps expression', (done) => {
         let register = createRegister(context.getCurrentMethod());
         expect(generateExp('-(2*3) + ((a/-4) * (b+3))', context, register)).toEqual([
@@ -147,12 +174,12 @@ describe('Generate code for expression', () => {
     test('Ternary expression', (done) => {
         let register = createRegister(context.getCurrentMethod());
         expect(generateExp('a ? 1 : 2', context, register)).toEqual([
-            'JZ test_label_0,a',
+            'JZ test_vm_0,a',
             'MOV test_0,#1',
-            'JMP test_label_1',
-            '.LABEL test_label_0',
+            'JMP test_vm_1',
+            '.LABEL test_vm_0',
             'MOV test_0,#2',
-            '.LABEL test_label_1',
+            '.LABEL test_vm_1',
         ]);
         expect(register.getGenerated()).toEqual([
             'test_0',
@@ -167,20 +194,20 @@ describe('Generate code for expression', () => {
         let register = createRegister(context.getCurrentMethod());
         expect(generateExp('a + b ? foo(1,2,3) : bar(a,b) << 1', context, register)).toEqual([
             'ADD test_0,a,b',
-            'JZ test_label_0,test_0',
+            'JZ test_vm_0,test_0',
             'MOV foo_p1,#1',
             'MOV foo_p2,#2',
             'MOV foo_p3,#3',
             'CALL foo',
             'MOV test_0,foo_return',
-            'JMP test_label_1',
-            '.LABEL test_label_0',
+            'JMP test_vm_1',
+            '.LABEL test_vm_0',
             'MOV bar_p1,a',
             'MOV bar_p2,b',
             'CALL bar',
             'MOV test_0,bar_return',
             'SHL test_0,test_0,#1',
-            '.LABEL test_label_1',
+            '.LABEL test_vm_1',
         ]);
         expect(register.getGenerated()).toEqual([
             'test_0',
@@ -300,11 +327,11 @@ describe('Generate code', () => {
             '.TMP',
             '.BYTE foo_0 0',
             '.CODE',
-            'JZ foo_label_1,foo_a',
+            'JZ foo_vm_1,foo_a',
             'DIV foo_0,#10,foo_a',
             'MOV foo_return,foo_0',
             'JMP foo_end',
-            '.LABEL foo_label_1',
+            '.LABEL foo_vm_1',
             'MOV foo_return,#0',
             'JMP foo_end',
             '.LABEL foo_end',
@@ -330,15 +357,15 @@ describe('Generate code', () => {
             '.TMP',
             '.BYTE foo_0 0',
             '.CODE',
-            'JZ foo_label_0,foo_a',
+            'JZ foo_vm_0,foo_a',
             'DIV foo_0,#10,foo_a',
             'MOV foo_return,foo_0',
             'JMP foo_end',
-            'JMP foo_label_1',
-            '.LABEL foo_label_0',
+            'JMP foo_vm_1',
+            '.LABEL foo_vm_0',
             'MOV foo_return,#0',
             'JMP foo_end',
-            '.LABEL foo_label_1',
+            '.LABEL foo_vm_1',
             '.LABEL foo_end',
             '.RETURN foo',
         ]);
@@ -367,14 +394,14 @@ describe('Generate code', () => {
             '.BYTE foo_0 0',
             '.CODE',
             'MOV foo_b,#0',
-            '.LABEL foo_label_0',
-            'JZ foo_label_1,foo_a',
+            '.LABEL foo_vm_0',
+            'JZ foo_vm_1,foo_a',
             'SHL foo_0,foo_a,#1',
             'MOV foo_a,foo_0',
             'ADD foo_0,foo_b,#1',
             'MOV foo_b,foo_0',
-            'JMP foo_label_0',
-            '.LABEL foo_label_1',
+            'JMP foo_vm_0',
+            '.LABEL foo_vm_1',
             'MOV foo_return,foo_b',
             'JMP foo_end',
             '.LABEL foo_end',
