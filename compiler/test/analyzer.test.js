@@ -7,8 +7,8 @@ const check = (src) => () => parse(src).analyze();
 describe('Analyzer detect error programs', () => {
     test('Global must be constant', (done) => {
         let src = `
-            byte a = 2;
-            byte b = 5 * a;
+            char a = 2;
+            char b = 5 * a;
 
             void foo() {}
         `;
@@ -17,17 +17,17 @@ describe('Analyzer detect error programs', () => {
     });
     test('Global must match the type', (done) => {
         let src = `
-            byte a = true;
+            char a = true;
 
             void foo() {}
         `;
-        expect(check(src)).toThrow('Incompatible types: can not convert \'bool\' to \'byte\'');
+        expect(check(src)).toThrow('Incompatible types: can not convert \'bool\' to \'char\'');
         done();
     });
     test('Duplicate global', (done) => {
         let src = `
-            byte a = 5;
-            byte a = 3;
+            char a = 5;
+            char a = 3;
 
             void foo() {}
         `;
@@ -36,10 +36,10 @@ describe('Analyzer detect error programs', () => {
     });
     test('Duplicate method', (done) => {
         let src = `
-            byte foo() {
+            char foo() {
                 return 0;
             }
-            byte foo(byte a) {
+            char foo(char a) {
                 return 0;
             }
         `;
@@ -48,7 +48,7 @@ describe('Analyzer detect error programs', () => {
     });
     test('Duplicate parameter', (done) => {
         let src = `
-            byte foo(byte a, byte a) {
+            char foo(char a, char a) {
                 return 0;
             }
         `;
@@ -57,8 +57,8 @@ describe('Analyzer detect error programs', () => {
     });
     test('Duplicate local', (done) => {
         let src = `
-            byte foo(byte a) {
-                byte a;
+            char foo(char a) {
+                char a;
                 return 0;
             }
         `;
@@ -67,7 +67,7 @@ describe('Analyzer detect error programs', () => {
     });
     test('Assignment unknown variable', (done) => {
         let src = `
-            byte foo(byte a) {
+            char foo(char a) {
                 b = 3;
                 return 0;
             }
@@ -77,28 +77,28 @@ describe('Analyzer detect error programs', () => {
     });
     test('Assignment type missmatch', (done) => {
         let src = `
-            byte foo(byte a) {
-                byte b;
+            char foo(char a) {
+                char b;
                 b = 5 > a;
                 return 0;
             }
         `;
-        expect(check(src)).toThrow('Incompatible types: can not convert \'bool\' to \'byte\'');
+        expect(check(src)).toThrow('Incompatible types: can not convert \'bool\' to \'char\'');
         done();
     });
     test('Return value in void function', (done) => {
         let src = `
-            void foo(byte a) {
+            void foo(char a) {
                 return 5;
             }
         `;
-        expect(check(src)).toThrow('Incompatible types: can not convert \'byte\' to \'void\'');
+        expect(check(src)).toThrow('Incompatible types: can not convert \'char\' to \'void\'');
         done();
     });
     test('Return void in void function', (done) => {
         let src = `
             void bar() {}
-            void foo(byte a) {
+            void foo(char a) {
                 return bar();
             }
         `;
@@ -108,16 +108,16 @@ describe('Analyzer detect error programs', () => {
     test('Use void function as expression', (done) => {
         let src = `
             void bar() {}
-            void foo(byte a) {
+            void foo(char a) {
                 a = bar();
             }
         `;
-        expect(check(src)).toThrow('Incompatible types: can not convert \'void\' to \'byte\'');
+        expect(check(src)).toThrow('Incompatible types: can not convert \'void\' to \'char\'');
         done();
     });
     test('Function shoudl return a value', (done) => {
         let src = `
-            byte foo() {
+            char foo() {
             }
         `;
         expect(check(src)).toThrow('Missing return statement');
@@ -125,7 +125,7 @@ describe('Analyzer detect error programs', () => {
     });
     test('Function shoudl return a value', (done) => {
         let src = `
-            byte foo() {
+            char foo() {
                 if (1) {
                     return 5;
                 }
@@ -136,7 +136,7 @@ describe('Analyzer detect error programs', () => {
     });
     test('Function shoudl return a value', (done) => {
         let src = `
-            byte foo() {
+            char foo() {
                 while (1) {
                 }
             }
@@ -146,7 +146,7 @@ describe('Analyzer detect error programs', () => {
     });
     test('Function shoudl return a value', (done) => {
         let src = `
-            byte foo() {
+            char foo() {
                 return;
             }
         `;
@@ -157,22 +157,22 @@ describe('Analyzer detect error programs', () => {
         let src = `
             void bar() {}
             void foo() {
-                byte a;
+                char a;
                 a = 6 + (1 ? bar() : 3);
             }
         `;
-        expect(check(src)).toThrow('Incompatible types: can not convert between \'void\' and \'byte\'');
+        expect(check(src)).toThrow('Incompatible types: can not convert between \'void\' and \'char\'');
         done();
     });
     test('Binary expression should yeld same type', (done) => {
         let src = `
             void bar() {}
             void foo() {
-                byte a;
+                char a;
                 a = bar() + 3;
             }
         `;
-        expect(check(src)).toThrow('Incompatible types: can not convert between \'void\' and \'byte\'');
+        expect(check(src)).toThrow('Incompatible types: can not convert between \'void\' and \'char\'');
         done();
     });
     test('Arithmetic expression with bool', (done) => {
@@ -182,7 +182,7 @@ describe('Analyzer detect error programs', () => {
                 a = 5 + true;
             }
         `;
-        expect(check(src)).toThrow('Invalid types for operation: \'byte\' + \'bool\'');
+        expect(check(src)).toThrow('Invalid types for operation: \'char\' + \'bool\'');
         done();
     });
     test('Relational expression with bool', (done) => {
@@ -192,13 +192,13 @@ describe('Analyzer detect error programs', () => {
                 a = -5 < true;
             }
         `;
-        expect(check(src)).toThrow('Invalid types for operation: \'byte\' < \'bool\'');
+        expect(check(src)).toThrow('Invalid types for operation: \'char\' < \'bool\'');
         done();
     });
     test('Unary expression with bool', (done) => {
         let src = `
             void foo() {
-                byte a;
+                char a;
                 a = ~true;
             }
         `;
@@ -226,17 +226,17 @@ describe('Analyzer detect error programs', () => {
     });
     test('Call with wrong type', (done) => {
         let src = `
-            void bar(byte a) {}
+            void bar(char a) {}
             void foo() {
                 bar(true);
             }
         `;
-        expect(check(src)).toThrow('Type missmatch. Can not convert \'bool\' to \'byte\'');
+        expect(check(src)).toThrow('Type missmatch. Can not convert \'bool\' to \'char\'');
         done();
     });
     test('Use undefined variable', (done) => {
         let src = `
-            byte foo() {
+            char foo() {
                 return a;
             }
         `;
@@ -248,10 +248,11 @@ describe('Analyzer detect error programs', () => {
 describe('Analyzer correct programs', () => {
     test('Handles if without else', (done) => {
         let src = `
-            byte a = 2;
+            char a = 2;
 
-            void bar() {}
-            void foo(byte b) {
+            void bar() {
+            }
+            void foo(char b) {
                 while (0) {}
                 if (!b) {
                     return;
@@ -264,9 +265,9 @@ describe('Analyzer correct programs', () => {
     });
     test('Handles joined if statements', (done) => {
         let src = `
-            byte a = 2;
+            char a = 2;
 
-            void foo(byte b) {
+            void foo(char b) {
                 if (!b) {
                 } else if (a == b) {
                 } else {
@@ -278,9 +279,9 @@ describe('Analyzer correct programs', () => {
     });
     test('Handles while statements', (done) => {
         let src = `
-            byte a = 2;
+            char a = 2;
 
-            void foo(byte b) {
+            void foo(char b) {
                 while (b) {
                     b += 1;
                 }
@@ -291,7 +292,7 @@ describe('Analyzer correct programs', () => {
     });
     test('Handles return statements', (done) => {
         let src = `
-            byte foo(byte b) {
+            char foo(char b) {
                 if (b) {
                     return 1;
                 } else {
@@ -304,7 +305,7 @@ describe('Analyzer correct programs', () => {
     });
     test('Handles ternary expression', (done) => {
         let src = `
-            bool foo(byte b) {
+            bool foo(char b) {
                 return b ? 1 : false;
             }
         `;
@@ -316,6 +317,20 @@ describe('Analyzer correct programs', () => {
         let src = `
             void foo(bool b) {
                 b = 4 && 3;
+            }
+        `;
+        expect(check(src)).not.toThrow();
+        done();
+    });
+
+    test('Handles bool expressions', (done) => {
+        let src = `
+            void foo(bool b) {
+                b &= true;
+                b |= false;
+                b ^= false;
+                b = b == true;
+                b = b != false;
             }
         `;
         expect(check(src)).not.toThrow();

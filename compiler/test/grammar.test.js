@@ -15,12 +15,14 @@ const errors = [
 ];
 
 const valid = `
-    byte x = 3;
-    byte simple(byte a, byte b) {
+    char x = 3;
+    char simple(char a, char b) {
         return a + b << 1;
     }
-    byte whileStmt(byte a, byte b) {
-        byte c;
+    char whileStmt(char a, char b) {
+        char c;
+        bool b;
+        b = (int) c;
         c = 0x1;
         while (c) {
             b += foo(a, b);
@@ -28,7 +30,7 @@ const valid = `
         }
         return b;
     }
-    byte ifStmt(byte a, byte b) {
+    char ifStmt(char a, char b) {
         if (a) {
             return a;
         } else if (b) {

@@ -5,9 +5,9 @@ const ast = (src) => JSON.parse(parse(src).ast());
 describe('AST', () => {
     test('Simple program', (done) => {
         let src = `
-            byte a = 1;
+            char a = 1;
 
-            byte foo(byte b) {
+            char foo(char b) {
                 return a + b;
             }
         `;
@@ -16,11 +16,11 @@ describe('AST', () => {
             globals: [
                 {
                     kind: 'GlobalDeclaration',
-                    type: 'byte',
+                    type: 'char',
                     name: 'a',
                     expression: {
                         kind: 'Literal',
-                        type: 'byte',
+                        type: 'char',
                         value: 1,
                     },
                 },
@@ -28,12 +28,12 @@ describe('AST', () => {
             methods: [
                 {
                     kind: 'MethodDeclaration',
-                    type: 'byte',
+                    type: 'char',
                     name: 'foo',
                     parameters: [
                         {
                             kind: 'Var',
-                            type: 'byte',
+                            type: 'char',
                             name: 'b',
                         },
                     ],

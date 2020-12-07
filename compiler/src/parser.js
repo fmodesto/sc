@@ -156,6 +156,13 @@ semantics.addOperation('ast', {
             source: this.source.getLineAndColumnMessage(),
         });
     },
+    Exp9_cast(_1, type, _2, exp) {
+        return UnaryOperation.create({
+            operation: type.sourceString,
+            expression: exp.ast(),
+            source: this.source.getLineAndColumnMessage(),
+        });
+    },
     Exp9_parens(_1, exp, _2) {
         return exp.ast();
     },
@@ -175,14 +182,14 @@ semantics.addOperation('ast', {
     },
     intlit(_) {
         return Literal.create({
-            type: +this.sourceString < 256 ? 'byte' : 'int',
+            type: +this.sourceString < 128 ? 'char' : 'int',
             value: +this.sourceString,
             source: this.source.getLineAndColumnMessage(),
         });
     },
     hexlit(_) {
         return Literal.create({
-            type: +this.sourceString < 256 ? 'byte' : 'int',
+            type: +this.sourceString < 128 ? 'char' : 'int',
             value: +this.sourceString,
             source: this.source.getLineAndColumnMessage(),
         });

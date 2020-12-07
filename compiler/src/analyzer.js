@@ -23,6 +23,8 @@ import CompileError from './error.js';
 const integerUnaryOperations = ['-', '~'];
 const integerBinaryOperations = ['+', '-', '*', '/', '%', '<<', '>>', '&', '|', '^'];
 
+const booleanOperations = ['&', '|', '^', '==', '!='];
+
 const logicUnaryOperations = ['!'];
 const logicBinaryOperations = ['&&', '||'];
 
@@ -156,7 +158,12 @@ TernaryOperation.analyze = function (context) {
 BinaryOperation.analyze = function (context) {
     let lhsType = this.lhs.analyze(context);
     let rhsType = this.rhs.analyze(context);
-    if (integerBinaryOperations.includes(this.operation)) {
+    if (lhsType === 'bool' && rhsType === 'bool') {
+        if (!booleanOperations.includes(this.operation)) {
+            throw CompileError.create(this.source, `Invalid types for operation: '${lhsType}' ${this.operation} '${rhsType}'`);
+        }
+        return 'bool';
+    } else if (integerBinaryOperations.includes(this.operation)) {
         if (lhsType === 'bool' || rhsType === 'bool') {
             throw CompileError.create(this.source, `Invalid types for operation: '${lhsType}' ${this.operation} '${rhsType}'`);
         }

@@ -9,14 +9,14 @@ const generate = (code) => parse(code).generate();
 
 describe('Generate code for expression', () => {
     let globalContext = createContext();
-    globalContext.addVar('a', 'byte');
-    globalContext.addVar('b', 'byte');
-    globalContext.addMethod('test', 'byte', [{ name: 'p1', type: 'byte' }, { name: 'p2', type: 'byte' }]);
-    globalContext.addMethod('foo', 'byte', [{ name: 'p1', type: 'byte' }, { name: 'p2', type: 'byte' }, { name: 'p3', type: 'byte' }]);
-    globalContext.addMethod('bar', 'byte', [{ name: 'p1', type: 'byte' }, { name: 'p2', type: 'byte' }]);
+    globalContext.addVar('a', 'char');
+    globalContext.addVar('b', 'char');
+    globalContext.addMethod('test', 'char', [{ name: 'p1', type: 'char' }, { name: 'p2', type: 'char' }]);
+    globalContext.addMethod('foo', 'char', [{ name: 'p1', type: 'char' }, { name: 'p2', type: 'char' }, { name: 'p3', type: 'char' }]);
+    globalContext.addMethod('bar', 'char', [{ name: 'p1', type: 'char' }, { name: 'p2', type: 'char' }]);
     let context = globalContext.createContext('test');
-    context.addVar('p1', 'byte');
-    context.addVar('p2', 'byte');
+    context.addVar('p1', 'char');
+    context.addVar('p2', 'char');
 
     const simple = [
         ['a + b', 'ADD test_0,a,b'],
@@ -79,20 +79,13 @@ describe('Generate code for expression', () => {
     test('Logic expression', (done) => {
         let register = createRegister(context.getCurrentMethod());
         expect(generateExp('a && (b || p1)', context, register)).toEqual([
-            'JZ test_vm_0,a',
-            'JNZ test_vm_2,b',
-            'JNZ test_vm_2,test_p1',
-            'MOV test_0,#0',
-            'JMP test_vm_3',
-            '.LABEL test_vm_2',
-            'MOV test_0,#1',
-            '.LABEL test_vm_3',
+            'BOOL test_0,a',
             'JZ test_vm_0,test_0',
-            'MOV test_0,#1',
-            'JMP test_vm_1',
-            '.LABEL test_vm_0',
-            'MOV test_0,#0',
+            'BOOL test_0,b',
+            'JNZ test_vm_1,test_0',
+            'BOOL test_0,test_p1',
             '.LABEL test_vm_1',
+            '.LABEL test_vm_0',
         ]);
         expect(register.getGenerated()).toEqual([
             'test_0',
@@ -252,9 +245,9 @@ describe('Generate code', () => {
 
     test('Vars', (done) => {
         let code = `
-            byte a = 73;
-            void foo(byte b) {
-                byte c;
+            char a = 73;
+            void foo(char b) {
+                char c;
             }
         `;
         expect(generate(code)).toEqual([
@@ -272,7 +265,7 @@ describe('Generate code', () => {
 
     test('Return function', (done) => {
         let code = `
-            byte foo(byte a) {
+            char foo(char a) {
                 return a;
             }
         `;
@@ -291,7 +284,7 @@ describe('Generate code', () => {
 
     test('Return expression', (done) => {
         let code = `
-            byte foo(byte a) {
+            char foo(char a) {
                 return a + 1;
             }
         `;
@@ -313,7 +306,7 @@ describe('Generate code', () => {
 
     test('If statement', (done) => {
         let code = `
-            byte foo(byte a) {
+            char foo(char a) {
                 if (a) {
                     return 10 / a;
                 }
@@ -342,7 +335,7 @@ describe('Generate code', () => {
 
     test('If-else statement', (done) => {
         let code = `
-            byte foo(byte a) {
+            char foo(char a) {
                 if (a) {
                     return 10 / a;
                 } else {
@@ -374,8 +367,8 @@ describe('Generate code', () => {
 
     test('While statement', (done) => {
         let code = `
-            byte foo(byte a) {
-                byte b;
+            char foo(char a) {
+                char b;
                 b = 0;
                 while (a) {
                     a <<= 1;
@@ -412,10 +405,10 @@ describe('Generate code', () => {
 
     test('Call statement', (done) => {
         let code = `
-            void bar(byte a) {
+            void bar(char a) {
             }
 
-            void foo(byte a) {
+            void foo(char a) {
                 bar(a);
             }
         `;
@@ -433,6 +426,28 @@ describe('Generate code', () => {
             '.CODE',
             'MOV bar_a,foo_a',
             'CALL bar',
+            '.LABEL foo_end',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test.skip('Boolean logic', (done) => {
+        let code = `
+            bool foo(char a) {
+                return a;
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_return 0',
+            '.BYTE foo_a 0',
+            '.TMP',
+            '.BYTE foo_0 0',
+            '.CODE',
+            'BOOL foo_0,foo_a',
+            'MOV foo_return,foo_0',
+            'JMP foo_end',
             '.LABEL foo_end',
             '.RETURN foo',
         ]);

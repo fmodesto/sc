@@ -26,6 +26,13 @@ const moveInstruction = function (dest, src) {
     }
     return [`MOV ${dest},${src}`];
 };
+const boolInstruction = function (dest, { address, type }) {
+    if (type === 'bool') {
+        return moveInstruction(dest, address);
+    } else {
+        return [`BOOL ${dest},${address}`];
+    }
+};
 const variable = (context, name) => (context.isLocal(name) ? `${context.getCurrentMethod()}_${name}` : `${name}`);
 
 AST.generate = function () {
@@ -45,7 +52,7 @@ GlobalDeclaration.generate = function () {
     let value = this.expression.optimize().value;
     if (this.type === 'bool') {
         return [`.BYTE ${this.name} ${value ? 1 : 0}`];
-    } else if (this.type === 'byte') {
+    } else if (this.type === 'char') {
         return [`.BYTE ${this.name} ${value}`];
     } else {
         throw new Error(`Unknown type ${this.type}`);
@@ -55,7 +62,7 @@ GlobalDeclaration.generate = function () {
 const returnAddress = function (name, type) {
     if (type === 'void') {
         return [];
-    } else if (type === 'bool' || type === 'byte') {
+    } else if (type === 'bool' || type === 'char') {
         return [`.BYTE ${name}_return 0`];
     } else {
         throw new Error(`Unknown type ${this.type}`);
@@ -282,7 +289,6 @@ TernaryOperation.generate = function (context, register) {
 
 BinaryOperation.generate = function (context, register) {
     if (this.operation === '&&') {
-        let falseLabel = register.generateLabel();
         let endLabel = register.generateLabel();
         let lhs = this.lhs.generate(context, register);
         register.release(lhs.address);
@@ -291,20 +297,17 @@ BinaryOperation.generate = function (context, register) {
         let dest = register.fetch();
         return {
             address: dest,
+            type: 'bool',
             instructions: [
                 ...lhs.instructions,
-                `JZ ${falseLabel},${lhs.address}`,
+                ...boolInstruction(dest, lhs),
+                `JZ ${endLabel},${dest}`,
                 ...rhs.instructions,
-                `JZ ${falseLabel},${rhs.address}`,
-                `MOV ${dest},#1`,
-                `JMP ${endLabel}`,
-                `.LABEL ${falseLabel}`,
-                `MOV ${dest},#0`,
+                ...boolInstruction(dest, rhs),
                 `.LABEL ${endLabel}`,
             ],
         };
     } else if (this.operation === '||') {
-        let trueLabel = register.generateLabel();
         let endLabel = register.generateLabel();
         let lhs = this.lhs.generate(context, register);
         register.release(lhs.address);
@@ -313,15 +316,13 @@ BinaryOperation.generate = function (context, register) {
         let dest = register.fetch();
         return {
             address: dest,
+            type: 'bool',
             instructions: [
                 ...lhs.instructions,
-                `JNZ ${trueLabel},${lhs.address}`,
+                ...boolInstruction(dest, lhs),
+                `JNZ ${endLabel},${dest}`,
                 ...rhs.instructions,
-                `JNZ ${trueLabel},${rhs.address}`,
-                `MOV ${dest},#0`,
-                `JMP ${endLabel}`,
-                `.LABEL ${trueLabel}`,
-                `MOV ${dest},#1`,
+                ...boolInstruction(dest, rhs),
                 `.LABEL ${endLabel}`,
             ],
         };
@@ -349,6 +350,7 @@ MethodCall.generate = function (context, register) {
     let dest = register.fetch();
     return {
         address: dest,
+        type: context.getMethodType(this.name),
         instructions: [
             ...params.map((e) => e.instructions).flat(),
             ...setParams,
@@ -362,6 +364,7 @@ Literal.generate = function () {
     let value = `#${this.value}`;
     return {
         address: value,
+        type: this.type,
         instructions: [],
     };
 };
@@ -369,6 +372,7 @@ Literal.generate = function () {
 Variable.generate = function (context) {
     return {
         address: variable(context, this.name),
+        type: context.getVarType(this.name),
         instructions: [],
     };
 };

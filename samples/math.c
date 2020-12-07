@@ -1,12 +1,11 @@
-#define byte signed char
 #define bool unsigned char
 #define true 1
 #define false 0
 
 bool test = 0;
 
-byte mul8(byte a, byte b) {
-    byte res, flag, sign;
+char mul8(char a, char b) {
+    char res, flag, sign;
     flag = 1;
     res = 0;
     while (flag) {
@@ -19,8 +18,8 @@ byte mul8(byte a, byte b) {
     return res;
 }
 
-byte div8(byte a, byte b) {
-    byte q, r, flag, sign;
+char div8(char a, char b) {
+    char q, r, flag, sign;
     q = 0;
     r = 0;
     sign = 0;
@@ -47,8 +46,8 @@ byte div8(byte a, byte b) {
     return sign ? -q : q;
 }
 
-byte mod8(byte a, byte b) {
-    byte q, r, flag, sign;
+char mod8(char a, char b) {
+    char q, r, flag, sign;
     q = 0;
     r = 0;
     sign = 0;
@@ -74,7 +73,7 @@ byte mod8(byte a, byte b) {
     return sign ? -r : r;
 }
 
-byte shl8(byte a, byte b) {
+char shl8(char a, char b) {
     b &= 0x07;
     while (b) {
         a <<= 1;
@@ -83,7 +82,7 @@ byte shl8(byte a, byte b) {
     return a;
 }
 
-byte shr8(byte a, byte b) {
+char shr8(char a, char b) {
     b &= 0x07;
     while (b) {
         a >>= 1;

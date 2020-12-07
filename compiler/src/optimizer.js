@@ -6,15 +6,15 @@ import {
 } from './ast.js';
 
 const isLiteral = (e) => Literal.isPrototypeOf(e);
-const isByteLiteral = (e) => isLiteral(e) && e.type === 'byte';
+const isCharLiteral = (e) => isLiteral(e) && e.type === 'char';
 
-const createByteLiteral = (value, source) => {
-    let val = (value | 0) & 0xFF;
+const createCharLiteral = (value, source) => {
+    let val = value & 0xFF;
     if (val > 127) {
         val = -(256 - val);
     }
     return Literal.create({
-        type: 'byte',
+        type: 'char',
         value: val,
         source,
     });
@@ -47,11 +47,11 @@ UnaryOperation.optimize = function () {
     if (isLiteral(expression)) {
         switch (this.operation) {
             case '-':
-                return createByteLiteral(-expression.value, this.source);
+                return createCharLiteral(-expression.value, this.source);
             case '!':
                 return createBoolLiteral(!expression.value, this.source);
             case '~':
-                return createByteLiteral(~expression.value & 0xFF, this.source);
+                return createCharLiteral(~expression.value & 0xFF, this.source);
             default:
                 throw new Error(`Unimplemented for operation ${this.operation}`);
         }
@@ -66,8 +66,8 @@ UnaryOperation.optimize = function () {
 BinaryOperation.optimize = function () {
     let lhs = this.lhs.optimize();
     let rhs = this.rhs.optimize();
-    if (isByteLiteral(lhs) && isByteLiteral(rhs)) {
-        return this.foldByteConstants(lhs, rhs);
+    if (isCharLiteral(lhs) && isCharLiteral(rhs)) {
+        return this.foldCharConstants(lhs, rhs);
     } else if (isLiteral(lhs) && isLiteral(rhs)) {
         return this.foldBoolConstants(lhs, rhs);
     } else {
@@ -80,30 +80,30 @@ BinaryOperation.optimize = function () {
     }
 };
 
-BinaryOperation.foldByteConstants = function (lhs, rhs) {
+BinaryOperation.foldCharConstants = function (lhs, rhs) {
     const x = lhs.value;
     const y = rhs.value;
     switch (this.operation) {
         case '+':
-            return createByteLiteral(x + y, this.source);
+            return createCharLiteral(x + y, this.source);
         case '-':
-            return createByteLiteral(x - y, this.source);
+            return createCharLiteral(x - y, this.source);
         case '*':
-            return createByteLiteral(x * y, this.source);
+            return createCharLiteral(x * y, this.source);
         case '/':
-            return createByteLiteral(x / y, this.source);
+            return createCharLiteral(x / y, this.source);
         case '%':
-            return createByteLiteral(x % y, this.source);
+            return createCharLiteral(x % y, this.source);
         case '<<':
-            return createByteLiteral((x << y) & 0xFF, this.source);
+            return createCharLiteral((x << y) & 0xFF, this.source);
         case '>>':
-            return createByteLiteral((x & 0xFF) >>> y, this.source);
+            return createCharLiteral((x & 0xFF) >>> y, this.source);
         case '&':
-            return createByteLiteral((x & 0xFF) & (y & 0xFF), this.source);
+            return createCharLiteral((x & 0xFF) & (y & 0xFF), this.source);
         case '|':
-            return createByteLiteral((x & 0xFF) | (y & 0xFF), this.source);
+            return createCharLiteral((x & 0xFF) | (y & 0xFF), this.source);
         case '^':
-            return createByteLiteral((x & 0xFF) ^ (y & 0xFF), this.source);
+            return createCharLiteral((x & 0xFF) ^ (y & 0xFF), this.source);
         case '<':
             return createBoolLiteral(x < y, this.source);
         case '<=':
@@ -121,7 +121,7 @@ BinaryOperation.foldByteConstants = function (lhs, rhs) {
         case '||':
             return createBoolLiteral(!!x || !!y, this.source);
         default:
-            throw new Error(`Unknown byte operation to fold: ${this.operation}`);
+            throw new Error(`Unknown char operation to fold: ${this.operation}`);
     }
 };
 

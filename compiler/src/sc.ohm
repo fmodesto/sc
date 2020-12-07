@@ -43,6 +43,7 @@ SimpleC {
    Exp9        =  Literal
                |  MethodCall
                |  VarExp
+               |  "(" type ")" Exp9           -- cast
                |  "(" Exp ")"                 -- parens
 
    Literal     =  intlit
@@ -55,8 +56,8 @@ SimpleC {
 
    methodType  = void | type
 
-   type        =  byte | int | bool
-   byte        =  "byte" ~idrest
+   type        =  char | int | bool
+   char        =  "char" ~idrest
    int         =  "int" ~idrest
    bool        =  "bool" ~idrest
    void        =  "void" ~idrest
@@ -67,7 +68,7 @@ SimpleC {
    while       =  "while" ~idrest
    return      =  "return" ~idrest
 
-   keyword     =  byte | int | bool | true | false | if | else | while | return | void
+   keyword     =  char | int | bool | true | false | if | else | while | return | void
    id          =  ~keyword letter idrest*
    idrest      =  "_" | alnum
    intlit      =  ~"0x" digit+

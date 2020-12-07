@@ -1,30 +1,30 @@
 import parse from '../src/parser.js';
 import '../src/optimizer.js';
 
-const byte = (value) => ({ type: 'byte', value: value });
+const char = (value) => ({ type: 'char', value: value });
 const bool = (value) => ({ type: 'bool', value: value ? 1 : 0 });
 
 const expressions = [
-    ['2 + 3', byte(5)],
-    ['2 - 3', byte(-1)],
-    ['2 * 3', byte(6)],
-    ['2 / 3', byte(0)],
-    ['-13', byte(-13)],
-    ['-13 / 3', byte(-4)],
-    ['2 % 3', byte(2)],
-    ['-2 % 3', byte(-2)],
-    ['2 << 3', byte(16)],
-    ['0x9 >> 1', byte(4)],
-    ['-1 >> 1', byte(127)],
-    ['-1 << 1', byte(-2)],
-    ['0x2 & 0x3', byte(2)],
-    ['-1 & 3', byte(3)],
-    ['2 | 4', byte(6)],
-    ['-2 | -4', byte(-2)],
-    ['7 ^ 3', byte(4)],
-    ['-7 ^ -3', byte(4)],
-    ['~0', byte(-1)],
-    ['~2', byte(-3)],
+    ['2 + 3', char(5)],
+    ['2 - 3', char(-1)],
+    ['2 * 3', char(6)],
+    ['2 / 3', char(0)],
+    ['-13', char(-13)],
+    ['-13 / 3', char(-4)],
+    ['2 % 3', char(2)],
+    ['-2 % 3', char(-2)],
+    ['2 << 3', char(16)],
+    ['0x9 >> 1', char(4)],
+    ['-1 >> 1', char(127)],
+    ['-1 << 1', char(-2)],
+    ['0x2 & 0x3', char(2)],
+    ['-1 & 3', char(3)],
+    ['2 | 4', char(6)],
+    ['-2 | -4', char(-2)],
+    ['7 ^ 3', char(4)],
+    ['-7 ^ -3', char(4)],
+    ['~0', char(-1)],
+    ['~2', char(-3)],
     ['2 < 4', bool(true)],
     ['4 < 2', bool(false)],
     ['2 <= 4', bool(true)],
@@ -90,7 +90,7 @@ describe('Optimize', () => {
             parameters: [
                 {
                     kind: 'Literal',
-                    type: 'byte',
+                    type: 'char',
                     value: 6,
                 },
                 {
@@ -110,7 +110,7 @@ describe('Optimize', () => {
             expression: [
                 {
                     kind: 'Literal',
-                    type: 'byte',
+                    type: 'char',
                     value: 6,
                 },
             ],
@@ -124,7 +124,7 @@ describe('Optimize', () => {
             kind: 'IfStatement',
             predicate: {
                 kind: 'Literal',
-                type: 'byte',
+                type: 'char',
                 value: 6,
             },
             consequent: [
@@ -133,7 +133,7 @@ describe('Optimize', () => {
                     name: 'a',
                     expression: {
                         kind: 'Literal',
-                        type: 'byte',
+                        type: 'char',
                         value: 1,
                     },
                 },
@@ -144,7 +144,7 @@ describe('Optimize', () => {
                     name: 'a',
                     expression: {
                         kind: 'Literal',
-                        type: 'byte',
+                        type: 'char',
                         value: 4,
                     },
                 },
