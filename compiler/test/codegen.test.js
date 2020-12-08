@@ -5,7 +5,11 @@ import createContext from '../src/context.js';
 import createRegister from '../src/register.js';
 
 const generateExp = (exp, context, register) => parse(exp, 'Exp').generate(context, register).instructions;
-const generate = (code) => parse(code).generate();
+const generate = (code) => {
+    let program = parse(code);
+    program.analyze();
+    return program.generate();
+};
 
 describe('Generate code for expression', () => {
     let globalContext = createContext();
