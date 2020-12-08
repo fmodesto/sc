@@ -432,7 +432,7 @@ describe('Generate code', () => {
         done();
     });
 
-    test('Boolean logic', (done) => {
+    test('Cast return type', (done) => {
         let code = `
             bool foo(char a) {
                 return a;
@@ -451,4 +451,43 @@ describe('Generate code', () => {
         done();
     });
 
+    test('Cast parameters', (done) => {
+        let code = `
+            bool bar(bool a, bool b) {
+                return a ^ b;
+            }
+            char foo(char a) {
+                return (char) bar(a, 3);
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION bar',
+            '.BYTE bar_return 0',
+            '.BYTE bar_a 0',
+            '.BYTE bar_b 0',
+            '.TMP',
+            '.BYTE bar_0 0',
+            '.CODE',
+            'XOR bar_0,bar_a,bar_b',
+            'MOV bar_return,bar_0',
+            'JMP bar_end',
+            '.LABEL bar_end',
+            '.RETURN bar',
+            '.FUNCTION foo',
+            '.BYTE foo_return 0',
+            '.BYTE foo_a 0',
+            '.TMP',
+            '.BYTE foo_0 0',
+            '.CODE',
+            'BOOL bar_a,foo_a',
+            'BOOL bar_b,#3',
+            'CALL bar',
+            'MOV foo_0,bar_return',
+            'MOV foo_return,foo_0',
+            'JMP foo_end',
+            '.LABEL foo_end',
+            '.RETURN foo',
+        ]);
+        done();
+    });
 });
