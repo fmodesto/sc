@@ -432,7 +432,7 @@ describe('Generate code', () => {
         done();
     });
 
-    test.skip('Boolean logic', (done) => {
+    test('Boolean logic', (done) => {
         let code = `
             bool foo(char a) {
                 return a;
@@ -442,11 +442,8 @@ describe('Generate code', () => {
             '.FUNCTION foo',
             '.BYTE foo_return 0',
             '.BYTE foo_a 0',
-            '.TMP',
-            '.BYTE foo_0 0',
             '.CODE',
-            'BOOL foo_0,foo_a',
-            'MOV foo_return,foo_0',
+            'BOOL foo_return,foo_a',
             'JMP foo_end',
             '.LABEL foo_end',
             '.RETURN foo',

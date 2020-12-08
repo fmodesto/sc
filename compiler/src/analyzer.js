@@ -30,6 +30,8 @@ const logicBinaryOperations = ['&&', '||'];
 
 const relationalOperations = ['<=', '<', '==', '!=', '>=', '>'];
 
+const castOperations = ['char', 'bool', 'int'];
+
 const doesReturn = function (list) {
     return list.length !== 0 && list[list.length - 1].doesReturn();
 };
@@ -187,6 +189,8 @@ UnaryOperation.analyze = function (context) {
         return type;
     } else if (logicUnaryOperations.includes(this.operation)) {
         return 'bool';
+    } else if (castOperations.includes(this.operation)) {
+        return this.operation;
     } else {
         throw new Error(`Unknown operation ${this.operation}`);
     }

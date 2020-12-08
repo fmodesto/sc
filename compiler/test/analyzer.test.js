@@ -327,10 +327,32 @@ describe('Analyzer correct programs', () => {
         let src = `
             void foo(bool b) {
                 b &= true;
-                b |= false;
+                b |= (bool) 5;
                 b ^= false;
                 b = b == true;
                 b = b != false;
+            }
+        `;
+        expect(check(src)).not.toThrow();
+        done();
+    });
+    test('Handles auto cast', (done) => {
+        let src = `
+            void bar(bool a) {}
+            void foo() {
+                bar(5);
+            }
+        `;
+        expect(check(src)).not.toThrow();
+        done();
+    });
+    test('Handles cast', (done) => {
+        let src = `
+            void bar(bool a) {}
+            void foo() {
+                char c;
+                bar(false | (bool) 5);
+                c = (char) true;
             }
         `;
         expect(check(src)).not.toThrow();
