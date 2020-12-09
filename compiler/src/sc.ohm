@@ -39,11 +39,11 @@ SimpleC {
    Exp7        =  Exp7 mulop Exp8             -- binary
                |  Exp8
    Exp8        =  prefixop Exp8               -- unary
+               |  "(" type ")" Exp8           -- cast
                |  Exp9
    Exp9        =  Literal
                |  MethodCall
                |  VarExp
-               |  "(" type ")" Exp9           -- cast
                |  "(" Exp ")"                 -- parens
 
    Literal     =  intlit
@@ -71,8 +71,8 @@ SimpleC {
    keyword     =  char | int | bool | true | false | if | else | while | return | void
    id          =  ~keyword letter idrest*
    idrest      =  "_" | alnum
-   intlit      =  ~"0x" digit+
-   hexlit      =  hex
+   intlit      =  ~"0x" digit+ "u"?
+   hexlit      =  hex "u"?
    hex         =  "0x" hexDigit+
    hexDigit   :=  "0".."9" | "a".."f" | "A".."F"
    boollit     =  true | false

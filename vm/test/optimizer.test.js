@@ -67,4 +67,167 @@ describe('Optimizes vm code', () => {
         ]);
         done();
     });
+
+    test('Casts byte', (done) => {
+        let src =
+            `.FUNCTION test
+                .LOCALS
+                .BYTE test_a 0
+                .BYTE test_b_H 0
+                .BYTE test_b_L 0
+                .BYTE test_c 0
+                .TMP
+                .BYTE test_0 0
+                .BYTE test_1 0
+                .CODE
+                MOV test_0,test_a
+                MOV test_a,test_0
+                MOV test_0,test_b_H:test_b_L
+                MOV test_a,test_0
+                MOV test_0,test_c
+                MOV test_a,test_0
+                JMP test_end
+                .LABEL test_end
+            .RETURN test`;
+
+        expect(optimize(src)).toEqual([
+            ['.FUNCTION', 'test'],
+            ['.LOCALS'],
+            ['.BYTE', 'test_a', '0'],
+            ['.BYTE', 'test_b_H', '0'],
+            ['.BYTE', 'test_b_L', '0'],
+            ['.BYTE', 'test_c', '0'],
+            ['.TMP'],
+            ['.BYTE', 'test_0', '0'],
+            ['.BYTE', 'test_1', '0'],
+            ['.CODE'],
+            ['MOV', 'test_a', 'test_b_H:test_b_L'],
+            ['MOV', 'test_a', 'test_c'],
+            ['.LABEL', 'test_end'],
+            ['.RETURN', 'test'],
+        ]);
+        done();
+    });
+
+    test('Casts int', (done) => {
+        let src =
+            `.FUNCTION test
+                .LOCALS
+                .BYTE test_a 0
+                .BYTE test_b_H 0
+                .BYTE test_b_L 0
+                .BYTE test_c 0
+                .TMP
+                .BYTE test_0 0
+                .BYTE test_1 0
+                .CODE
+                MOV test_0:test_1,test_a
+                MOV test_b_H:test_b_L,test_0:test_1
+                MOV test_0:test_1,test_b_H:test_b_L
+                MOV test_b_H:test_b_L,test_0:test_1
+                MOV test_0:test_1,test_c
+                MOV test_b_H:test_b_L,test_0:test_1
+                JMP test_end
+                .LABEL test_end
+            .RETURN test`;
+
+        expect(optimize(src)).toEqual([
+            ['.FUNCTION', 'test'],
+            ['.LOCALS'],
+            ['.BYTE', 'test_a', '0'],
+            ['.BYTE', 'test_b_H', '0'],
+            ['.BYTE', 'test_b_L', '0'],
+            ['.BYTE', 'test_c', '0'],
+            ['.TMP'],
+            ['.BYTE', 'test_0', '0'],
+            ['.BYTE', 'test_1', '0'],
+            ['.CODE'],
+            ['MOV', 'test_b_H:test_b_L', 'test_a'],
+            ['MOV', 'test_b_H:test_b_L', 'test_c'],
+            ['.LABEL', 'test_end'],
+            ['.RETURN', 'test'],
+        ]);
+        done();
+    });
+
+    test('Casts boolean', (done) => {
+        let src =
+            `.FUNCTION test
+                .LOCALS
+                .BYTE test_a 0
+                .BYTE test_b_H 0
+                .BYTE test_b_L 0
+                .BYTE test_c 0
+                .TMP
+                .BYTE test_0 0
+                .BYTE test_1 0
+                .CODE
+                BOOL test_1,test_a
+                MOV test_c,test_1
+                BOOL test_1,test_b_H:test_b_L
+                MOV test_c,test_1
+                MOV test_1,test_c
+                MOV test_c,test_1
+                JMP test_end
+                .LABEL test_end
+            .RETURN test`;
+
+        expect(optimize(src)).toEqual([
+            ['.FUNCTION', 'test'],
+            ['.LOCALS'],
+            ['.BYTE', 'test_a', '0'],
+            ['.BYTE', 'test_b_H', '0'],
+            ['.BYTE', 'test_b_L', '0'],
+            ['.BYTE', 'test_c', '0'],
+            ['.TMP'],
+            ['.BYTE', 'test_0', '0'],
+            ['.BYTE', 'test_1', '0'],
+            ['.CODE'],
+            ['BOOL', 'test_c', 'test_a'],
+            ['BOOL', 'test_c', 'test_b_H:test_b_L'],
+            ['.LABEL', 'test_end'],
+            ['.RETURN', 'test'],
+        ]);
+        done();
+    });
+
+    test('Casts return', (done) => {
+        let src =
+            `.FUNCTION test
+                .BYTE test_return_H 0
+                .BYTE test_return_L 0
+                .LOCALS
+                .BYTE test_a 0
+                .BYTE test_b_H 0
+                .BYTE test_b_L 0
+                .TMP
+                .BYTE test_0 0
+                .BYTE test_1 0
+                .CODE
+                SHR test_0:test_1,test_b_H:test_b_L,test_a
+                MOV test_1,test_0:test_1
+                MOV test_return_H:test_return_L,test_1
+                JMP test_end
+                .LABEL test_end
+            .RETURN test`;
+
+        expect(optimize(src)).toEqual([
+            ['.FUNCTION', 'test'],
+            ['.BYTE', 'test_return_H', '0'],
+            ['.BYTE', 'test_return_L', '0'],
+            ['.LOCALS'],
+            ['.BYTE', 'test_a', '0'],
+            ['.BYTE', 'test_b_H', '0'],
+            ['.BYTE', 'test_b_L', '0'],
+            ['.TMP'],
+            ['.BYTE', 'test_0', '0'],
+            ['.BYTE', 'test_1', '0'],
+            ['.CODE'],
+            ['SHR', 'test_1', 'test_b_H:test_b_L', 'test_a'],
+            ['MOV', 'test_return_H:test_return_L', 'test_1'],
+            ['.LABEL', 'test_end'],
+            ['.RETURN', 'test'],
+        ]);
+        done();
+    });
 });

@@ -4,19 +4,32 @@ const createRegister = (prefix) => {
     let counter = 0;
     let label = 0;
     return {
-        fetch() {
-            if (available.length !== 0) {
-                return available.pop();
+        fetch(type) {
+            if (type === 'int') {
+                while (available.length < 2) {
+                    let variable = `${prefix}_${counter++}`;
+                    generated.push(variable);
+                    available.push(variable);
+                }
+                let low = available.pop();
+                let high = available.pop();
+                return `${high}:${low}`;
             } else {
-                let variable = `${prefix}_${counter++}`;
-                generated.push(variable);
-                return variable;
+                if (available.length !== 0) {
+                    return available.pop();
+                } else {
+                    let variable = `${prefix}_${counter++}`;
+                    generated.push(variable);
+                    return variable;
+                }
             }
         },
         release(variable) {
-            if (generated.includes(variable)) {
-                available.push(variable);
-            }
+            variable.split(':').forEach((e) => {
+                if (generated.includes(e)) {
+                    available.push(e);
+                }
+            });
         },
         getGenerated() {
             return generated;

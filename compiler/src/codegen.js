@@ -18,6 +18,7 @@ import {
 } from './ast.js';
 import createContext from './context.js';
 import createRegister from './register.js';
+import { byte } from './binary.js';
 import './optimizer.js';
 
 const moveInstruction = function (dest, src) {
@@ -34,7 +35,7 @@ const boolInstruction = function (dest, { address, type }) {
     }
 };
 const castInstruction = function (dest, destType, src, srcType) {
-    if (destType === srcType) {
+    if (destType === srcType || (destType === 'int' && srcType === 'char')) {
         return moveInstruction(dest, src);
     } else if (destType === 'bool') {
         return [`BOOL ${dest},${src}`];
@@ -42,7 +43,23 @@ const castInstruction = function (dest, destType, src, srcType) {
         throw new Error(`'Not implemented cast from '${srcType}' to '${destType}'`);
     }
 };
-const variable = (context, name) => (context.isLocal(name) ? `${context.getCurrentMethod()}_${name}` : `${name}`);
+const address = function (prefix, name, type) {
+    if (prefix.length) {
+        prefix += '_';
+    }
+    if (type === 'int') {
+        return `${prefix}${name}_H:${prefix}${name}_L`;
+    } else {
+        return `${prefix}${name}`;
+    }
+};
+const variable = function (context, name) {
+    if (typeof context.getVarType(name) === 'undefined') {
+        throw new Error(`Variable should be defined ${name}`);
+    }
+    let prefix = context.isLocal(name) ? `${context.getCurrentMethod()}` : '';
+    return address(prefix, name, context.getVarType(name));
+};
 
 AST.generate = function () {
     throw new Error('Not implemented');
@@ -63,6 +80,11 @@ GlobalDeclaration.generate = function () {
         return [`.BYTE ${this.name} ${value ? 1 : 0}`];
     } else if (this.type === 'char') {
         return [`.BYTE ${this.name} ${value}`];
+    } else if (this.type === 'int') {
+        return [
+            `.BYTE ${this.name}_H ${value >> 8}`,
+            `.BYTE ${this.name}_L ${byte(value)}`,
+        ];
     } else {
         throw new Error(`Unknown type ${this.type}`);
     }
@@ -73,12 +95,18 @@ const returnAddress = function (name, type) {
         return [];
     } else if (type === 'bool' || type === 'char') {
         return [`.BYTE ${name}_return 0`];
+    } else if (type === 'int') {
+        return [
+            `.BYTE ${name}_return_H 0`,
+            `.BYTE ${name}_return_L 0`,
+        ];
     } else {
-        throw new Error(`Unknown type ${this.type}`);
+        throw new Error(`Unknown type ${type}`);
     }
 };
 
 MethodDeclaration.generate = function (context) {
+    context.addVar('return', this.type);
     this.parameters.forEach((e) => context.addVar(e.name, e.type));
     this.vars.forEach((e) => context.addVar(e.name, e.type));
 
@@ -105,9 +133,16 @@ MethodDeclaration.generate = function (context) {
 };
 
 Var.generate = function (context) {
-    return [
-        `.BYTE ${variable(context, this.name)} 0`,
-    ];
+    if (context.getVarType(this.name) === 'int') {
+        return [
+            `.BYTE ${context.getCurrentMethod()}_${this.name}_H 0`,
+            `.BYTE ${context.getCurrentMethod()}_${this.name}_L 0`,
+        ];
+    } else {
+        return [
+            `.BYTE ${context.getCurrentMethod()}_${this.name} 0`,
+        ];
+    }
 };
 
 AssignmentStatement.generate = function (context, register) {
@@ -181,7 +216,7 @@ ReturnStatement.generate = function (context, register) {
         let returnType = context.getMethodType();
         return [
             ...instructions,
-            ...castInstruction(`${context.getCurrentMethod()}_return`, returnType, address, type),
+            ...castInstruction(variable(context, 'return'), returnType, address, type),
             `JMP ${context.getCurrentMethod()}_end`,
         ];
     }
@@ -391,7 +426,7 @@ UnaryOperation.generate = function (context, register) {
 MethodCall.generate = function (context, register) {
     let params = this.parameters.map((e) => e.generate(context, register));
     let methodParams = context.getMethodParameters(this.name);
-    let setParams = methodParams.map((e, i) => castInstruction(`${this.name}_${e.name}`, e.type, params[i].address, params[i].type)).flat();
+    let setParams = methodParams.map((e, i) => castInstruction(address(this.name, e.name, e.type), e.type, params[i].address, params[i].type)).flat();
     params.forEach(({ address }) => register.release(address));
     let type = context.getMethodType(this.name);
     let dest = register.fetch(type);
@@ -402,7 +437,7 @@ MethodCall.generate = function (context, register) {
             ...params.map((e) => e.instructions).flat(),
             ...setParams,
             `CALL ${this.name}`,
-            `MOV ${dest},${this.name}_return`,
+            `MOV ${dest},${address(this.name, 'return', type)}`,
         ],
     };
 };

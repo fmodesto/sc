@@ -27,7 +27,7 @@ describe('Analyzer detect error programs', () => {
     test('Duplicate global', (done) => {
         let src = `
             char a = 5;
-            char a = 3;
+            int a = 3;
 
             void foo() {}
         `;
@@ -88,11 +88,11 @@ describe('Analyzer detect error programs', () => {
     });
     test('Return value in void function', (done) => {
         let src = `
-            void foo(char a) {
-                return 5;
+            void foo(int a) {
+                return a;
             }
         `;
-        expect(check(src)).toThrow('Incompatible types: can not convert \'char\' to \'void\'');
+        expect(check(src)).toThrow('Incompatible types: can not convert \'int\' to \'void\'');
         done();
     });
     test('Return void in void function', (done) => {
@@ -243,6 +243,16 @@ describe('Analyzer detect error programs', () => {
         expect(check(src)).toThrow('Variable \'a\' not defined');
         done();
     });
+    test('Constant too long', (done) => {
+        let src = `
+            int foo(int a) {
+                a = 32767;
+                return 32768;
+            }
+        `;
+        expect(check(src)).toThrow('Value 32768 exceeds \'int\'');
+        done();
+    });
 });
 
 describe('Analyzer correct programs', () => {
@@ -351,8 +361,21 @@ describe('Analyzer correct programs', () => {
             void bar(bool a) {}
             void foo() {
                 char c;
+                int d;
                 bar(false | (bool) 5);
                 c = (char) true;
+                d = c;
+            }
+        `;
+        expect(check(src)).not.toThrow();
+        done();
+    });
+    test('Handles hexadecimal', (done) => {
+        let src = `
+            char foo() {
+                int a;
+                a = 0xffff;
+                return 0xF0;
             }
         `;
         expect(check(src)).not.toThrow();

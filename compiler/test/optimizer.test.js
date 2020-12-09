@@ -2,10 +2,12 @@ import parse from '../src/parser.js';
 import '../src/optimizer.js';
 
 const char = (value) => ({ type: 'char', value: value });
+const int = (value) => ({ type: 'int', value: value });
 const bool = (value) => ({ type: 'bool', value: value ? 1 : 0 });
 
 const expressions = [
     ['2 + 3', char(5)],
+    ['-200 + 3', int(-197)],
     ['2 - 3', char(-1)],
     ['2 * 3', char(6)],
     ['2 / 3', char(0)],
@@ -16,7 +18,10 @@ const expressions = [
     ['2 << 3', char(16)],
     ['0x9 >> 1', char(4)],
     ['-1 >> 1', char(127)],
+    ['-1u >> 1', int(32767)],
     ['-1 << 1', char(-2)],
+    ['-1 << 9', char(-2)],
+    ['-1u << 9', int(-512)],
     ['0x2 & 0x3', char(2)],
     ['-1 & 3', char(3)],
     ['2 | 4', char(6)],
@@ -25,6 +30,7 @@ const expressions = [
     ['-7 ^ -3', char(4)],
     ['~0', char(-1)],
     ['~2', char(-3)],
+    ['2000 + 5000', int(7000)],
     ['2 < 4', bool(true)],
     ['4 < 2', bool(false)],
     ['2 <= 4', bool(true)],
@@ -61,6 +67,10 @@ const expressions = [
     ['!3', bool(false)],
     ['!false', bool(true)],
     ['3 < 5 && 2 + 3 > 1', bool(true)],
+    ['(bool) 4', bool(true)],
+    ['(bool) 0', bool(false)],
+    ['(char) (513 + 6)', char(7)],
+    ['(int) -7', int(-7)],
 ];
 
 const noOptimized = [

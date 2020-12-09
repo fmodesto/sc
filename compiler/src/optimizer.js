@@ -4,18 +4,23 @@ import {
     UnaryOperation,
     Literal,
 } from './ast.js';
+import { word, byte } from './binary.js';
 
 const isLiteral = (e) => Literal.isPrototypeOf(e);
-const isCharLiteral = (e) => isLiteral(e) && e.type === 'char';
+const isNumberLiteral = (e) => isLiteral(e) && (e.type === 'int' || e.type === 'char');
 
-const createCharLiteral = (value, source) => {
-    let val = value & 0xFF;
-    if (val > 127) {
-        val = -(256 - val);
-    }
+const createIntLiteral = function (value, source) {
+    return Literal.create({
+        type: 'int',
+        value: word(value),
+        source,
+    });
+};
+
+const createCharLiteral = function (value, source) {
     return Literal.create({
         type: 'char',
-        value: val,
+        value: byte(value),
         source,
     });
 };
@@ -44,14 +49,21 @@ AST.optimize = function () {
 
 UnaryOperation.optimize = function () {
     let expression = this.expression.optimize();
+    let createLiteral = expression.type === 'int' ? createIntLiteral : createCharLiteral;
     if (isLiteral(expression)) {
         switch (this.operation) {
             case '-':
-                return createCharLiteral(-expression.value, this.source);
+                return createLiteral(-expression.value, this.source);
             case '!':
                 return createBoolLiteral(!expression.value, this.source);
             case '~':
-                return createCharLiteral(~expression.value & 0xFF, this.source);
+                return createLiteral(~expression.value, this.source);
+            case 'bool':
+                return createBoolLiteral(!!expression.value, this.source);
+            case 'char':
+                return createCharLiteral(expression.value, this.source);
+            case 'int':
+                return createIntLiteral(expression.value, this.source);
             default:
                 throw new Error(`Unimplemented for operation ${this.operation}`);
         }
@@ -66,8 +78,8 @@ UnaryOperation.optimize = function () {
 BinaryOperation.optimize = function () {
     let lhs = this.lhs.optimize();
     let rhs = this.rhs.optimize();
-    if (isCharLiteral(lhs) && isCharLiteral(rhs)) {
-        return this.foldCharConstants(lhs, rhs);
+    if (isNumberLiteral(lhs) && isNumberLiteral(rhs)) {
+        return this.foldNumberConstants(lhs, rhs);
     } else if (isLiteral(lhs) && isLiteral(rhs)) {
         return this.foldBoolConstants(lhs, rhs);
     } else {
@@ -80,30 +92,32 @@ BinaryOperation.optimize = function () {
     }
 };
 
-BinaryOperation.foldCharConstants = function (lhs, rhs) {
+BinaryOperation.foldNumberConstants = function (lhs, rhs) {
     const x = lhs.value;
     const y = rhs.value;
+    const intType = lhs.type === 'int' || rhs.type === 'int';
+    const createLiteral = intType ? createIntLiteral : createCharLiteral;
     switch (this.operation) {
         case '+':
-            return createCharLiteral(x + y, this.source);
+            return createLiteral(x + y, this.source);
         case '-':
-            return createCharLiteral(x - y, this.source);
+            return createLiteral(x - y, this.source);
         case '*':
-            return createCharLiteral(x * y, this.source);
+            return createLiteral(x * y, this.source);
         case '/':
-            return createCharLiteral(x / y, this.source);
+            return createLiteral(x / y, this.source);
         case '%':
-            return createCharLiteral(x % y, this.source);
+            return createLiteral(x % y, this.source);
         case '<<':
-            return createCharLiteral((x << y) & 0xFF, this.source);
+            return createLiteral(intType ? (x & 0xFFFF) << (y & 0x0F) : (x & 0xFF) << (y & 0x07), this.source);
         case '>>':
-            return createCharLiteral((x & 0xFF) >>> y, this.source);
+            return createLiteral(intType ? (x & 0xFFFF) >>> (y & 0x0F) : (x & 0xFF) >>> (y & 0x07), this.source);
         case '&':
-            return createCharLiteral((x & 0xFF) & (y & 0xFF), this.source);
+            return createLiteral(x & y, this.source);
         case '|':
-            return createCharLiteral((x & 0xFF) | (y & 0xFF), this.source);
+            return createLiteral(x | y, this.source);
         case '^':
-            return createCharLiteral((x & 0xFF) ^ (y & 0xFF), this.source);
+            return createLiteral(x ^ y, this.source);
         case '<':
             return createBoolLiteral(x < y, this.source);
         case '<=':

@@ -43,6 +43,8 @@ const compatibleType = function (dest, src) {
         return false;
     } else if (dest === 'bool') {
         return true;
+    } else if (dest === 'int' && src === 'char') {
+        return true;
     } else {
         return false;
     }
@@ -53,6 +55,8 @@ const combineType = function (source, left, right) {
         return 'bool';
     } else if (left === right) {
         return left;
+    } else if ((left === 'int' && right === 'char') || (left === 'char' && right === 'int')) {
+        return 'int';
     } else {
         throw CompileError.create(source, `Incompatible types: can not convert between '${left}' and '${right}'`);
     }

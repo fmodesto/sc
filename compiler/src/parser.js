@@ -18,6 +18,7 @@ import {
     Variable,
 } from './ast.js';
 import CompileError from './error.js';
+import { byte, word } from './binary.js';
 
 const grammar = ohm.grammar(fs.readFileSync('compiler/src/sc.ohm'));
 const semantics = grammar.createSemantics();
@@ -156,7 +157,7 @@ semantics.addOperation('ast', {
             source: this.source.getLineAndColumnMessage(),
         });
     },
-    Exp9_cast(_1, type, _2, exp) {
+    Exp8_cast(_1, type, _2, exp) {
         return UnaryOperation.create({
             operation: type.sourceString,
             expression: exp.ast(),
@@ -180,17 +181,27 @@ semantics.addOperation('ast', {
             source: this.source.getLineAndColumnMessage(),
         });
     },
-    intlit(_) {
+    intlit(val, suffix) {
+        let num = +val.sourceString;
+        if (num >= 32768) {
+            throw CompileError.create(this.source.getLineAndColumnMessage(), `Value ${num} exceeds 'int'`);
+        }
         return Literal.create({
-            type: +this.sourceString < 128 ? 'char' : 'int',
-            value: +this.sourceString,
+            type: num < 128 && !suffix.sourceString ? 'char' : 'int',
+            value: num,
             source: this.source.getLineAndColumnMessage(),
         });
     },
-    hexlit(_) {
+    hexlit(val, suffix) {
+        let num = +val.sourceString;
+        if (num >= 65536) {
+            throw CompileError.create(this.source.getLineAndColumnMessage(), `Value ${num} exceeds 'int'`);
+        }
+        let type = num < 256 && !suffix.sourceString ? 'char' : 'int';
+        let value = type === 'char' ? byte(num) : word(num);
         return Literal.create({
-            type: +this.sourceString < 128 ? 'char' : 'int',
-            value: +this.sourceString,
+            type,
+            value,
             source: this.source.getLineAndColumnMessage(),
         });
     },

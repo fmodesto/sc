@@ -59,7 +59,7 @@
     XOR div8_0,div8_sign,#1
     MOV div8_sign,div8_0
     .LABEL div8_vm_3
-    MOV div8_flag,#128
+    MOV div8_flag,#-128
     .LABEL div8_vm_4
     JZ div8_vm_5,div8_flag
     SHL div8_0,div8_r,#1
@@ -117,7 +117,7 @@
     NEG mod8_0,mod8_b
     MOV mod8_b,mod8_0
     .LABEL mod8_vm_3
-    MOV mod8_flag,#128
+    MOV mod8_flag,#-128
     .LABEL mod8_vm_4
     JZ mod8_vm_5,mod8_flag
     SHL mod8_0,mod8_r,#1

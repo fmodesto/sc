@@ -249,17 +249,30 @@ describe('Generate code', () => {
 
     test('Vars', (done) => {
         let code = `
-            char a = 73;
-            void foo(char b) {
-                char c;
+            char ga = 73;
+            int gb = -7;
+            bool gc = true;
+            void foo(char a, int b, bool c) {
+                char pa;
+                int pb;
+                bool pc;
             }
         `;
         expect(generate(code)).toEqual([
-            '.BYTE a 73',
+            '.BYTE ga 73',
+            '.BYTE gb_H -1',
+            '.BYTE gb_L -7',
+            '.BYTE gc 1',
             '.FUNCTION foo',
-            '.BYTE foo_b 0',
-            '.LOCALS',
+            '.BYTE foo_a 0',
+            '.BYTE foo_b_H 0',
+            '.BYTE foo_b_L 0',
             '.BYTE foo_c 0',
+            '.LOCALS',
+            '.BYTE foo_pa 0',
+            '.BYTE foo_pb_H 0',
+            '.BYTE foo_pb_L 0',
+            '.BYTE foo_pc 0',
             '.CODE',
             '.LABEL foo_end',
             '.RETURN foo',
@@ -491,6 +504,125 @@ describe('Generate code', () => {
             'JMP foo_end',
             '.LABEL foo_end',
             '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test('Integers parameters', (done) => {
+        let code = `
+            int shr(int a, char b) {
+                b &= 0x0F;
+                while (b) {
+                    a >>= 1;
+                    b -= 1;
+                }
+                return a;
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION shr',
+            '.BYTE shr_return_H 0',
+            '.BYTE shr_return_L 0',
+            '.BYTE shr_a_H 0',
+            '.BYTE shr_a_L 0',
+            '.BYTE shr_b 0',
+            '.TMP',
+            '.BYTE shr_0 0',
+            '.BYTE shr_1 0',
+            '.CODE',
+            'AND shr_0,shr_b,#15',
+            'MOV shr_b,shr_0',
+            '.LABEL shr_vm_0',
+            'JZ shr_vm_1,shr_b',
+            'SHR shr_0:shr_1,shr_a_H:shr_a_L,#1',
+            'MOV shr_a_H:shr_a_L,shr_0:shr_1',
+            'SUB shr_1,shr_b,#1',
+            'MOV shr_b,shr_1',
+            'JMP shr_vm_0',
+            '.LABEL shr_vm_1',
+            'MOV shr_return_H:shr_return_L,shr_a_H:shr_a_L',
+            'JMP shr_end',
+            '.LABEL shr_end',
+            '.RETURN shr',
+        ]);
+        done();
+    });
+
+    test('Cast keeps lower variable', (done) => {
+        let code = `
+            int test(int a, char b) {
+                return (char) (a >> b);
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION test',
+            '.BYTE test_return_H 0',
+            '.BYTE test_return_L 0',
+            '.BYTE test_a_H 0',
+            '.BYTE test_a_L 0',
+            '.BYTE test_b 0',
+            '.TMP',
+            '.BYTE test_0 0',
+            '.BYTE test_1 0',
+            '.CODE',
+            'SHR test_0:test_1,test_a_H:test_a_L,test_b',
+            'MOV test_1,test_0:test_1',
+            'MOV test_return_H:test_return_L,test_1',
+            'JMP test_end',
+            '.LABEL test_end',
+            '.RETURN test',
+        ]);
+        done();
+    });
+
+    test('Cast all with all', (done) => {
+        let code = `
+            void test() {
+                char a;
+                int b;
+                bool c;
+                a = (char) a;
+                a = (char) b;
+                a = (char) c;
+                b = (int) a;
+                b = (int) b;
+                b = (int) c;
+                c = (bool) a;
+                c = (bool) b;
+                c = (bool) c;
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION test',
+            '.LOCALS',
+            '.BYTE test_a 0',
+            '.BYTE test_b_H 0',
+            '.BYTE test_b_L 0',
+            '.BYTE test_c 0',
+            '.TMP',
+            '.BYTE test_0 0',
+            '.BYTE test_1 0',
+            '.CODE',
+            'MOV test_0,test_a',
+            'MOV test_a,test_0',
+            'MOV test_0,test_b_H:test_b_L',
+            'MOV test_a,test_0',
+            'MOV test_0,test_c',
+            'MOV test_a,test_0',
+            'MOV test_0:test_1,test_a',
+            'MOV test_b_H:test_b_L,test_0:test_1',
+            'MOV test_0:test_1,test_b_H:test_b_L',
+            'MOV test_b_H:test_b_L,test_0:test_1',
+            'MOV test_0:test_1,test_c',
+            'MOV test_b_H:test_b_L,test_0:test_1',
+            'BOOL test_1,test_a',
+            'MOV test_c,test_1',
+            'BOOL test_1,test_b_H:test_b_L',
+            'MOV test_c,test_1',
+            'MOV test_1,test_c',
+            'MOV test_c,test_1',
+            '.LABEL test_end',
+            '.RETURN test',
         ]);
         done();
     });
