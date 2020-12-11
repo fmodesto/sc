@@ -22,6 +22,7 @@ import CompileError from './error.js';
 
 const integerUnaryOperations = ['-', '~'];
 const integerBinaryOperations = ['+', '-', '*', '/', '%', '<<', '>>', '&', '|', '^'];
+const shiftOperations = ['<<', '>>'];
 
 const booleanOperations = ['&', '|', '^', '==', '!='];
 
@@ -171,6 +172,8 @@ BinaryOperation.analyze = function (context) {
         return 'bool';
     } else if (integerBinaryOperations.includes(this.operation)) {
         if (lhsType === 'bool' || rhsType === 'bool') {
+            throw CompileError.create(this.source, `Invalid types for operation: '${lhsType}' ${this.operation} '${rhsType}'`);
+        } else if (rhsType === 'int' && shiftOperations.includes(this.operation)) {
             throw CompileError.create(this.source, `Invalid types for operation: '${lhsType}' ${this.operation} '${rhsType}'`);
         }
         return combineType(this.source, lhsType, rhsType);

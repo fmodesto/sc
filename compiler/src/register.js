@@ -14,7 +14,7 @@ const createRegister = (prefix) => {
                 let low = available.pop();
                 let high = available.pop();
                 return `${high}:${low}`;
-            } else {
+            } else if (type === 'char' || type === 'bool') {
                 if (available.length !== 0) {
                     return available.pop();
                 } else {
@@ -22,6 +22,8 @@ const createRegister = (prefix) => {
                     generated.push(variable);
                     return variable;
                 }
+            } else {
+                throw new Error(`Invalid type for variable ${type}`);
             }
         },
         release(variable) {

@@ -438,8 +438,6 @@ describe('Generate code', () => {
 
             '.FUNCTION foo',
             '.BYTE foo_a 0',
-            '.TMP',
-            '.BYTE foo_0 0',
             '.CODE',
             'MOV bar_a,foo_a',
             'CALL bar',
@@ -567,7 +565,50 @@ describe('Generate code', () => {
             '.CODE',
             'SHR test_0:test_1,test_a_H:test_a_L,test_b',
             'MOV test_1,test_0:test_1',
-            'MOV test_return_H:test_return_L,test_1',
+            'CAST test_return_H:test_return_L,test_1',
+            'JMP test_end',
+            '.LABEL test_end',
+            '.RETURN test',
+        ]);
+        done();
+    });
+
+    test('Cast function', (done) => {
+        let code = `
+            char foo(int a) {
+                return (char) (a >> 8);
+            }
+            int test(char a) {
+                return foo(a);
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_return 0',
+            '.BYTE foo_a_H 0',
+            '.BYTE foo_a_L 0',
+            '.TMP',
+            '.BYTE foo_0 0',
+            '.BYTE foo_1 0',
+            '.CODE',
+            'SHR foo_0:foo_1,foo_a_H:foo_a_L,#8',
+            'MOV foo_1,foo_0:foo_1',
+            'MOV foo_return,foo_1',
+            'JMP foo_end',
+            '.LABEL foo_end',
+            '.RETURN foo',
+
+            '.FUNCTION test',
+            '.BYTE test_return_H 0',
+            '.BYTE test_return_L 0',
+            '.BYTE test_a 0',
+            '.TMP',
+            '.BYTE test_0 0',
+            '.CODE',
+            'CAST foo_a_H:foo_a_L,test_a',
+            'CALL foo',
+            'MOV test_0,foo_return',
+            'CAST test_return_H:test_return_L,test_0',
             'JMP test_end',
             '.LABEL test_end',
             '.RETURN test',
@@ -603,24 +644,44 @@ describe('Generate code', () => {
             '.BYTE test_0 0',
             '.BYTE test_1 0',
             '.CODE',
-            'MOV test_0,test_a',
-            'MOV test_a,test_0',
             'MOV test_0,test_b_H:test_b_L',
             'MOV test_a,test_0',
-            'MOV test_0,test_c',
-            'MOV test_a,test_0',
-            'MOV test_0:test_1,test_a',
+            'MOV test_a,test_c',
+            'CAST test_0:test_1,test_a',
             'MOV test_b_H:test_b_L,test_0:test_1',
-            'MOV test_0:test_1,test_b_H:test_b_L',
-            'MOV test_b_H:test_b_L,test_0:test_1',
-            'MOV test_0:test_1,test_c',
+            'CAST test_0:test_1,test_c',
             'MOV test_b_H:test_b_L,test_0:test_1',
             'BOOL test_1,test_a',
             'MOV test_c,test_1',
             'BOOL test_1,test_b_H:test_b_L',
             'MOV test_c,test_1',
-            'MOV test_1,test_c',
-            'MOV test_c,test_1',
+            '.LABEL test_end',
+            '.RETURN test',
+        ]);
+        done();
+    });
+
+    test('Cast before operation', (done) => {
+        let code = `
+            void test() {
+                char a;
+                int b;
+                b += a;
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION test',
+            '.LOCALS',
+            '.BYTE test_a 0',
+            '.BYTE test_b_H 0',
+            '.BYTE test_b_L 0',
+            '.TMP',
+            '.BYTE test_0 0',
+            '.BYTE test_1 0',
+            '.CODE',
+            'CAST test_0:test_1,test_a',
+            'ADD test_0:test_1,test_b_H:test_b_L,test_0:test_1',
+            'MOV test_b_H:test_b_L,test_0:test_1',
             '.LABEL test_end',
             '.RETURN test',
         ]);

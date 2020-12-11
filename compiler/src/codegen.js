@@ -35,8 +35,10 @@ const boolInstruction = function (dest, { address, type }) {
     }
 };
 const castInstruction = function (dest, destType, src, srcType) {
-    if (destType === srcType || (destType === 'int' && srcType === 'char')) {
+    if (destType === srcType) {
         return moveInstruction(dest, src);
+    } else if (destType === 'int' && srcType === 'char') {
+        return [`CAST ${dest},${src}`];
     } else if (destType === 'bool') {
         return [`BOOL ${dest},${src}`];
     } else {
@@ -222,24 +224,17 @@ ReturnStatement.generate = function (context, register) {
     }
 };
 
-const createUnary = function (op, type, register, { address, instructions }) {
+const createUnary = function (op, type, register, exp) {
+    register.release(exp.address);
     let dest = register.fetch(type);
-    if (op === 'MOV' && address === dest) {
-        return {
-            address,
-            type,
-            instructions,
-        };
-    } else {
-        return {
-            address: dest,
-            type,
-            instructions: [
-                ...instructions,
-                `${op} ${dest},${address}`,
-            ],
-        };
-    }
+    return {
+        address: dest,
+        type,
+        instructions: [
+            ...exp.instructions,
+            `${op} ${dest},${exp.address}`,
+        ],
+    };
 };
 
 const unary = {
@@ -254,72 +249,107 @@ const unary = {
     },
     'bool'(register, src) {
         if (src.type === 'bool') {
-            return createUnary('MOV', 'bool', register, src);
+            return src;
         } else {
             return createUnary('BOOL', 'bool', register, src);
         }
     },
     'char'(register, src) {
-        return createUnary('MOV', 'char', register, src);
+        if (src.type === 'char') {
+            return src;
+        } else if (src.type === 'bool') {
+            return {
+                ...src,
+                type: 'char',
+            };
+        } else {
+            return createUnary('MOV', 'char', register, src);
+        }
     },
     'int'(register, src) {
-        return createUnary('MOV', 'int', register, src);
+        if (src.type === 'int') {
+            return src;
+        } else {
+            return createUnary('CAST', 'int', register, src);
+        }
     },
 };
 
-const createBinary = function (op, type, register, { address: leftAddress, instructions: leftInstructions }, { address: rightAddress, instructions: rightInstructions }) {
+const createBinary = function (op, type, register, lhs, rhs) {
+    register.release(lhs.address);
+    register.release(rhs.address);
     let address = register.fetch(type);
     return {
         address,
         type,
         instructions: [
-            ...leftInstructions,
-            ...rightInstructions,
-            `${op} ${address},${leftAddress},${rightAddress}`,
+            ...lhs.instructions,
+            ...rhs.instructions,
+            `${op} ${address},${lhs.address},${rhs.address}`,
+        ],
+    };
+};
+
+const createCastBinary = function (op, register, lhs, rhs) {
+    let type = combineTypes(lhs, rhs);
+    if (lhs.type !== rhs.type) {
+        lhs = unary.int(register, lhs);
+        rhs = unary.int(register, rhs);
+    }
+    register.release(lhs.address);
+    register.release(rhs.address);
+    let address = register.fetch(type);
+    return {
+        address,
+        type,
+        instructions: [
+            ...lhs.instructions,
+            ...rhs.instructions,
+            `${op} ${address},${lhs.address},${rhs.address}`,
         ],
     };
 };
 
 const combineTypes = function ({type : lhs}, {type : rhs}) {
-    if (lhs === 'int' || rhs === 'int') {
+    if (lhs === rhs) {
+        return lhs;
+    } else if (lhs === 'int' && rhs === 'char' || lhs === 'char' && rhs === 'int') {
         return 'int';
-    } else if (lhs === 'char' || rhs === 'char') {
-        return 'char';
     } else {
-        return 'bool';
+        throw new Error('Invalid types');
     }
 };
 
 const binary = {
     '+'(register, lhs, rhs) {
-        return createBinary('ADD', combineTypes(lhs, rhs), register, lhs, rhs);
+        return createCastBinary('ADD', register, lhs, rhs);
     },
     '-'(register, lhs, rhs) {
-        return createBinary('SUB', combineTypes(lhs, rhs), register, lhs, rhs);
+        return createCastBinary('SUB', register, lhs, rhs);
     },
     '*'(register, lhs, rhs) {
-        return createBinary('MUL', combineTypes(lhs, rhs), register, lhs, rhs);
+        return createCastBinary('MUL', register, lhs, rhs);
     },
     '/'(register, lhs, rhs) {
-        return createBinary('DIV', combineTypes(lhs, rhs), register, lhs, rhs);
+        return createCastBinary('DIV', register, lhs, rhs);
     },
     '%'(register, lhs, rhs) {
-        return createBinary('MOD', combineTypes(lhs, rhs), register, lhs, rhs);
+        return createCastBinary('MOD', register, lhs, rhs);
     },
     '<<'(register, lhs, rhs) {
-        return createBinary('SHL', combineTypes(lhs, rhs), register, lhs, rhs);
+        return createBinary('SHL', lhs.type, register, lhs, rhs);
     },
     '>>'(register, lhs, rhs) {
-        return createBinary('SHR', combineTypes(lhs, rhs), register, lhs, rhs);
+        return createBinary('SHR', lhs.type, register, lhs, rhs);
     },
     '&'(register, lhs, rhs) {
-        return createBinary('AND', combineTypes(lhs, rhs), register, lhs, rhs);
+        return createCastBinary('AND', register, lhs, rhs);
     },
     '|'(register, lhs, rhs) {
-        return createBinary('OR', combineTypes(lhs, rhs), register, lhs, rhs);
+        return createCastBinary('OR', register, lhs, rhs);
     },
     '^'(register, lhs, rhs) {
-        return createBinary('XOR', combineTypes(lhs, rhs), register, lhs, rhs);
+        return createCastBinary('XOR', register, lhs, rhs);
     },
     '<'(register, lhs, rhs) {
         return createBinary('LT', 'bool', register, lhs, rhs);
@@ -411,15 +441,12 @@ BinaryOperation.generate = function (context, register) {
     } else {
         let lhs = this.lhs.generate(context, register);
         let rhs = this.rhs.generate(context, register);
-        register.release(lhs.address);
-        register.release(rhs.address);
         return binary[this.operation](register, lhs, rhs);
     }
 };
 
 UnaryOperation.generate = function (context, register) {
     let exp = this.expression.generate(context, register);
-    register.release(exp.address);
     return unary[this.operation](register, exp);
 };
 
@@ -429,7 +456,7 @@ MethodCall.generate = function (context, register) {
     let setParams = methodParams.map((e, i) => castInstruction(address(this.name, e.name, e.type), e.type, params[i].address, params[i].type)).flat();
     params.forEach(({ address }) => register.release(address));
     let type = context.getMethodType(this.name);
-    let dest = register.fetch(type);
+    let dest = type === 'void' ? '_ugly_hack_' : register.fetch(type);
     return {
         address: dest,
         type,

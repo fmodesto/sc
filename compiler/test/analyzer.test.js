@@ -253,6 +253,24 @@ describe('Analyzer detect error programs', () => {
         expect(check(src)).toThrow('Value 32768 exceeds \'int\'');
         done();
     });
+    test('Shift left by int amount', (done) => {
+        let src = `
+            int foo(int a) {
+                return a << 1u;
+            }
+        `;
+        expect(check(src)).toThrow('Invalid types for operation: \'int\' << \'int\'');
+        done();
+    });
+    test('Shift right by int amount', (done) => {
+        let src = `
+            int foo(int a) {
+                return a >> 1u;
+            }
+        `;
+        expect(check(src)).toThrow('Invalid types for operation: \'int\' >> \'int\'');
+        done();
+    });
 });
 
 describe('Analyzer correct programs', () => {
