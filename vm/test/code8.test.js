@@ -45,25 +45,25 @@ describe('Generates code', () => {
 
     const scenarios = [
         ['NEG', genUnary, (a) => -a & 0xFF],
-        ['NOT', genUnary, (a) => (a ? 0 : 1)],
         ['INV', genUnary, (a) => ~a & 0xFF],
+        ['NOT', genUnary, (a) => (a ? 0 : 1)],
         ['MOV', genUnary, (a) => a & 0xFF],
         ['ADD', genBinary, (a, b) => (a + b) & 0xFF],
         ['SUB', genBinary, (a, b) => (a - b) & 0xFF],
         ['MUL', genBinary, (a, b) => (castb(a) * castb(b)) & 0xFF],
         ['DIV', genBinaryDiv, (a, b) => (castb(a) / castb(b)) & 0xFF],
         ['MOD', genBinaryDiv, (a, b) => (castb(a) % castb(b)) & 0xFF],
+        ['SHL', genBinary, (a, b) => (a << (b & 7)) & 0xFF],
+        ['SHR', genBinary, (a, b) => (a >>> (b & 7)) & 0xFF],
         ['AND', genBinary, (a, b) => (a & b) & 0xFF],
         ['OR', genBinary, (a, b) => (a | b) & 0xFF],
         ['XOR', genBinary, (a, b) => (a ^ b) & 0xFF],
-        ['SHL', genBinary, (a, b) => (a << (b & 7)) & 0xFF],
-        ['SHR', genBinary, (a, b) => (a >>> (b & 7)) & 0xFF],
         ['LT', genBinary, (a, b) => ((castb(a) < castb(b)) ? 1 : 0)],
-        ['GT', genBinary, (a, b) => ((castb(a) > castb(b)) ? 1 : 0)],
         ['LTE', genBinary, (a, b) => ((castb(a) <= castb(b)) ? 1 : 0)],
-        ['GTE', genBinary, (a, b) => ((castb(a) >= castb(b)) ? 1 : 0)],
         ['EQ', genBinary, (a, b) => ((castb(a) === castb(b)) ? 1 : 0)],
         ['NEQ', genBinary, (a, b) => ((castb(a) !== castb(b)) ? 1 : 0)],
+        ['GTE', genBinary, (a, b) => ((castb(a) >= castb(b)) ? 1 : 0)],
+        ['GT', genBinary, (a, b) => ((castb(a) > castb(b)) ? 1 : 0)],
     ];
 
     scenarios.forEach(([instruction, generator, fn]) => {
