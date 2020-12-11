@@ -277,24 +277,11 @@ const unary = {
     },
 };
 
-const createBinary = function (op, type, register, lhs, rhs) {
-    register.release(lhs.address);
-    register.release(rhs.address);
-    let address = register.fetch(type);
-    return {
-        address,
-        type,
-        instructions: [
-            ...lhs.instructions,
-            ...rhs.instructions,
-            `${op} ${address},${lhs.address},${rhs.address}`,
-        ],
-    };
-};
-
-const createCastBinary = function (op, register, lhs, rhs) {
-    let type = combineTypes(lhs, rhs);
-    if (lhs.type !== rhs.type) {
+const createBinary = function (op, type, register, lhs, rhs, cast = true) {
+    if (cast && lhs.type !== rhs.type) {
+        if (lhs.type === 'bool' || rhs.type === 'bool') {
+            throw new Error(`Unexpected cast ${lhs.type} ${rhs.type}`);
+        }
         lhs = unary.int(register, lhs);
         rhs = unary.int(register, rhs);
     }
@@ -324,34 +311,34 @@ const combineTypes = function ({type : lhs}, {type : rhs}) {
 
 const binary = {
     '+'(register, lhs, rhs) {
-        return createCastBinary('ADD', register, lhs, rhs);
+        return createBinary('ADD', combineTypes(lhs, rhs), register, lhs, rhs);
     },
     '-'(register, lhs, rhs) {
-        return createCastBinary('SUB', register, lhs, rhs);
+        return createBinary('SUB', combineTypes(lhs, rhs), register, lhs, rhs);
     },
     '*'(register, lhs, rhs) {
-        return createCastBinary('MUL', register, lhs, rhs);
+        return createBinary('MUL', combineTypes(lhs, rhs), register, lhs, rhs);
     },
     '/'(register, lhs, rhs) {
-        return createCastBinary('DIV', register, lhs, rhs);
+        return createBinary('DIV', combineTypes(lhs, rhs), register, lhs, rhs);
     },
     '%'(register, lhs, rhs) {
-        return createCastBinary('MOD', register, lhs, rhs);
+        return createBinary('MOD', combineTypes(lhs, rhs), register, lhs, rhs);
     },
     '<<'(register, lhs, rhs) {
-        return createBinary('SHL', lhs.type, register, lhs, rhs);
+        return createBinary('SHL', lhs.type, register, lhs, rhs, false);
     },
     '>>'(register, lhs, rhs) {
-        return createBinary('SHR', lhs.type, register, lhs, rhs);
+        return createBinary('SHR', lhs.type, register, lhs, rhs, false);
     },
     '&'(register, lhs, rhs) {
-        return createCastBinary('AND', register, lhs, rhs);
+        return createBinary('AND', combineTypes(lhs, rhs), register, lhs, rhs);
     },
     '|'(register, lhs, rhs) {
-        return createCastBinary('OR', register, lhs, rhs);
+        return createBinary('OR', combineTypes(lhs, rhs), register, lhs, rhs);
     },
     '^'(register, lhs, rhs) {
-        return createCastBinary('XOR', register, lhs, rhs);
+        return createBinary('XOR', combineTypes(lhs, rhs), register, lhs, rhs);
     },
     '<'(register, lhs, rhs) {
         return createBinary('LT', 'bool', register, lhs, rhs);

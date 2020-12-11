@@ -52,12 +52,12 @@ const compatibleType = function (dest, src) {
 };
 
 const combineType = function (source, left, right) {
-    if (left === 'bool' || right === 'bool') {
-        return 'bool';
-    } else if (left === right) {
+    if (left === right) {
         return left;
     } else if ((left === 'int' && right === 'char') || (left === 'char' && right === 'int')) {
         return 'int';
+    } else if (left === 'bool' || right === 'bool') {
+        return 'bool';
     } else {
         throw CompileError.create(source, `Incompatible types: can not convert between '${left}' and '${right}'`);
     }

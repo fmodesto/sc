@@ -695,4 +695,29 @@ describe('Generate code', () => {
         ]);
         done();
     });
+
+    test('Cast numbers', (done) => {
+        let code = `
+            bool test(int a) {
+                return a < 0;
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION test',
+            '.BYTE test_return 0',
+            '.BYTE test_a_H 0',
+            '.BYTE test_a_L 0',
+            '.TMP',
+            '.BYTE test_0 0',
+            '.BYTE test_1 0',
+            '.CODE',
+            'CAST test_0:test_1,#$00',
+            'LT test_1,test_a_H:test_a_L,test_0:test_1',
+            'MOV test_return,test_1',
+            'JMP test_end',
+            '.LABEL test_end',
+            '.RETURN test',
+        ]);
+        done();
+    });
 });
