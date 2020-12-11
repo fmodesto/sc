@@ -18,7 +18,6 @@ import {
 } from './ast.js';
 import createContext from './context.js';
 import createRegister from './register.js';
-import { byte } from './binary.js';
 import './optimizer.js';
 
 const moveInstruction = function (dest, src) {
@@ -62,6 +61,9 @@ const variable = function (context, name) {
     let prefix = context.isLocal(name) ? `${context.getCurrentMethod()}` : '';
     return address(prefix, name, context.getVarType(name));
 };
+const hex = function (value) {
+    return `$${(value & 0xFF).toString(16).toUpperCase().padStart(2, '0')}`;
+};
 
 AST.generate = function () {
     throw new Error('Not implemented');
@@ -79,13 +81,13 @@ Program.generate = function (context = createContext()) {
 GlobalDeclaration.generate = function () {
     let value = this.expression.optimize().value;
     if (this.type === 'bool') {
-        return [`.BYTE ${this.name} ${value ? 1 : 0}`];
+        return [`.BYTE ${this.name} ${hex(value ? 1 : 0)}`];
     } else if (this.type === 'char') {
-        return [`.BYTE ${this.name} ${value}`];
+        return [`.BYTE ${this.name} ${hex(value)}`];
     } else if (this.type === 'int') {
         return [
-            `.BYTE ${this.name}_H ${value >> 8}`,
-            `.BYTE ${this.name}_L ${byte(value)}`,
+            `.BYTE ${this.name}_H ${hex(value >> 8)}`,
+            `.BYTE ${this.name}_L ${hex(value)}`,
         ];
     } else {
         throw new Error(`Unknown type ${this.type}`);
@@ -470,7 +472,7 @@ MethodCall.generate = function (context, register) {
 };
 
 Literal.generate = function () {
-    let value = `#${this.value}`;
+    let value = this.type === 'int' ?  `#${hex(this.value >> 8)}:#${hex(this.value)}` : `#${hex(this.value)}`;
     return {
         address: value,
         type: this.type,
