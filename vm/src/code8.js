@@ -27,6 +27,12 @@ const operations = {
             `jne ${dest}`,
         ];
     },
+    CAST(dest, src) {
+        return [
+            `lda ${src}`,
+            `sta ${dest}`,
+        ];
+    },
     NEG(dest, src) {
         return [
             'lda #0',

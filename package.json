@@ -35,7 +35,8 @@
       "!compiler/src/error.js",
       "!compiler/src/sc.js",
       "vm/**/*.js",
-      "!vm/src/vm.js"
+      "!vm/src/vm.js",
+      "!vm/src/labels.js"
     ]
   }
 }

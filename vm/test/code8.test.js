@@ -87,6 +87,29 @@ describe('Generates 8-bit code', () => {
         return (op, fn) => rhs().map((r) => lhs().map((l) => variants.map((v) => [v(op, l, r), fn(l, r)]).filter(([e]) => e.length)).flat()).flat();
     }
 
+    function jmp(exp) {
+        let variants = [
+            (op, e) => [
+                `${op} target,#${e & 0xFF}`,
+                'MOV dest,#$00',
+                'JMP end',
+                '.LABEL target',
+                'MOV dest,#$01',
+                '.LABEL end',
+            ],
+            (op, e) => [
+                `MOV exp,#${e & 0xFF}`,
+                `${op} target,exp`,
+                'MOV dest,#$00',
+                'JMP end',
+                '.LABEL target',
+                'MOV dest,#$01',
+                '.LABEL end',
+            ],
+        ];
+        return (op, fn) => exp().map((e) => variants.map((v) => [v(op, e), fn(e)])).flat();
+    }
+
     const scenarios = [
         ['NEG', unary(byte), (a) => -a & 0xFF],
         ['INV', unary(byte), (a) => ~a & 0xFF],
@@ -109,6 +132,8 @@ describe('Generates 8-bit code', () => {
         ['NEQ', binary(byte, byte), (a, b) => ((castb(a) !== castb(b)) ? 1 : 0)],
         ['GTE', binary(byte, byte), (a, b) => ((castb(a) >= castb(b)) ? 1 : 0)],
         ['GT', binary(byte, byte), (a, b) => ((castb(a) > castb(b)) ? 1 : 0)],
+        ['JZ', jmp(byte), (a) => (a ? 0 : 1)],
+        ['JNZ', jmp(byte), (a) => (a ? 1 : 0)],
     ];
 
     scenarios.forEach(([instruction, generator, fn]) => {

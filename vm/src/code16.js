@@ -77,7 +77,7 @@ const operations = {
             ...jlt([
                 'lda #0',
             ], [
-                'lda #FF',
+                'lda #$FF',
             ]),
             `sta ${destH}`,
         ];
