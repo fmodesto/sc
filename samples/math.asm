@@ -107,23 +107,13 @@ sta mul8_return
 mul8_end:                     ; .LABEL mul8_end
 ret mul8                      ; .RETURN mul8
 mul16:                        ; .FUNCTION mul16
-lda #$01                      ; CAST mul16_flag_H:mul16_flag_L,#$01
+lda #$01                      ; MOV mul16_flag_H:mul16_flag_L,#$00:#$01
 sta mul16_flag_L
-jlt mul16_asm_0
-lda #0
-jmp mul16_asm_1
-mul16_asm_0:
-lda #$FF
-mul16_asm_1:
+lda #$00
 sta mul16_flag_H
-lda #$00                      ; CAST mul16_res_H:mul16_res_L,#$00
+lda #$00                      ; MOV mul16_res_H:mul16_res_L,#$00:#$00
 sta mul16_res_L
-jlt mul16_asm_2
-lda #0
-jmp mul16_asm_3
-mul16_asm_2:
-lda #$FF
-mul16_asm_3:
+lda #$00
 sta mul16_res_H
 mul16_vm_0:                   ; .LABEL mul16_vm_0
 lda mul16_flag_L              ; JZ mul16_vm_1,mul16_flag_H:mul16_flag_L
@@ -141,41 +131,41 @@ jeq mul16_vm_3
 lda mul16_a_L                 ; ADD mul16_res_H:mul16_res_L,mul16_res_H:mul16_res_L,mul16_a_H:mul16_a_L
 add mul16_res_L
 sta mul16_res_L
-jcs mul16_asm_4
+jcs mul16_asm_0
 lda mul16_a_H
-jmp mul16_asm_5
-mul16_asm_4:
+jmp mul16_asm_1
+mul16_asm_0:
 lda mul16_a_H
 add #1
-mul16_asm_5:
+mul16_asm_1:
 add mul16_res_H
 sta mul16_res_H
 mul16_vm_3:                   ; .LABEL mul16_vm_3
 lda mul16_a_L                 ; SHL mul16_a_H:mul16_a_L,mul16_a_H:mul16_a_L,#$01
 shl
 sta mul16_a_L
-jcs mul16_asm_6
+jcs mul16_asm_2
 lda mul16_a_H
 shl
-jmp mul16_asm_7
-mul16_asm_6:
+jmp mul16_asm_3
+mul16_asm_2:
 lda mul16_a_H
 shl
 ora #1
-mul16_asm_7:
+mul16_asm_3:
 sta mul16_a_H
 lda mul16_flag_L              ; SHL mul16_flag_H:mul16_flag_L,mul16_flag_H:mul16_flag_L,#$01
 shl
 sta mul16_flag_L
-jcs mul16_asm_8
+jcs mul16_asm_4
 lda mul16_flag_H
 shl
-jmp mul16_asm_9
-mul16_asm_8:
+jmp mul16_asm_5
+mul16_asm_4:
 lda mul16_flag_H
 shl
 ora #1
-mul16_asm_9:
+mul16_asm_5:
 sta mul16_flag_H
 jmp mul16_vm_0                ; JMP mul16_vm_0
 mul16_vm_1:                   ; .LABEL mul16_vm_1
@@ -289,118 +279,108 @@ sta div8_return
 div8_end:                     ; .LABEL div8_end
 ret div8                      ; .RETURN div8
 div16:                        ; .FUNCTION div16
-lda #$00                      ; CAST div16_q_H:div16_q_L,#$00
+lda #$00                      ; MOV div16_q_H:div16_q_L,#$00:#$00
 sta div16_q_L
+lda #$00
+sta div16_q_H
+lda #$00                      ; MOV div16_r_H:div16_r_L,#$00:#$00
+sta div16_r_L
+lda #$00
+sta div16_r_H
+lda #$00                      ; MOV div16_sign,#$00
+sta div16_sign
+lda #$00                      ; CAST div16_0:div16_1,#$00
+sta div16_1
 jlt div16_asm_0
 lda #0
 jmp div16_asm_1
 div16_asm_0:
 lda #$FF
 div16_asm_1:
-sta div16_q_H
-lda #$00                      ; CAST div16_r_H:div16_r_L,#$00
-sta div16_r_L
-jlt div16_asm_2
-lda #0
-jmp div16_asm_3
-div16_asm_2:
-lda #$FF
-div16_asm_3:
-sta div16_r_H
-lda #$00                      ; MOV div16_sign,#$00
-sta div16_sign
-lda #$00                      ; CAST div16_0:div16_1,#$00
-sta div16_1
-jlt div16_asm_4
-lda #0
-jmp div16_asm_5
-div16_asm_4:
-lda #$FF
-div16_asm_5:
 sta div16_0
 lda div16_a_H                 ; LT div16_1,div16_a_H:div16_a_L,div16_0:div16_1
 xor div16_0
-jlt div16_asm_6
+jlt div16_asm_2
 lda div16_a_H
 sub div16_0
-jlt div16_asm_7
-jne div16_asm_8
+jlt div16_asm_3
+jne div16_asm_4
 lda div16_a_L
 sub div16_1
-jnc div16_asm_7
+jnc div16_asm_3
 lda #0
-jmp div16_asm_9
-div16_asm_6:
+jmp div16_asm_5
+div16_asm_2:
 lda div16_a_H
-jlt div16_asm_7
-div16_asm_8:
+jlt div16_asm_3
+div16_asm_4:
 lda #0
-jmp div16_asm_9
-div16_asm_7:
+jmp div16_asm_5
+div16_asm_3:
 lda #1
-div16_asm_9:
+div16_asm_5:
 sta div16_1
 lda div16_1                   ; JZ div16_vm_1,div16_1
 jeq div16_vm_1
 lda #0                        ; NEG div16_a_H:div16_a_L,div16_a_H:div16_a_L
 sub div16_a_L
 sta div16_a_L
-jcs div16_asm_10
+jcs div16_asm_6
 lda div16_a_H
 xor #$FF
-jmp div16_asm_11
-div16_asm_10:
+jmp div16_asm_7
+div16_asm_6:
 lda #0
 sub div16_a_H
-div16_asm_11:
+div16_asm_7:
 sta div16_a_H
 lda #$01                      ; MOV div16_sign,#$01
 sta div16_sign
 div16_vm_1:                   ; .LABEL div16_vm_1
 lda #$00                      ; CAST div16_0:div16_1,#$00
 sta div16_1
-jlt div16_asm_12
+jlt div16_asm_8
 lda #0
-jmp div16_asm_13
-div16_asm_12:
+jmp div16_asm_9
+div16_asm_8:
 lda #$FF
-div16_asm_13:
+div16_asm_9:
 sta div16_0
 lda div16_b_H                 ; LT div16_1,div16_b_H:div16_b_L,div16_0:div16_1
 xor div16_0
-jlt div16_asm_14
+jlt div16_asm_10
 lda div16_b_H
 sub div16_0
-jlt div16_asm_15
-jne div16_asm_16
+jlt div16_asm_11
+jne div16_asm_12
 lda div16_b_L
 sub div16_1
-jnc div16_asm_15
+jnc div16_asm_11
 lda #0
-jmp div16_asm_17
-div16_asm_14:
+jmp div16_asm_13
+div16_asm_10:
 lda div16_b_H
-jlt div16_asm_15
-div16_asm_16:
+jlt div16_asm_11
+div16_asm_12:
 lda #0
-jmp div16_asm_17
-div16_asm_15:
+jmp div16_asm_13
+div16_asm_11:
 lda #1
-div16_asm_17:
+div16_asm_13:
 sta div16_1
 lda div16_1                   ; JZ div16_vm_3,div16_1
 jeq div16_vm_3
 lda #0                        ; NEG div16_b_H:div16_b_L,div16_b_H:div16_b_L
 sub div16_b_L
 sta div16_b_L
-jcs div16_asm_18
+jcs div16_asm_14
 lda div16_b_H
 xor #$FF
-jmp div16_asm_19
-div16_asm_18:
+jmp div16_asm_15
+div16_asm_14:
 lda #0
 sub div16_b_H
-div16_asm_19:
+div16_asm_15:
 sta div16_b_H
 lda #$01                      ; XOR div16_sign,div16_sign,#$01
 xor div16_sign
@@ -417,15 +397,15 @@ jeq div16_vm_5
 lda div16_r_L                 ; SHL div16_r_H:div16_r_L,div16_r_H:div16_r_L,#$01
 shl
 sta div16_r_L
-jcs div16_asm_20
+jcs div16_asm_16
 lda div16_r_H
 shl
-jmp div16_asm_21
-div16_asm_20:
+jmp div16_asm_17
+div16_asm_16:
 lda div16_r_H
 shl
 ora #1
-div16_asm_21:
+div16_asm_17:
 sta div16_r_H
 lda div16_a_L                 ; AND div16_0:div16_1,div16_flag_H:div16_flag_L,div16_a_H:div16_a_L
 and div16_flag_L
@@ -438,12 +418,12 @@ ora div16_0
 jeq div16_vm_7
 lda #$01                      ; CAST div16_0:div16_1,#$01
 sta div16_1
-jlt div16_asm_22
+jlt div16_asm_18
 lda #0
-jmp div16_asm_23
-div16_asm_22:
+jmp div16_asm_19
+div16_asm_18:
 lda #$FF
-div16_asm_23:
+div16_asm_19:
 sta div16_0
 lda div16_1                   ; OR div16_r_H:div16_r_L,div16_r_H:div16_r_L,div16_0:div16_1
 ora div16_r_L
@@ -454,41 +434,41 @@ sta div16_r_H
 div16_vm_7:                   ; .LABEL div16_vm_7
 lda div16_b_H                 ; GTE div16_1,div16_r_H:div16_r_L,div16_b_H:div16_b_L
 xor div16_r_H
-jlt div16_asm_24
+jlt div16_asm_20
 lda div16_b_H
 sub div16_r_H
-jlt div16_asm_25
-jne div16_asm_26
+jlt div16_asm_21
+jne div16_asm_22
 lda div16_b_L
 sub div16_r_L
-jnc div16_asm_25
-jeq div16_asm_25
+jnc div16_asm_21
+jeq div16_asm_21
 lda #0
-jmp div16_asm_27
-div16_asm_24:
+jmp div16_asm_23
+div16_asm_20:
 lda div16_b_H
-jlt div16_asm_25
-div16_asm_26:
+jlt div16_asm_21
+div16_asm_22:
 lda #0
-jmp div16_asm_27
-div16_asm_25:
+jmp div16_asm_23
+div16_asm_21:
 lda #1
-div16_asm_27:
+div16_asm_23:
 sta div16_1
 lda div16_1                   ; JZ div16_vm_9,div16_1
 jeq div16_vm_9
 lda div16_r_L                 ; SUB div16_r_H:div16_r_L,div16_r_H:div16_r_L,div16_b_H:div16_b_L
 sub div16_b_L
 sta div16_r_L
-jcs div16_asm_28
+jcs div16_asm_24
 lda div16_b_H
 xor #$FF
 add div16_r_H
-jmp div16_asm_29
-div16_asm_28:
+jmp div16_asm_25
+div16_asm_24:
 lda div16_r_H
 sub div16_b_H
-div16_asm_29:
+div16_asm_25:
 sta div16_r_H
 lda div16_flag_L              ; OR div16_q_H:div16_q_L,div16_q_H:div16_q_L,div16_flag_H:div16_flag_L
 ora div16_q_L
@@ -500,15 +480,15 @@ div16_vm_9:                   ; .LABEL div16_vm_9
 lda div16_flag_H              ; SHR div16_flag_H:div16_flag_L,div16_flag_H:div16_flag_L,#$01
 shr
 sta div16_flag_H
-jcs div16_asm_30
+jcs div16_asm_26
 lda div16_flag_L
 shr
-jmp div16_asm_31
-div16_asm_30:
+jmp div16_asm_27
+div16_asm_26:
 lda div16_flag_L
 shr
 ora #$80
-div16_asm_31:
+div16_asm_27:
 sta div16_flag_L
 jmp div16_vm_4                ; JMP div16_vm_4
 div16_vm_5:                   ; .LABEL div16_vm_5
@@ -517,14 +497,14 @@ jeq div16_vm_10
 lda #0                        ; NEG div16_0:div16_1,div16_q_H:div16_q_L
 sub div16_q_L
 sta div16_1
-jcs div16_asm_32
+jcs div16_asm_28
 lda div16_q_H
 xor #$FF
-jmp div16_asm_33
-div16_asm_32:
+jmp div16_asm_29
+div16_asm_28:
 lda #0
 sub div16_q_H
-div16_asm_33:
+div16_asm_29:
 sta div16_0
 jmp div16_vm_11               ; JMP div16_vm_11
 div16_vm_10:                  ; .LABEL div16_vm_10
@@ -640,128 +620,113 @@ sta mod8_return
 mod8_end:                     ; .LABEL mod8_end
 ret mod8                      ; .RETURN mod8
 mod16:                        ; .FUNCTION mod16
-lda #$00                      ; CAST mod16_q_H:mod16_q_L,#$00
+lda #$00                      ; MOV mod16_q_H:mod16_q_L,#$00:#$00
 sta mod16_q_L
+lda #$00
+sta mod16_q_H
+lda #$00                      ; MOV mod16_r_H:mod16_r_L,#$00:#$00
+sta mod16_r_L
+lda #$00
+sta mod16_r_H
+lda #$00                      ; MOV mod16_sign,#$00
+sta mod16_sign
+lda #$00                      ; CAST mod16_0:mod16_1,#$00
+sta mod16_1
 jlt mod16_asm_0
 lda #0
 jmp mod16_asm_1
 mod16_asm_0:
 lda #$FF
 mod16_asm_1:
-sta mod16_q_H
-lda #$00                      ; CAST mod16_r_H:mod16_r_L,#$00
-sta mod16_r_L
-jlt mod16_asm_2
-lda #0
-jmp mod16_asm_3
-mod16_asm_2:
-lda #$FF
-mod16_asm_3:
-sta mod16_r_H
-lda #$00                      ; MOV mod16_sign,#$00
-sta mod16_sign
-lda #$00                      ; CAST mod16_0:mod16_1,#$00
-sta mod16_1
-jlt mod16_asm_4
-lda #0
-jmp mod16_asm_5
-mod16_asm_4:
-lda #$FF
-mod16_asm_5:
 sta mod16_0
 lda mod16_a_H                 ; LT mod16_1,mod16_a_H:mod16_a_L,mod16_0:mod16_1
 xor mod16_0
-jlt mod16_asm_6
+jlt mod16_asm_2
 lda mod16_a_H
 sub mod16_0
-jlt mod16_asm_7
-jne mod16_asm_8
+jlt mod16_asm_3
+jne mod16_asm_4
 lda mod16_a_L
 sub mod16_1
-jnc mod16_asm_7
+jnc mod16_asm_3
 lda #0
-jmp mod16_asm_9
-mod16_asm_6:
+jmp mod16_asm_5
+mod16_asm_2:
 lda mod16_a_H
-jlt mod16_asm_7
-mod16_asm_8:
+jlt mod16_asm_3
+mod16_asm_4:
 lda #0
-jmp mod16_asm_9
-mod16_asm_7:
+jmp mod16_asm_5
+mod16_asm_3:
 lda #1
-mod16_asm_9:
+mod16_asm_5:
 sta mod16_1
 lda mod16_1                   ; JZ mod16_vm_1,mod16_1
 jeq mod16_vm_1
 lda #0                        ; NEG mod16_a_H:mod16_a_L,mod16_a_H:mod16_a_L
 sub mod16_a_L
 sta mod16_a_L
-jcs mod16_asm_10
+jcs mod16_asm_6
 lda mod16_a_H
 xor #$FF
-jmp mod16_asm_11
-mod16_asm_10:
+jmp mod16_asm_7
+mod16_asm_6:
 lda #0
 sub mod16_a_H
-mod16_asm_11:
+mod16_asm_7:
 sta mod16_a_H
 lda #$01                      ; MOV mod16_sign,#$01
 sta mod16_sign
 mod16_vm_1:                   ; .LABEL mod16_vm_1
 lda #$00                      ; CAST mod16_0:mod16_1,#$00
 sta mod16_1
-jlt mod16_asm_12
+jlt mod16_asm_8
 lda #0
-jmp mod16_asm_13
-mod16_asm_12:
+jmp mod16_asm_9
+mod16_asm_8:
 lda #$FF
-mod16_asm_13:
+mod16_asm_9:
 sta mod16_0
 lda mod16_b_H                 ; LT mod16_1,mod16_b_H:mod16_b_L,mod16_0:mod16_1
 xor mod16_0
-jlt mod16_asm_14
+jlt mod16_asm_10
 lda mod16_b_H
 sub mod16_0
-jlt mod16_asm_15
-jne mod16_asm_16
+jlt mod16_asm_11
+jne mod16_asm_12
 lda mod16_b_L
 sub mod16_1
-jnc mod16_asm_15
+jnc mod16_asm_11
 lda #0
-jmp mod16_asm_17
-mod16_asm_14:
+jmp mod16_asm_13
+mod16_asm_10:
 lda mod16_b_H
-jlt mod16_asm_15
-mod16_asm_16:
+jlt mod16_asm_11
+mod16_asm_12:
 lda #0
-jmp mod16_asm_17
-mod16_asm_15:
+jmp mod16_asm_13
+mod16_asm_11:
 lda #1
-mod16_asm_17:
+mod16_asm_13:
 sta mod16_1
 lda mod16_1                   ; JZ mod16_vm_3,mod16_1
 jeq mod16_vm_3
 lda #0                        ; NEG mod16_b_H:mod16_b_L,mod16_b_H:mod16_b_L
 sub mod16_b_L
 sta mod16_b_L
-jcs mod16_asm_18
+jcs mod16_asm_14
 lda mod16_b_H
 xor #$FF
-jmp mod16_asm_19
-mod16_asm_18:
+jmp mod16_asm_15
+mod16_asm_14:
 lda #0
 sub mod16_b_H
-mod16_asm_19:
+mod16_asm_15:
 sta mod16_b_H
 mod16_vm_3:                   ; .LABEL mod16_vm_3
-lda #$80                      ; CAST mod16_flag_H:mod16_flag_L,#$80
+lda #$00                      ; MOV mod16_flag_H:mod16_flag_L,#$80:#$00
 sta mod16_flag_L
-jlt mod16_asm_20
-lda #0
-jmp mod16_asm_21
-mod16_asm_20:
-lda #$FF
-mod16_asm_21:
+lda #$80
 sta mod16_flag_H
 mod16_vm_4:                   ; .LABEL mod16_vm_4
 lda mod16_flag_L              ; JZ mod16_vm_5,mod16_flag_H:mod16_flag_L
@@ -770,15 +735,15 @@ jeq mod16_vm_5
 lda mod16_r_L                 ; SHL mod16_r_H:mod16_r_L,mod16_r_H:mod16_r_L,#$01
 shl
 sta mod16_r_L
-jcs mod16_asm_22
+jcs mod16_asm_16
 lda mod16_r_H
 shl
-jmp mod16_asm_23
-mod16_asm_22:
+jmp mod16_asm_17
+mod16_asm_16:
 lda mod16_r_H
 shl
 ora #1
-mod16_asm_23:
+mod16_asm_17:
 sta mod16_r_H
 lda mod16_a_L                 ; AND mod16_0:mod16_1,mod16_flag_H:mod16_flag_L,mod16_a_H:mod16_a_L
 and mod16_flag_L
@@ -791,12 +756,12 @@ ora mod16_0
 jeq mod16_vm_7
 lda #$01                      ; CAST mod16_0:mod16_1,#$01
 sta mod16_1
-jlt mod16_asm_24
+jlt mod16_asm_18
 lda #0
-jmp mod16_asm_25
-mod16_asm_24:
+jmp mod16_asm_19
+mod16_asm_18:
 lda #$FF
-mod16_asm_25:
+mod16_asm_19:
 sta mod16_0
 lda mod16_1                   ; OR mod16_r_H:mod16_r_L,mod16_r_H:mod16_r_L,mod16_0:mod16_1
 ora mod16_r_L
@@ -807,41 +772,41 @@ sta mod16_r_H
 mod16_vm_7:                   ; .LABEL mod16_vm_7
 lda mod16_b_H                 ; GTE mod16_1,mod16_r_H:mod16_r_L,mod16_b_H:mod16_b_L
 xor mod16_r_H
-jlt mod16_asm_26
+jlt mod16_asm_20
 lda mod16_b_H
 sub mod16_r_H
-jlt mod16_asm_27
-jne mod16_asm_28
+jlt mod16_asm_21
+jne mod16_asm_22
 lda mod16_b_L
 sub mod16_r_L
-jnc mod16_asm_27
-jeq mod16_asm_27
+jnc mod16_asm_21
+jeq mod16_asm_21
 lda #0
-jmp mod16_asm_29
-mod16_asm_26:
+jmp mod16_asm_23
+mod16_asm_20:
 lda mod16_b_H
-jlt mod16_asm_27
-mod16_asm_28:
+jlt mod16_asm_21
+mod16_asm_22:
 lda #0
-jmp mod16_asm_29
-mod16_asm_27:
+jmp mod16_asm_23
+mod16_asm_21:
 lda #1
-mod16_asm_29:
+mod16_asm_23:
 sta mod16_1
 lda mod16_1                   ; JZ mod16_vm_9,mod16_1
 jeq mod16_vm_9
 lda mod16_r_L                 ; SUB mod16_r_H:mod16_r_L,mod16_r_H:mod16_r_L,mod16_b_H:mod16_b_L
 sub mod16_b_L
 sta mod16_r_L
-jcs mod16_asm_30
+jcs mod16_asm_24
 lda mod16_b_H
 xor #$FF
 add mod16_r_H
-jmp mod16_asm_31
-mod16_asm_30:
+jmp mod16_asm_25
+mod16_asm_24:
 lda mod16_r_H
 sub mod16_b_H
-mod16_asm_31:
+mod16_asm_25:
 sta mod16_r_H
 lda mod16_flag_L              ; OR mod16_q_H:mod16_q_L,mod16_q_H:mod16_q_L,mod16_flag_H:mod16_flag_L
 ora mod16_q_L
@@ -853,15 +818,15 @@ mod16_vm_9:                   ; .LABEL mod16_vm_9
 lda mod16_flag_H              ; SHR mod16_flag_H:mod16_flag_L,mod16_flag_H:mod16_flag_L,#$01
 shr
 sta mod16_flag_H
-jcs mod16_asm_32
+jcs mod16_asm_26
 lda mod16_flag_L
 shr
-jmp mod16_asm_33
-mod16_asm_32:
+jmp mod16_asm_27
+mod16_asm_26:
 lda mod16_flag_L
 shr
 ora #$80
-mod16_asm_33:
+mod16_asm_27:
 sta mod16_flag_L
 jmp mod16_vm_4                ; JMP mod16_vm_4
 mod16_vm_5:                   ; .LABEL mod16_vm_5
@@ -870,14 +835,14 @@ jeq mod16_vm_10
 lda #0                        ; NEG mod16_0:mod16_1,mod16_r_H:mod16_r_L
 sub mod16_r_L
 sta mod16_1
-jcs mod16_asm_34
+jcs mod16_asm_28
 lda mod16_r_H
 xor #$FF
-jmp mod16_asm_35
-mod16_asm_34:
+jmp mod16_asm_29
+mod16_asm_28:
 lda #0
 sub mod16_r_H
-mod16_asm_35:
+mod16_asm_29:
 sta mod16_0
 jmp mod16_vm_11               ; JMP mod16_vm_11
 mod16_vm_10:                  ; .LABEL mod16_vm_10

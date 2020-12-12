@@ -10,6 +10,7 @@ const optimizeExp = (exp, context, register) => parse(exp, 'Exp').optimize().gen
 const generate = (code) => {
     let program = parse(code);
     program.analyze();
+    program = program.optimize();
     return program.generate();
 };
 
@@ -501,7 +502,7 @@ describe('Generate code', () => {
             '.BYTE foo_0 0',
             '.CODE',
             'BOOL bar_a,foo_a',
-            'BOOL bar_b,#$03',
+            'MOV bar_b,#1',
             'CALL bar',
             'MOV foo_0,bar_return',
             'MOV foo_return,foo_0',
@@ -715,6 +716,46 @@ describe('Generate code', () => {
             'LT test_1,test_a_H:test_a_L,test_0:test_1',
             'MOV test_return,test_1',
             'JMP test_end',
+            '.LABEL test_end',
+            '.RETURN test',
+        ]);
+        done();
+    });
+
+    test('Cast literals', (done) => {
+        let code = `
+            int foo(char a, int b, bool c) {
+                return -40;
+            }
+            void test() {
+                foo(-3, -7, -2);
+                foo((char) 3000, 7, 0);
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_return_H 0',
+            '.BYTE foo_return_L 0',
+            '.BYTE foo_a 0',
+            '.BYTE foo_b_H 0',
+            '.BYTE foo_b_L 0',
+            '.BYTE foo_c 0',
+            '.CODE',
+            'MOV foo_return_H:foo_return_L,#$FF:#$D8',
+            'JMP foo_end',
+            '.LABEL foo_end',
+            '.RETURN foo',
+
+            '.FUNCTION test',
+            '.CODE',
+            'MOV foo_a,#$FD',
+            'MOV foo_b_H:foo_b_L,#$FF:#$F9',
+            'MOV foo_c,#1',
+            'CALL foo',
+            'MOV foo_a,#$B8',
+            'MOV foo_b_H:foo_b_L,#$00:#$07',
+            'MOV foo_c,#0',
+            'CALL foo',
             '.LABEL test_end',
             '.RETURN test',
         ]);

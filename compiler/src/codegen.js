@@ -20,6 +20,20 @@ import createContext from './context.js';
 import createRegister from './register.js';
 import './optimizer.js';
 
+const isLiteral = function (address) {
+    return address.split(':').every((e) => e.startsWith('#'));
+};
+const literalValue = function (address) {
+    const val = (e) => (e.startsWith('#$') ? +`0x${e.substring(2)}` & 0xFF : +e.substring(1) & 0xFF);
+    let parts = address.split(':');
+    if (parts.length === 2) {
+        let v = val(parts[0]) << 8 | val(parts[1]);
+        return v >= (1 << 15) ? v - (1 << 16) : v;
+    } else {
+        let v = val(parts[0]);
+        return v >= (1 << 7) ? v - (1 << 8) : v;
+    }
+};
 const moveInstruction = function (dest, src) {
     if (dest === src) {
         return [];
@@ -36,6 +50,17 @@ const boolInstruction = function (dest, { address, type }) {
 const castInstruction = function (dest, destType, src, srcType) {
     if (destType === srcType) {
         return moveInstruction(dest, src);
+    } else if (isLiteral(src)) {
+        let value = literalValue(src);
+        if (destType === 'bool') {
+            return moveInstruction(dest, value ? '#1' : '#0');
+        } else if (destType === 'char') {
+            return moveInstruction(dest, `#${hex(value)}`);
+        } else if (destType === 'int') {
+            return moveInstruction(dest, `#${hex(value >> 8)}:#${hex(value)}`);
+        } else {
+            throw new Error(`'Not implemented cast from '${srcType}' to '${destType}'`);
+        }
     } else if (destType === 'int' && srcType === 'char') {
         return [`CAST ${dest},${src}`];
     } else if (destType === 'bool') {
@@ -202,11 +227,7 @@ WhileStatement.generate = function (context, register) {
 };
 
 CallStatement.generate = function (context, register) {
-    let { address, instructions } = this.expression.generate(context, register);
-    register.release(address);
-    return [
-        ...instructions.slice(0, -1),
-    ];
+    return this.expression.generate(context, register, true);
 };
 
 ReturnStatement.generate = function (context, register) {
@@ -439,23 +460,32 @@ UnaryOperation.generate = function (context, register) {
     return unary[this.operation](register, exp);
 };
 
-MethodCall.generate = function (context, register) {
+MethodCall.generate = function (context, register, isStatement = false) {
     let params = this.parameters.map((e) => e.generate(context, register));
     let methodParams = context.getMethodParameters(this.name);
     let setParams = methodParams.map((e, i) => castInstruction(address(this.name, e.name, e.type), e.type, params[i].address, params[i].type)).flat();
     params.forEach(({ address }) => register.release(address));
     let type = context.getMethodType(this.name);
-    let dest = type === 'void' ? '_ugly_hack_' : register.fetch(type);
-    return {
-        address: dest,
-        type,
-        instructions: [
+    if (isStatement) {
+        return [
             ...params.map((e) => e.instructions).flat(),
             ...setParams,
             `CALL ${this.name}`,
-            `MOV ${dest},${address(this.name, 'return', type)}`,
-        ],
-    };
+        ];
+
+    } else {
+        let dest = register.fetch(type);
+        return {
+            address: dest,
+            type,
+            instructions: [
+                ...params.map((e) => e.instructions).flat(),
+                ...setParams,
+                `CALL ${this.name}`,
+                `MOV ${dest},${address(this.name, 'return', type)}`,
+            ],
+        };
+    }
 };
 
 Literal.generate = function () {

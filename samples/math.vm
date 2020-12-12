@@ -45,8 +45,8 @@
     .BYTE mul16_0 0
     .BYTE mul16_1 0
     .CODE
-    CAST mul16_flag_H:mul16_flag_L,#$01
-    CAST mul16_res_H:mul16_res_L,#$00
+    MOV mul16_flag_H:mul16_flag_L,#$00:#$01
+    MOV mul16_res_H:mul16_res_L,#$00:#$00
     .LABEL mul16_vm_0
     JZ mul16_vm_1,mul16_flag_H:mul16_flag_L
     AND mul16_0:mul16_1,mul16_flag_H:mul16_flag_L,mul16_b_H:mul16_b_L
@@ -144,8 +144,8 @@
     .BYTE div16_0 0
     .BYTE div16_1 0
     .CODE
-    CAST div16_q_H:div16_q_L,#$00
-    CAST div16_r_H:div16_r_L,#$00
+    MOV div16_q_H:div16_q_L,#$00:#$00
+    MOV div16_r_H:div16_r_L,#$00:#$00
     MOV div16_sign,#$00
     CAST div16_0:div16_1,#$00
     LT div16_1,div16_a_H:div16_a_L,div16_0:div16_1
@@ -272,8 +272,8 @@
     .BYTE mod16_0 0
     .BYTE mod16_1 0
     .CODE
-    CAST mod16_q_H:mod16_q_L,#$00
-    CAST mod16_r_H:mod16_r_L,#$00
+    MOV mod16_q_H:mod16_q_L,#$00:#$00
+    MOV mod16_r_H:mod16_r_L,#$00:#$00
     MOV mod16_sign,#$00
     CAST mod16_0:mod16_1,#$00
     LT mod16_1,mod16_a_H:mod16_a_L,mod16_0:mod16_1
@@ -288,7 +288,7 @@
     NEG mod16_0:mod16_1,mod16_b_H:mod16_b_L
     MOV mod16_b_H:mod16_b_L,mod16_0:mod16_1
     .LABEL mod16_vm_3
-    CAST mod16_flag_H:mod16_flag_L,#$80
+    MOV mod16_flag_H:mod16_flag_L,#$80:#$00
     .LABEL mod16_vm_4
     JZ mod16_vm_5,mod16_flag_H:mod16_flag_L
     SHL mod16_0:mod16_1,mod16_r_H:mod16_r_L,#$01

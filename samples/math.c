@@ -129,7 +129,7 @@ int mod16(int a, int b) {
     if (b < 0) {
         b = -b;
     }
-    flag = 0x80;
+    flag = 0x8000;
     while (flag) {
         r <<= 1;
         if (flag & a) {
