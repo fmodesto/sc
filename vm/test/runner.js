@@ -61,12 +61,6 @@ const execute = function (instructions, memory) {
         mod8() {
             return setByte('mod8_return', (byte('mod8_a') % byte('mod8_b')) & 0xFF);
         },
-        shl8() {
-            return setByte('shl8_return', ((byte('shl8_a') & 0xFF) << (value('shl8_b') & 0x07)) & 0xFF);
-        },
-        shr8() {
-            return setByte('shr8_return', ((byte('shr8_a') & 0xFF) >>> (value('shr8_b') & 0x07)) & 0xFF);
-        },
         mul16() {
             return setWord('mul16_return', (word('mul16_a') * word('mul16_b')) & 0xFFFF);
         },
@@ -75,12 +69,6 @@ const execute = function (instructions, memory) {
         },
         mod16() {
             return setWord('mod16_return', (word('mod16_a') % word('mod16_b')) & 0xFFFF);
-        },
-        shl16() {
-            return setWord('shl16_return', ((word('shl16_a') & 0xFFFF) << (value('shl8_b') & 0x0F)) & 0xFFFF);
-        },
-        shr16() {
-            return setWord('shr16_return', ((word('shr16_a') & 0xFFFF) >>> (value('shr16_b') & 0x0F)) & 0xFFFF);
         },
     };
 
@@ -123,7 +111,7 @@ const execute = function (instructions, memory) {
                 pc += 1;
                 break;
             case 'sub':
-                acc += (~value(param) + 1);
+                acc += (~value(param) & 0xFF) + 1;
                 updateFlags();
                 pc += 1;
                 break;

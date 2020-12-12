@@ -41,16 +41,6 @@ const operations = {
             `sta ${dest}`,
         ];
     },
-    NOT(dest, src) {
-        return [
-            `lda ${src}`,
-            ...jeq([
-                'lda #255',
-            ]),
-            'add #1',
-            `sta ${dest}`,
-        ];
-    },
     MOV(dest, src) {
         return [
             `lda ${src}`,
@@ -111,13 +101,23 @@ const operations = {
                 `sta ${dest}`,
             ];
         } else {
+            let label = createLabel();
             return [
-                `lda ${rhs}`,
-                'sta shl8_b',
                 `lda ${lhs}`,
-                'sta shl8_a',
-                'jsr shl8',
                 `sta ${dest}`,
+                `lda ${rhs}`,
+                'and #$07',
+                'sta tmp_0',
+                ...jeq([
+                    `${label}:`,
+                    `lda ${dest}`,
+                    'shl',
+                    `sta ${dest}`,
+                    'lda tmp_0',
+                    'sub #1',
+                    'sta tmp_0',
+                    `jne ${label}`,
+                ]),
             ];
         }
     },
@@ -131,13 +131,23 @@ const operations = {
                 `sta ${dest}`,
             ];
         } else {
+            let label = createLabel();
             return [
-                `lda ${rhs}`,
-                'sta shr8_b',
                 `lda ${lhs}`,
-                'sta shr8_a',
-                'jsr shr8',
                 `sta ${dest}`,
+                `lda ${rhs}`,
+                'and #$07',
+                'sta tmp_0',
+                jeq([
+                    `${label}:`,
+                    `lda ${dest}`,
+                    'shr',
+                    `sta ${dest}`,
+                    'lda tmp_0',
+                    'sub #1',
+                    'sta tmp_0',
+                    `jne ${label}`,
+                ]),
             ];
         }
     },
@@ -159,6 +169,25 @@ const operations = {
         return [
             `lda ${rhs}`,
             `xor ${lhs}`,
+            `sta ${dest}`,
+        ];
+    },
+    BOOL(dest, src) {
+        return [
+            `lda ${src}`,
+            ...jeq([
+                'lda #1',
+            ]),
+            `sta ${dest}`,
+        ];
+    },
+    NOT(dest, src) {
+        return [
+            `lda ${src}`,
+            ...jeq([
+                'lda #255',
+            ]),
+            'add #1',
             `sta ${dest}`,
         ];
     },

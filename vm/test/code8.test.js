@@ -46,7 +46,6 @@ describe('Generates code', () => {
     const scenarios = [
         ['NEG', genUnary, (a) => -a & 0xFF],
         ['INV', genUnary, (a) => ~a & 0xFF],
-        ['NOT', genUnary, (a) => (a ? 0 : 1)],
         ['MOV', genUnary, (a) => a & 0xFF],
         ['ADD', genBinary, (a, b) => (a + b) & 0xFF],
         ['SUB', genBinary, (a, b) => (a - b) & 0xFF],
@@ -58,6 +57,8 @@ describe('Generates code', () => {
         ['AND', genBinary, (a, b) => (a & b) & 0xFF],
         ['OR', genBinary, (a, b) => (a | b) & 0xFF],
         ['XOR', genBinary, (a, b) => (a ^ b) & 0xFF],
+        ['BOOL', genUnary, (a) => (a ? 1 : 0)],
+        ['NOT', genUnary, (a) => (a ? 0 : 1)],
         ['LT', genBinary, (a, b) => ((castb(a) < castb(b)) ? 1 : 0)],
         ['LTE', genBinary, (a, b) => ((castb(a) <= castb(b)) ? 1 : 0)],
         ['EQ', genBinary, (a, b) => ((castb(a) === castb(b)) ? 1 : 0)],

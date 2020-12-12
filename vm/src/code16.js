@@ -57,7 +57,7 @@ const makeShiftCall = function (method, [destH, destL], [lhsH, lhsL], [rhs]) {
         destL = destH;
     } else {
         staHigh = [
-            `lda ${method}_res_H`,
+            `lda ${method}_return_H`,
             `sta ${destH}`,
         ];
     }
@@ -69,7 +69,7 @@ const makeShiftCall = function (method, [destH, destL], [lhsH, lhsL], [rhs]) {
         `lda ${lhsH}`,
         `sta ${method}_a_H`,
         `jsr ${method}`,
-        `lda ${method}_res_L`,
+        `lda ${method}_return_L`,
         `sta ${destL}`,
         ...staHigh,
     ];
@@ -123,17 +123,6 @@ const operations = {
     INV(dest, src) {
         return createUnary8('INV', dest, src);
     },
-    NOT([dest], [srcH, srcL]) {
-        return [
-            `lda ${srcL}`,
-            `ora ${srcH}`,
-            ...jeq([
-                'lda #255',
-            ]),
-            'add #1',
-            `sta ${dest}`,
-        ];
-    },
     MOV(dest, src) {
         return createUnary8('MOV', dest, src);
     },
@@ -164,12 +153,12 @@ const operations = {
             `sub ${rhsL}`,
             `sta ${destL}`,
             ...jcs([
-                `lda ${lhsH}`,
-                `sub ${rhsH}`,
-            ], [
                 `lda ${rhsH}`,
                 'xor #$FF',
                 `add ${lhsH}`,
+            ], [
+                `lda ${lhsH}`,
+                `sub ${rhsH}`,
             ]),
             `sta ${destH}`,
         ];
@@ -218,7 +207,39 @@ const operations = {
                 `sta ${destH}`,
             ];
         } else {
-            return makeShiftCall('shl16', [destH, destL], [lhsH, lhsL], [rhs]);
+            if (typeof destL === 'undefined') {
+                destL = destH;
+                destH = 'tmp_1';
+            }
+            let label = createLabel();
+            return [
+                `lda ${lhsL}`,
+                `sta ${destL}`,
+                `lda ${lhsH}`,
+                `sta ${destH}`,
+                `lda ${rhs}`,
+                'and #$0F',
+                'sta tmp_0',
+                ...jeq([
+                    `${label}:`,
+                    `lda ${destL}`,
+                    'shl',
+                    `sta ${destL}`,
+                    ...jcs([
+                        `lda ${destH}`,
+                        'shl',
+                    ], [
+                        `lda ${destH}`,
+                        'shl',
+                        'ora #1',
+                    ]),
+                    `sta ${destH}`,
+                    'lda tmp_0',
+                    'sub #1',
+                    'sta tmp_0',
+                    `jne ${label}`,
+                ]),
+            ];
         }
     },
     SHR([destH, destL], [lhsH, lhsL], [rhs]) {
@@ -258,7 +279,39 @@ const operations = {
                 `sta ${destL}`,
             ];
         } else {
-            return makeShiftCall('shr16', [destH, destL], [lhsH, lhsL], [rhs]);
+            if (typeof destL === 'undefined') {
+                destL = destH;
+                destH = 'tmp_1';
+            }
+            let label = createLabel();
+            return [
+                `lda ${lhsL}`,
+                `sta ${destL}`,
+                `lda ${lhsH}`,
+                `sta ${destH}`,
+                `lda ${rhs}`,
+                'and #$0F',
+                'sta tmp_0',
+                ...jeq([
+                    `${label}:`,
+                    `lda ${destH}`,
+                    'shr',
+                    `sta ${destH}`,
+                    ...jcs([
+                        `lda ${destL}`,
+                        'shr',
+                    ], [
+                        `lda ${destL}`,
+                        'shr',
+                        'ora #$80',
+                    ]),
+                    `sta ${destL}`,
+                    'lda tmp_0',
+                    'sub #1',
+                    'sta tmp_0',
+                    `jne ${label}`,
+                ]),
+            ];
         }
     },
     AND(dest, lhs, rhs) {
@@ -269,6 +322,27 @@ const operations = {
     },
     XOR(dest, lhs, rhs) {
         return createBinary8('XOR', dest, lhs, rhs);
+    },
+    BOOL([dest], [srcH, srcL]) {
+        return [
+            `lda ${srcL}`,
+            `ora ${srcH}`,
+            ...jeq([
+                'lda #1',
+            ]),
+            `sta ${dest}`,
+        ];
+    },
+    NOT([dest], [srcH, srcL]) {
+        return [
+            `lda ${srcL}`,
+            `ora ${srcH}`,
+            ...jeq([
+                'lda #255',
+            ]),
+            'add #1',
+            `sta ${dest}`,
+        ];
     },
     LT([dest], [lhsH, lhs], [rhsH, rhs]) {
         if (isZero(rhs)) {

@@ -1,15 +1,9 @@
-test:
-.byte $00
 mul8_return:
 mul16_return_H:
 div8_return:
 div16_return_H:
 mod8_return:
 mod16_return_H:
-shl8_return:
-shl16_return_H:
-shr8_return:
-shr16_return_H:
 .byte 0
 mul8_a:
 mul16_return_L:
@@ -17,10 +11,6 @@ div8_a:
 div16_return_L:
 mod8_a:
 mod16_return_L:
-shl8_a:
-shl16_return_L:
-shr8_a:
-shr16_return_L:
 .byte 0
 mul8_b:
 mul16_a_H:
@@ -28,10 +18,6 @@ div8_b:
 div16_a_H:
 mod8_b:
 mod16_a_H:
-shl8_b:
-shl16_a_H:
-shr8_b:
-shr16_a_H:
 .byte 0
 mul8_res:
 mul16_a_L:
@@ -39,8 +25,6 @@ div8_q:
 div16_a_L:
 mod8_q:
 mod16_a_L:
-shl16_a_L:
-shr16_a_L:
 .byte 0
 mul8_flag:
 mul16_b_H:
@@ -48,8 +32,6 @@ div8_r:
 div16_b_H:
 mod8_r:
 mod16_b_H:
-shl16_b:
-shr16_b:
 .byte 0
 mul8_0:
 mul16_b_L:
@@ -57,7 +39,6 @@ div8_flag:
 div16_b_L:
 mod8_flag:
 mod16_b_L:
-shl16_1:
 .byte 0
 mul16_res_H:
 div8_sign:
@@ -483,13 +464,13 @@ lda div16_r_L
 sub div16_b_L
 sta div16_r_L
 jcs div16_asm_25
-lda div16_r_H
-sub div16_b_H
-jmp div16_asm_26
-div16_asm_25:
 lda div16_b_H
 xor #$FF
 add div16_r_H
+jmp div16_asm_26
+div16_asm_25:
+lda div16_r_H
+sub div16_b_H
 div16_asm_26:
 sta div16_r_H
 lda div16_flag_L
@@ -819,13 +800,13 @@ lda mod16_r_L
 sub mod16_b_L
 sta mod16_r_L
 jcs mod16_asm_27
-lda mod16_r_H
-sub mod16_b_H
-jmp mod16_asm_28
-mod16_asm_27:
 lda mod16_b_H
 xor #$FF
 add mod16_r_H
+jmp mod16_asm_28
+mod16_asm_27:
+lda mod16_r_H
+sub mod16_b_H
 mod16_asm_28:
 sta mod16_r_H
 lda mod16_flag_L
@@ -877,110 +858,3 @@ lda mod16_0
 sta mod16_return_H
 mod16_end:
 ret mod16
-shl8:
-lda #$07
-and shl8_b
-sta shl8_b
-shl8_vm_0:
-lda shl8_b
-jeq shl8_vm_1
-lda shl8_a
-shl
-sta shl8_a
-lda shl8_b
-sub #$01
-sta shl8_b
-jmp shl8_vm_0
-shl8_vm_1:
-lda shl8_a
-sta shl8_return
-shl8_end:
-ret shl8
-shl16:
-lda #$0F
-and shl16_b
-sta shl16_b
-shl16_vm_0:
-lda shl16_b
-jeq shl16_vm_1
-lda shl16_a_L
-shl
-sta shl16_a_L
-jcs shl16_asm_0
-lda shl16_a_H
-shl
-jmp shl16_asm_1
-shl16_asm_0:
-lda shl16_a_H
-shl
-ora #1
-shl16_asm_1:
-sta shl16_a_H
-lda shl16_b
-sub #$01
-sta shl16_b
-jmp shl16_vm_0
-shl16_vm_1:
-lda shl16_a_L
-sta shl16_1
-lda shl16_1
-sta shl16_return_L
-jlt shl16_asm_2
-lda #0
-jmp shl16_asm_3
-shl16_asm_2:
-lda #FF
-shl16_asm_3:
-sta shl16_return_H
-shl16_end:
-ret shl16
-shr8:
-lda #$07
-and shr8_b
-sta shr8_b
-shr8_vm_0:
-lda shr8_b
-jeq shr8_vm_1
-lda shr8_a
-shr
-sta shr8_a
-lda shr8_b
-sub #$01
-sta shr8_b
-jmp shr8_vm_0
-shr8_vm_1:
-lda shr8_a
-sta shr8_return
-shr8_end:
-ret shr8
-shr16:
-lda #$0F
-and shr16_b
-sta shr16_b
-shr16_vm_0:
-lda shr16_b
-jeq shr16_vm_1
-lda shr16_a_H
-shr
-sta shr16_a_H
-jcs shr16_asm_0
-lda shr16_a_L
-shr
-jmp shr16_asm_1
-shr16_asm_0:
-lda shr16_a_L
-shr
-ora #$80
-shr16_asm_1:
-sta shr16_a_L
-lda shr16_b
-sub #$01
-sta shr16_b
-jmp shr16_vm_0
-shr16_vm_1:
-lda shr16_a_L
-sta shr16_return_L
-lda shr16_a_H
-sta shr16_return_H
-shr16_end:
-ret shr16
