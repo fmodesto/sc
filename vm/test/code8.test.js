@@ -16,11 +16,15 @@ const castb = (v) => (v > 127 ? v - 256 : v);
 describe('Generates 8-bit code', () => {
 
     function byte() {
-        return [0x00, 0x55, 0x80, 0xAA, 0xFF];
+        let data = [];
+        for (let i = 0; i < 256; i += 51) {
+            data.push(i);
+        }
+        return data;
     }
 
     function ones() {
-        return [0x01, 0x55, 0x80, 0xAA, 0xFF];
+        return byte().map((e) => (e ? e : 1));
     }
     function nibble() {
         return [0, 1, 2, 7, 8, 10];

@@ -221,7 +221,15 @@ const operations = {
                 `sta ${dest}`,
             ];
         } else if (isZero(lhs)) {
-            return operations.GT(dest, rhs, lhs);
+            return [
+                `lda ${rhs}`,
+                ...jle([
+                    'lda #1',
+                ], [
+                    'lda #0',
+                ]),
+                `sta ${dest}`,
+            ];
         } else {
             const labelSign = createLabel();
             const labelTrue = createLabel();
@@ -263,7 +271,15 @@ const operations = {
                 `sta ${dest}`,
             ];
         } else if (isZero(lhs)) {
-            return operations.GTE(dest, rhs, lhs);
+            return [
+                `lda ${rhs}`,
+                ...jlt([
+                    'lda #1',
+                ], [
+                    'lda #0',
+                ]),
+                `sta ${dest}`,
+            ];
         } else {
             const labelSign = createLabel();
             const labelTrue = createLabel();
@@ -316,89 +332,10 @@ const operations = {
         ];
     },
     GTE(dest, lhs, rhs) {
-        if (isZero(rhs)) {
-            return [
-                `lda ${lhs}`,
-                ...jlt([
-                    'lda #1',
-                ], [
-                    'lda #0',
-                ]),
-                `sta ${dest}`,
-            ];
-        } else if (isZero(lhs)) {
-            return operations.LTE(dest, rhs, lhs);
-        } else {
-            const labelSign = createLabel();
-            const labelTrue = createLabel();
-            const labelEnd = createLabel();
-            return [
-                `lda ${lhs}`,
-                `xor ${rhs}`,
-                `jlt ${labelSign}`,
-
-                `lda ${lhs}`,
-                `sub ${rhs}`,
-                `jge ${labelTrue}`,
-                'lda #0',
-                `jmp ${labelEnd}`,
-
-                `${labelSign}:`,
-                `lda ${lhs}`,
-                `jge ${labelTrue}`,
-                'lda #0',
-                `jmp ${labelEnd}`,
-
-                `${labelTrue}:`,
-                'lda #1',
-
-                `${labelEnd}:`,
-                `sta ${dest}`,
-            ];
-        }
+        return operations.LTE(dest, rhs, lhs);
     },
     GT(dest, lhs, rhs) {
-        if (isZero(rhs)) {
-            return [
-                `lda ${lhs}`,
-                ...jle([
-                    'lda #1',
-                ], [
-                    'lda #0',
-                ]),
-                `sta ${dest}`,
-            ];
-        } else if (isZero(lhs)) {
-            return operations.LT(dest, rhs, lhs);
-        } else {
-            const labelSign = createLabel();
-            const labelFalse = createLabel();
-            const labelEnd = createLabel();
-            return [
-                `lda ${lhs}`,
-                `xor ${rhs}`,
-                `jeq ${labelFalse}`,
-                `jlt ${labelSign}`,
-
-                `lda ${lhs}`,
-                `sub ${rhs}`,
-                `jlt ${labelFalse}`,
-                'lda #1',
-                `jmp ${labelEnd}`,
-
-                `${labelSign}:`,
-                `lda ${lhs}`,
-                `jlt ${labelFalse}`,
-                'lda #1',
-                `jmp ${labelEnd}`,
-
-                `${labelFalse}:`,
-                'lda #0',
-
-                `${labelEnd}:`,
-                `sta ${dest}`,
-            ];
-        }
+        return operations.LT(dest, rhs, lhs);
     },
 };
 
