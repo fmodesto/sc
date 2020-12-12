@@ -176,7 +176,7 @@ const operations = {
         return makeCall('mod16', dest, lhs, rhs);
     },
     SHL([destH, destL], [lhsH, lhsL], [rhs]) {
-        if (isLiteral(rhs) && (literalValue(rhs) & 0xFF) >= 8) {
+        if (isLiteral(rhs) && (literalValue(rhs) & 0x0F) >= 8) {
             if (typeof destL === 'undefined') {
                 return [
                     'lda #0',
@@ -188,7 +188,7 @@ const operations = {
                 'lda #0',
                 `sta ${destL}`,
             ];
-        } else if (isLiteral(rhs) && (literalValue(rhs) & 0xFF) >= 1) {
+        } else if (isLiteral(rhs) && (literalValue(rhs) & 0x0F) === 1) {
             if (typeof destL === 'undefined') {
                 return operations8.SHL(destH, lhsL, rhs);
             }
@@ -243,7 +243,7 @@ const operations = {
         }
     },
     SHR([destH, destL], [lhsH, lhsL], [rhs]) {
-        if (isLiteral(rhs) && (literalValue(rhs) & 0xFF) >= 8) {
+        if (isLiteral(rhs) && (literalValue(rhs) & 0x0F) >= 8) {
             let staHigh = [
                 'lda #0',
                 `sta ${destH}`,
@@ -256,7 +256,7 @@ const operations = {
                 ...operations8.SHR(destL, lhsH, rhs),
                 ...staHigh,
             ];
-        } else if (isLiteral(rhs) && (literalValue(rhs) & 0xFF) === 1) {
+        } else if (isLiteral(rhs) && (literalValue(rhs) & 0x0F) === 1) {
             let staHigh = [
                 `sta ${destH}`,
             ];

@@ -15,98 +15,72 @@ const castw = (v) => (v >= (1 << 15) ? v - (1 << 16) : v);
 
 describe('Generates code', () => {
 
-    function genUnaryInt(instruction, fn) {
+    function word() {
         let data = [];
-        for (let i = 0; i < 256; i += 51) {
-            for (let j = 0; j < 256; j += 51) {
-                data.push([`${instruction} destH:destL,#${i}:#${j}`, fn(i << 8 | j)]);
+        for (let i = 0; i < 256; i+=85) {
+            for (let j = 0; j < 256; j+=85) {
+                data.push(i << 8 | j);
             }
         }
         return data;
     }
 
-    function genBinaryInt(instruction, fn) {
+    function ones() {
         let data = [];
-        for (let i = 0; i < 256; i += 85) {
-            for (let j = 0; j < 256; j += 85) {
-                for (let k = 0; k < 256; k += 85) {
-                    for (let l = 0; l < 256; l += 85) {
-                        data.push([`${instruction} destH:destL,#${i}:#${j},#${k}:#${l}`, fn(i << 8 | j, k << 8 | l)]);
-                    }
-                }
+        for (let i = 0; i < 256; i+=85) {
+            for (let j = 0; j < 256; j+=85) {
+                data.push(i || j ? i << 8 | j : 1);
             }
         }
         return data;
     }
 
-    function genBinaryShift(instruction, fn) {
+    function byte() {
         let data = [];
-        for (let i = 0; i < 256; i += 85) {
-            for (let j = 0; j < 256; j += 85) {
-                for (let k = 0; k < 17; k += 85) {
-                    data.push([`${instruction} destH:destL,#${i}:#${j},#${k}`, fn(i << 8 | j, k)]);
-                }
-            }
+        for (let i = 0; i < (1 << 8); i+=17) {
+            data.push(i);
         }
         return data;
     }
 
-    function genBinaryDiv(instruction, fn) {
+    function nibble() {
         let data = [];
-        for (let i = 0; i < 256; i += 85) {
-            for (let j = 0; j < 256; j += 85) {
-                for (let k = 0; k < 256; k += 85) {
-                    for (let l = 0; l < 256; l += 85) {
-                        data.push([`${instruction} destH:destL,#${i}:#${j},#${k}:#${(k || l) ? l : 1}`, fn(i << 8 | j, (k || l) ? k << 8 | l : 1)]);
-                    }
-                }
-            }
+        for (let i = 0; i <= 17; i++) {
+            data.push(i);
         }
         return data;
     }
 
-    function genUnary(instruction, fn) {
-        let data = [];
-        for (let i = 0; i < 256; i += 51) {
-            for (let j = 0; j < 256; j += 51) {
-                data.push([`${instruction} dest,#${i}:#${j}`, fn(i << 8 | j)]);
-            }
-        }
-        return data;
+    function unary(exp) {
+        return (opcode, dest, fn) => exp().map((e) => [`${opcode} ${dest},#${(e >> 8) & 0xFF}:#${e & 0xFF}`, fn(e)]);
     }
 
-    function genBinary(instruction, fn) {
-        let data = [];
-        for (let i = 0; i < 256; i += 85) {
-            for (let j = 0; j < 256; j += 85) {
-                for (let k = 0; k < 256; k += 85) {
-                    for (let l = 0; l < 256; l += 85) {
-                        data.push([`${instruction} dest,#${i}:#${j},#${k}:#${l}`, fn(i << 8 | j, k << 8 | l)]);
-                    }
-                }
-            }
-        }
-        return data;
+    function binary(lhs, rhs) {
+        return (opcode, dest, fn) => rhs().map((r) => lhs().map((l) => [`${opcode} ${dest},#${(l >> 8) & 0xFF}:#${l & 0xFF},#${(r >> 8) & 0xFF}:#${r & 0xFF}`, fn(l, r)])).flat();
+    }
+
+    function shift(lhs, rhs) {
+        return (opcode, dest, fn) => rhs().map((r) => lhs().map((l) => [`${opcode} ${dest},#${(l >> 8) & 0xFF}:#${l & 0xFF},#${r & 0xFF}`, fn(l, r)])).flat();
     }
 
     const intScenarios = [
-        ['NEG', genUnaryInt, (a) => -a & 0xFFFF],
-        ['INV', genUnaryInt, (a) => ~a & 0xFFFF],
-        ['MOV', genUnaryInt, (a) => a & 0xFFFF],
-        ['ADD', genBinaryInt, (a, b) => (a + b) & 0xFFFF],
-        ['SUB', genBinaryInt, (a, b) => (a - b) & 0xFFFF],
-        ['MUL', genBinaryInt, (a, b) => (castw(a) * castw(b)) & 0xFFFF],
-        ['DIV', genBinaryDiv, (a, b) => (castw(a) / castw(b)) & 0xFFFF],
-        ['MOD', genBinaryDiv, (a, b) => (castw(a) % castw(b)) & 0xFFFF],
-        ['SHL', genBinaryShift, (a, b) => (a << (b & 0x0F)) & 0xFFFF],
-        ['SHR', genBinaryShift, (a, b) => (a >>> (b & 0x0F)) & 0xFFFF],
-        ['AND', genBinaryInt, (a, b) => (a & b) & 0xFFFF],
-        ['OR', genBinaryInt, (a, b) => (a | b) & 0xFFFF],
-        ['XOR', genBinaryInt, (a, b) => (a ^ b) & 0xFFFF],
+        ['NEG', unary(word), (a) => -a & 0xFFFF],
+        ['INV', unary(word), (a) => ~a & 0xFFFF],
+        ['MOV', unary(word), (a) => a & 0xFFFF],
+        ['ADD', binary(word, word), (a, b) => (a + b) & 0xFFFF],
+        ['SUB', binary(word, word), (a, b) => (a - b) & 0xFFFF],
+        ['MUL', binary(word, word), (a, b) => (castw(a) * castw(b)) & 0xFFFF],
+        ['DIV', binary(word, ones), (a, b) => (castw(a) / castw(b)) & 0xFFFF],
+        ['MOD', binary(word, ones), (a, b) => (castw(a) % castw(b)) & 0xFFFF],
+        ['SHL', shift(word, nibble), (a, b) => (a << (b & 0x0F)) & 0xFFFF],
+        ['SHR', shift(word, nibble), (a, b) => (a >>> (b & 0x0F)) & 0xFFFF],
+        ['AND', binary(word, word), (a, b) => (a & b) & 0xFFFF],
+        ['OR', binary(word, word), (a, b) => (a | b) & 0xFFFF],
+        ['XOR', binary(word, word), (a, b) => (a ^ b) & 0xFFFF],
     ];
 
-    intScenarios.forEach(([instruction, generator, fn]) => {
-        let results = generator(instruction, fn);
+    intScenarios.forEach(([opcode, generator, fn]) => {
+        let results = generator(opcode, 'destH:destL', fn);
         results.forEach(([expression, result]) => {
             test.only(`${expression} ${result}`, (done) => {
                 expect(execute(expression)).toMatchObject({
@@ -119,18 +93,18 @@ describe('Generates code', () => {
     });
 
     const scenarios = [
-        ['BOOL', genUnary, (a) => (a ? 1 : 0)],
-        ['NOT', genUnary, (a) => (a ? 0 : 1)],
+        ['BOOL', unary(word), (a) => (a ? 1 : 0)],
+        ['NOT', unary(word), (a) => (a ? 0 : 1)],
         // ['LT', genBinary, (a, b) => ((castw(a) < castw(b)) ? 1 : 0)],
         // ['LTE', genBinary, (a, b) => ((castw(a) <= castw(b)) ? 1 : 0)],
-        ['EQ', genBinary, (a, b) => ((castw(a) === castw(b)) ? 1 : 0)],
-        ['NEQ', genBinary, (a, b) => ((castw(a) !== castw(b)) ? 1 : 0)],
+        ['EQ', binary(word, word), (a, b) => ((castw(a) === castw(b)) ? 1 : 0)],
+        ['NEQ', binary(word, word), (a, b) => ((castw(a) !== castw(b)) ? 1 : 0)],
         // ['GTE', genBinary, (a, b) => ((castw(a) >= castw(b)) ? 1 : 0)],
         // ['GT', genBinary, (a, b) => ((castw(a) > castw(b)) ? 1 : 0)],
     ];
 
-    scenarios.forEach(([instruction, generator, fn]) => {
-        let results = generator(instruction, fn);
+    scenarios.forEach(([opcode, generator, fn]) => {
+        let results = generator(opcode, 'dest', fn);
         results.forEach(([expression, result]) => {
             test.only(`${expression} ${result}`, (done) => {
                 expect(execute(expression)).toMatchObject({
