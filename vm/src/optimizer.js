@@ -47,7 +47,7 @@ const optimizer = function (instructions) {
             } else if (e[0] === 'JMP' && next[0] === '.LABEL' && next[1] === e[1]) {
                 e[0] = 'NOP';
                 changes = true;
-            } else if (e[0] === 'MOV' && e[1] === e[2]) {
+            } else if ((e[0] === 'MOV' || e[0] === 'CAST') && e[1] === e[2]) {
                 e[0] = 'NOP';
                 changes = true;
             }
