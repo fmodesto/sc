@@ -9,20 +9,38 @@ const createUnary8 = function (opcode, [destH, destL], [srcH, srcL]) {
     if (typeof destL === 'undefined') {
         return operations8[opcode](destH, srcL);
     }
-    return [
-        ...operations8[opcode](destL, srcL),
-        ...operations8[opcode](destH, srcH),
-    ];
+    if (destL === srcH) {
+        return [
+            ...operations8[opcode]('tmp_0', srcL),
+            ...operations8[opcode](destH, srcH),
+            'lda tmp_0',
+            `sta ${destL}`,
+        ];
+    } else {
+        return [
+            ...operations8[opcode](destL, srcL),
+            ...operations8[opcode](destH, srcH),
+        ];
+    }
 };
 
 const createBinary8 = function (opcode, [destH, destL], [lhsH, lhsL], [rhsH, rhsL]) {
     if (typeof destL === 'undefined') {
         return operations8[opcode](destH, lhsL, rhsL);
     }
-    return [
-        ...operations8[opcode](destL, lhsL, rhsL),
-        ...operations8[opcode](destH, lhsH, rhsH),
-    ];
+    if (destL === lhsH || destL === rhsH) {
+        return [
+            ...operations8[opcode]('tmp_0', lhsL, rhsL),
+            ...operations8[opcode](destH, lhsH, rhsH),
+            'lda tmp_0',
+            `sta ${destL}`,
+        ];
+    } else {
+        return [
+            ...operations8[opcode](destL, lhsL, rhsL),
+            ...operations8[opcode](destH, lhsH, rhsH),
+        ];
+    }
 };
 
 const makeCall = function (method, [destH, destL], [lhsH, lhsL], [rhsH, rhsL]) {
@@ -40,30 +58,6 @@ const makeCall = function (method, [destH, destL], [lhsH, lhsL], [rhsH, rhsL]) {
         `sta ${method}_b_L`,
         `lda ${rhsH}`,
         `sta ${method}_b_H`,
-        `lda ${lhsL}`,
-        `sta ${method}_a_L`,
-        `lda ${lhsH}`,
-        `sta ${method}_a_H`,
-        `jsr ${method}`,
-        `lda ${method}_return_L`,
-        `sta ${destL}`,
-        ...staHigh,
-    ];
-};
-
-const makeShiftCall = function (method, [destH, destL], [lhsH, lhsL], [rhs]) {
-    let staHigh = [];
-    if (typeof destL === 'undefined') {
-        destL = destH;
-    } else {
-        staHigh = [
-            `lda ${method}_return_H`,
-            `sta ${destH}`,
-        ];
-    }
-    return [
-        `lda ${rhs}`,
-        `sta ${method}_b`,
         `lda ${lhsL}`,
         `sta ${method}_a_L`,
         `lda ${lhsH}`,
@@ -106,6 +100,14 @@ const operations = {
         if (typeof destL === 'undefined') {
             return operations8.NEG(destH, srcL);
         }
+        let overwrite = [];
+        if (destL === srcH) {
+            overwrite = [
+                'lda tmp_0',
+                `sta ${destL}`,
+            ];
+            destL = 'tmp_0';
+        }
         return [
             'lda #0',
             `sub ${srcL}`,
@@ -118,6 +120,7 @@ const operations = {
                 `sub ${srcH}`,
             ]),
             `sta ${destH}`,
+            ...overwrite,
         ];
     },
     INV(dest, src) {
@@ -129,6 +132,14 @@ const operations = {
     ADD([destH, destL], [lhsH, lhsL], [rhsH, rhsL]) {
         if (typeof destL === 'undefined') {
             return operations8.ADD(destH, lhsL, rhsL);
+        }
+        let overwrite = [];
+        if (destL === lhsH || destL === rhsH) {
+            overwrite = [
+                'lda tmp_0',
+                `sta ${destL}`,
+            ];
+            destL = 'tmp_0';
         }
         return [
             `lda ${rhsL}`,
@@ -142,11 +153,20 @@ const operations = {
             ]),
             `add ${lhsH}`,
             `sta ${destH}`,
+            ...overwrite,
         ];
     },
     SUB([destH, destL], [lhsH, lhsL], [rhsH, rhsL]) {
         if (typeof destL === 'undefined') {
             return operations8.SUB(destH, lhsL, rhsL);
+        }
+        let overwrite = [];
+        if (destL === lhsH || destL === rhsH) {
+            overwrite = [
+                'lda tmp_0',
+                `sta ${destL}`,
+            ];
+            destL = 'tmp_0';
         }
         return [
             `lda ${lhsL}`,
@@ -161,6 +181,7 @@ const operations = {
                 `sub ${rhsH}`,
             ]),
             `sta ${destH}`,
+            ...overwrite,
         ];
     },
     MUL(dest, lhs, rhs) {

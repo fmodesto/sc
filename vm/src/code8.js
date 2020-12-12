@@ -101,6 +101,14 @@ const operations = {
                 `sta ${dest}`,
             ];
         } else {
+            let overwrite = [];
+            if (dest === lhs || dest === rhs) {
+                overwrite = [
+                    'lda tmp_1',
+                    `sta ${dest}`,
+                ];
+                dest = 'tmp_1';
+            }
             let label = createLabel();
             return [
                 `lda ${lhs}`,
@@ -118,6 +126,7 @@ const operations = {
                     'sta tmp_0',
                     `jne ${label}`,
                 ]),
+                ...overwrite,
             ];
         }
     },
@@ -131,6 +140,14 @@ const operations = {
                 `sta ${dest}`,
             ];
         } else {
+            let overwrite = [];
+            if (dest === lhs || dest === rhs) {
+                overwrite = [
+                    'lda tmp_1',
+                    `sta ${dest}`,
+                ];
+                dest = 'tmp_1';
+            }
             let label = createLabel();
             return [
                 `lda ${lhs}`,
@@ -138,7 +155,7 @@ const operations = {
                 `lda ${rhs}`,
                 'and #$07',
                 'sta tmp_0',
-                jeq([
+                ...jeq([
                     `${label}:`,
                     `lda ${dest}`,
                     'shr',
@@ -148,6 +165,7 @@ const operations = {
                     'sta tmp_0',
                     `jne ${label}`,
                 ]),
+                ...overwrite,
             ];
         }
     },
@@ -203,7 +221,7 @@ const operations = {
                 `sta ${dest}`,
             ];
         } else if (isZero(lhs)) {
-            return operations.GTE(dest, rhs, lhs);
+            return operations.GT(dest, rhs, lhs);
         } else {
             const labelSign = createLabel();
             const labelTrue = createLabel();
@@ -245,7 +263,7 @@ const operations = {
                 `sta ${dest}`,
             ];
         } else if (isZero(lhs)) {
-            return operations.GT(dest, rhs, lhs);
+            return operations.GTE(dest, rhs, lhs);
         } else {
             const labelSign = createLabel();
             const labelTrue = createLabel();
@@ -309,7 +327,7 @@ const operations = {
                 `sta ${dest}`,
             ];
         } else if (isZero(lhs)) {
-            return operations.LT(dest, rhs, lhs);
+            return operations.LTE(dest, rhs, lhs);
         } else {
             const labelSign = createLabel();
             const labelTrue = createLabel();
@@ -351,7 +369,7 @@ const operations = {
                 `sta ${dest}`,
             ];
         } else if (isZero(lhs)) {
-            return operations.LTE(dest, rhs, lhs);
+            return operations.LT(dest, rhs, lhs);
         } else {
             const labelSign = createLabel();
             const labelFalse = createLabel();

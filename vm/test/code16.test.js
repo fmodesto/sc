@@ -13,54 +13,130 @@ const execute = (src, memory = {}) => {
 
 const castw = (v) => (v >= (1 << 15) ? v - (1 << 16) : v);
 
-describe('Generates code', () => {
+describe('Generates 16-bit code', () => {
 
     function word() {
-        let data = [];
-        for (let i = 0; i < 256; i+=85) {
-            for (let j = 0; j < 256; j+=85) {
-                data.push(i << 8 | j);
-            }
-        }
-        return data;
+        // let data = [];
+        // for (let i = 0; i < 256; i+=85) {
+        //     for (let j = 0; j < 256; j+=85) {
+        //         data.push(i << 8 | j);
+        //     }
+        // }
+        // return data;
+        return [0x0000, 0x00FF, 0x55AA, 0x8000, 0xAA55, 0xFF00, 0xFFFF];
     }
 
     function ones() {
-        let data = [];
-        for (let i = 0; i < 256; i+=85) {
-            for (let j = 0; j < 256; j+=85) {
-                data.push(i || j ? i << 8 | j : 1);
-            }
-        }
-        return data;
-    }
-
-    function byte() {
-        let data = [];
-        for (let i = 0; i < (1 << 8); i+=17) {
-            data.push(i);
-        }
-        return data;
+        // let data = [];
+        // for (let i = 0; i < 256; i+=85) {
+        //     for (let j = 0; j < 256; j+=85) {
+        //         data.push(i || j ? i << 8 | j : 1);
+        //     }
+        // }
+        // return data;
+        return [0x0001, 0x00FF, 0x55AA, 0x8000, 0xAA55, 0xFF00, 0xFFFF];
     }
 
     function nibble() {
-        let data = [];
-        for (let i = 0; i <= 17; i++) {
-            data.push(i);
-        }
-        return data;
+        // let data = [];
+        // for (let i = 0; i <= 17; i++) {
+        //     data.push(i);
+        // }
+        // return data;
+        return [0, 1, 2, 7, 8, 9, 15, 16, 20];
     }
 
     function unary(exp) {
-        return (opcode, dest, fn) => exp().map((e) => [`${opcode} ${dest},#${(e >> 8) & 0xFF}:#${e & 0xFF}`, fn(e)]);
+        let variants = [
+            (op, dest, e) => [
+                `${op} ${dest},#${(e >> 8) & 0xFF}:#${e & 0xFF}`,
+            ],
+            (op, dest, e) => [
+                `MOV expH:expL,#${(e >> 8) & 0xFF}:#${e & 0xFF}`,
+                `${op} ${dest},expH:expL`,
+            ],
+            (op, dest, e) => [
+                `MOV destH:destL,#${(e >> 8) & 0xFF}:#${e & 0xFF}`,
+                `${op} ${dest},destH:destL`,
+            ],
+            (op, dest, e) => [
+                `MOV destL:destH,#${(e >> 8) & 0xFF}:#${e & 0xFF}`,
+                `${op} ${dest},destL:destH`,
+            ],
+        ];
+        return (op, dest, fn) => exp().map((e) => variants.map((v) => [v(op, dest, e), fn(e)])).flat();
     }
 
     function binary(lhs, rhs) {
-        return (opcode, dest, fn) => rhs().map((r) => lhs().map((l) => [`${opcode} ${dest},#${(l >> 8) & 0xFF}:#${l & 0xFF},#${(r >> 8) & 0xFF}:#${r & 0xFF}`, fn(l, r)])).flat();
+        let variants = [
+            (op, dest, l, r) => [
+                `${op} ${dest},#${(l >> 8) & 0xFF}:#${l & 0xFF},#${(r >> 8) & 0xFF}:#${r & 0xFF}`,
+            ],
+            (op, dest, l, r) => [
+                `MOV lhsH:lhsL,#${(l >> 8) & 0xFF}:#${l & 0xFF}`,
+                `${op} ${dest},lhsH:lhsL,#${(r >> 8) & 0xFF}:#${r & 0xFF}`,
+            ],
+            (op, dest, l, r) => [
+                `MOV rhsH:rhsL,#${(r >> 8) & 0xFF}:#${r & 0xFF}`,
+                `${op} ${dest},#${(l >> 8) & 0xFF}:#${l & 0xFF},rhsH:rhsL`,
+            ],
+            (op, dest, l, r) => [
+                `MOV lhsH:lhsL,#${(l >> 8) & 0xFF}:#${l & 0xFF}`,
+                `MOV rhsH:rhsL,#${(r >> 8) & 0xFF}:#${r & 0xFF}`,
+                `${op} ${dest},lhsH:lhsL,rhsH:rhsL`,
+            ],
+            (op, dest, l, r) => [
+                `MOV destH:destL,#${(l >> 8) & 0xFF}:#${l & 0xFF}`,
+                `MOV rhsH:rhsL,#${(r >> 8) & 0xFF}:#${r & 0xFF}`,
+                `${op} ${dest},destH:destL,rhsH:rhsL`,
+            ],
+            (op, dest, l, r) => [
+                `MOV lhsH:lhsL,#${(l >> 8) & 0xFF}:#${l & 0xFF}`,
+                `MOV destH:destL,#${(r >> 8) & 0xFF}:#${r & 0xFF}`,
+                `${op} ${dest},lhsH:lhsL,destH:destL`,
+            ],
+            (op, dest, l, r) => [
+                `MOV destL:destH,#${(l >> 8) & 0xFF}:#${l & 0xFF}`,
+                `MOV rhsH:rhsL,#${(r >> 8) & 0xFF}:#${r & 0xFF}`,
+                `${op} ${dest},destL:destH,rhsH:rhsL`,
+            ],
+            (op, dest, l, r) => [
+                `MOV lhsH:lhsL,#${(l >> 8) & 0xFF}:#${l & 0xFF}`,
+                `MOV destL:destH,#${(r >> 8) & 0xFF}:#${r & 0xFF}`,
+                `${op} ${dest},lhsH:lhsL,destL:destH`,
+            ],
+            (op, dest, l, r) => (l === r ? [
+                `MOV expH:expL,#${(l >> 8) & 0xFF}:#${l & 0xFF}`,
+                `${op} ${dest},expH:expL,expH:expL`,
+            ] : []),
+            (op, dest, l, r) => (l === r ? [
+                `MOV destH:destL,#${(l >> 8) & 0xFF}:#${l & 0xFF}`,
+                `${op} ${dest},destH:destL,destH:destL`,
+            ] : []),
+        ];
+        return (op, dest, fn) => rhs().map((r) => lhs().map((l) => variants.map((v) => [v(op, dest, l, r), fn(l, r)]).filter(([e]) => e.length)).flat()).flat();
     }
 
     function shift(lhs, rhs) {
-        return (opcode, dest, fn) => rhs().map((r) => lhs().map((l) => [`${opcode} ${dest},#${(l >> 8) & 0xFF}:#${l & 0xFF},#${r & 0xFF}`, fn(l, r)])).flat();
+        let variants = [
+            (op, dest, l, r) => [
+                `${op} ${dest},#${(l >> 8) & 0xFF}:#${l & 0xFF},#${r & 0xFF}`,
+            ],
+            (op, dest, l, r) => [
+                `MOV lhsH:lhsL,#${(l >> 8) & 0xFF}:#${l & 0xFF}`,
+                `${op} ${dest},lhsH:lhsL,#${r & 0xFF}`,
+            ],
+            (op, dest, l, r) => [
+                `MOV rhs,#${r & 0xFF}`,
+                `${op} ${dest},#${(l >> 8) & 0xFF}:#${l & 0xFF},rhs`,
+            ],
+            (op, dest, l, r) => [
+                `MOV lhsH:lhsL,#${(l >> 8) & 0xFF}:#${l & 0xFF}`,
+                `MOV rhs,#${r & 0xFF}`,
+                `${op} ${dest},lhsH:lhsL,rhs`,
+            ],
+        ];
+        return (op, dest, fn) => rhs().map((r) => lhs().map((l) => variants.map((v) => [v(op, dest, l, r), fn(l, r)])).flat()).flat();
     }
 
     const intScenarios = [
@@ -82,8 +158,8 @@ describe('Generates code', () => {
     intScenarios.forEach(([opcode, generator, fn]) => {
         let results = generator(opcode, 'destH:destL', fn);
         results.forEach(([expression, result]) => {
-            test.only(`${expression} ${result}`, (done) => {
-                expect(execute(expression)).toMatchObject({
+            test(`${expression.join(' ')} ${result}`, (done) => {
+                expect(execute(expression.join('\n'))).toMatchObject({
                     destH: result >> 8 & 0xFF,
                     destL: result & 0xFF,
                 });
@@ -92,7 +168,19 @@ describe('Generates code', () => {
         });
     });
 
-    const scenarios = [
+    intScenarios.forEach(([opcode, generator, fn]) => {
+        let results = generator(opcode, 'dest', fn);
+        results.forEach(([expression, result]) => {
+            test(`${expression.join(' ')} ${result}`, (done) => {
+                expect(execute(expression.join('\n'))).toMatchObject({
+                    dest: result & 0xFF,
+                });
+                done();
+            });
+        });
+    });
+
+    const byteScenarios = [
         ['BOOL', unary(word), (a) => (a ? 1 : 0)],
         ['NOT', unary(word), (a) => (a ? 0 : 1)],
         // ['LT', genBinary, (a, b) => ((castw(a) < castw(b)) ? 1 : 0)],
@@ -103,11 +191,11 @@ describe('Generates code', () => {
         // ['GT', genBinary, (a, b) => ((castw(a) > castw(b)) ? 1 : 0)],
     ];
 
-    scenarios.forEach(([opcode, generator, fn]) => {
+    byteScenarios.forEach(([opcode, generator, fn]) => {
         let results = generator(opcode, 'dest', fn);
         results.forEach(([expression, result]) => {
-            test.only(`${expression} ${result}`, (done) => {
-                expect(execute(expression)).toMatchObject({
+            test(`${expression.join(' ')} ${result}`, (done) => {
+                expect(execute(expression.join('\n'))).toMatchObject({
                     dest: result,
                 });
                 done();
