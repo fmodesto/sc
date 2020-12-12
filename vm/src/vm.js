@@ -9,9 +9,10 @@ import generate from './codegen.js';
 
 
 const { argv } = yargs(process.argv.slice(2))
-    .usage('$0 [-o] filename')
-    .boolean(['o'])
+    .usage('$0 [-o] [-d] filename')
+    .boolean(['o', 'd'])
     .describe('o', 'do optimizations')
+    .describe('d', 'debug comments')
     .demand(1);
 
 
@@ -22,7 +23,7 @@ const compile = (text, options) => {
     }
     let instructions = [
         ...memory(program),
-        ...generate(program),
+        ...generate(program, options.d),
     ];
     console.log(instructions.join('\n'));
 };

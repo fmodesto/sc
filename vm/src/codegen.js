@@ -49,6 +49,9 @@ const generate = function (instructions, format = false) {
     let formatInstruction = (first, op, params) => (format ? `${(first || '').padEnd(30)}; ${ins(op, params)}` : first);
     return instructions.map(([op, ...params]) => {
         let [op1, ...ops] = generateInstruction(op, params);
+        if (!op1) {
+            return [];
+        }
         return [
             formatInstruction(op1, op, params),
             ...ops,

@@ -26,16 +26,6 @@ function word() {
     return [0x0000, 0x00FF, 0x55AA, 0x8000, 0xAA55, 0xFF00, 0xFFFF];
 }
 
-function dense() {
-    let data = [];
-    for (let i = 0; i < 256; i += 51) {
-        for (let j = 0; j < 256; j += 51) {
-            data.push(i << 8 | j);
-        }
-    }
-    return data;
-}
-
 function ones() {
     return word().map((e) => (e ? e : 1));
 }
@@ -288,4 +278,3 @@ describe('Generates 16-bit boolean operations', () => {
         });
     });
 });
-//183 208 148 == 540
