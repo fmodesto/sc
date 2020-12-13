@@ -23,11 +23,13 @@ function byte() {
 }
 
 function word() {
+    // return byte().map((h) => byte().map((l) => h << 8 | l)).flat();
     return [0x0000, 0x00FF, 0x55AA, 0x8000, 0xAA55, 0xFF00, 0xFFFF];
 }
 
 function ones() {
-    return word().map((e) => (e ? e : 1));
+    // return word().map((e) => (e ? e : 1));
+    return [0x0001, 0x00FF, 0x55AA, 0x8001, 0xAA55, 0xFF00, 0xFFFF];
 }
 
 function nibble() {
@@ -199,8 +201,8 @@ const intScenarios = [
     ['ADD', binary(word, word), (a, b) => (a + b) & 0xFFFF],
     ['SUB', binary(word, word), (a, b) => (a - b) & 0xFFFF],
     ['MUL', binary(word, word), (a, b) => (castw(a) * castw(b)) & 0xFFFF],
-    ['DIV', binary(word, ones), (a, b) => (castw(a) / castw(b)) & 0xFFFF],
-    ['MOD', binary(word, ones), (a, b) => (castw(a) % castw(b)) & 0xFFFF],
+    ['DIV', binary(ones, ones), (a, b) => (castw(a) / castw(b)) & 0xFFFF],
+    ['MOD', binary(ones, ones), (a, b) => (castw(a) % castw(b)) & 0xFFFF],
     ['SHL', shift(word, nibble), (a, b) => (a << (b & 0x0F)) & 0xFFFF],
     ['SHR', shift(word, nibble), (a, b) => (a >>> (b & 0x0F)) & 0xFFFF],
     ['AND', binary(word, word), (a, b) => (a & b) & 0xFFFF],

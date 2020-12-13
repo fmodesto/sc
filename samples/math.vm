@@ -103,7 +103,8 @@
     OR div8_0,div8_r,#$01
     MOV div8_r,div8_0
     .LABEL div8_vm_7
-    GTE div8_0,div8_r,div8_b
+    SUB div8_0,div8_r,div8_b
+    GTE div8_0,div8_0,#$00
     JZ div8_vm_9,div8_0
     SUB div8_0,div8_r,div8_b
     MOV div8_r,div8_0
@@ -147,15 +148,13 @@
     MOV div16_q_H:div16_q_L,#$00:#$00
     MOV div16_r_H:div16_r_L,#$00:#$00
     MOV div16_sign,#$00
-    CAST div16_0:div16_1,#$00
-    LT div16_1,div16_a_H:div16_a_L,div16_0:div16_1
-    JZ div16_vm_1,div16_1
+    LT div16_0,div16_a_H:div16_a_L,#$00:#$00
+    JZ div16_vm_1,div16_0
     NEG div16_0:div16_1,div16_a_H:div16_a_L
     MOV div16_a_H:div16_a_L,div16_0:div16_1
     MOV div16_sign,#$01
     .LABEL div16_vm_1
-    CAST div16_0:div16_1,#$00
-    LT div16_1,div16_b_H:div16_b_L,div16_0:div16_1
+    LT div16_1,div16_b_H:div16_b_L,#$00:#$00
     JZ div16_vm_3,div16_1
     NEG div16_0:div16_1,div16_b_H:div16_b_L
     MOV div16_b_H:div16_b_L,div16_0:div16_1
@@ -169,11 +168,11 @@
     MOV div16_r_H:div16_r_L,div16_0:div16_1
     AND div16_0:div16_1,div16_flag_H:div16_flag_L,div16_a_H:div16_a_L
     JZ div16_vm_7,div16_0:div16_1
-    CAST div16_0:div16_1,#$01
-    OR div16_0:div16_1,div16_r_H:div16_r_L,div16_0:div16_1
+    OR div16_0:div16_1,div16_r_H:div16_r_L,#$00:#$01
     MOV div16_r_H:div16_r_L,div16_0:div16_1
     .LABEL div16_vm_7
-    GTE div16_1,div16_r_H:div16_r_L,div16_b_H:div16_b_L
+    SUB div16_0:div16_1,div16_r_H:div16_r_L,div16_b_H:div16_b_L
+    GTE div16_1,div16_0:div16_1,#$00:#$00
     JZ div16_vm_9,div16_1
     SUB div16_0:div16_1,div16_r_H:div16_r_L,div16_b_H:div16_b_L
     MOV div16_r_H:div16_r_L,div16_0:div16_1
@@ -231,7 +230,8 @@
     OR mod8_0,mod8_r,#$01
     MOV mod8_r,mod8_0
     .LABEL mod8_vm_7
-    GTE mod8_0,mod8_r,mod8_b
+    SUB mod8_0,mod8_r,mod8_b
+    GTE mod8_0,mod8_0,#$00
     JZ mod8_vm_9,mod8_0
     SUB mod8_0,mod8_r,mod8_b
     MOV mod8_r,mod8_0
@@ -275,15 +275,13 @@
     MOV mod16_q_H:mod16_q_L,#$00:#$00
     MOV mod16_r_H:mod16_r_L,#$00:#$00
     MOV mod16_sign,#$00
-    CAST mod16_0:mod16_1,#$00
-    LT mod16_1,mod16_a_H:mod16_a_L,mod16_0:mod16_1
-    JZ mod16_vm_1,mod16_1
+    LT mod16_0,mod16_a_H:mod16_a_L,#$00:#$00
+    JZ mod16_vm_1,mod16_0
     NEG mod16_0:mod16_1,mod16_a_H:mod16_a_L
     MOV mod16_a_H:mod16_a_L,mod16_0:mod16_1
     MOV mod16_sign,#$01
     .LABEL mod16_vm_1
-    CAST mod16_0:mod16_1,#$00
-    LT mod16_1,mod16_b_H:mod16_b_L,mod16_0:mod16_1
+    LT mod16_1,mod16_b_H:mod16_b_L,#$00:#$00
     JZ mod16_vm_3,mod16_1
     NEG mod16_0:mod16_1,mod16_b_H:mod16_b_L
     MOV mod16_b_H:mod16_b_L,mod16_0:mod16_1
@@ -295,11 +293,11 @@
     MOV mod16_r_H:mod16_r_L,mod16_0:mod16_1
     AND mod16_0:mod16_1,mod16_flag_H:mod16_flag_L,mod16_a_H:mod16_a_L
     JZ mod16_vm_7,mod16_0:mod16_1
-    CAST mod16_0:mod16_1,#$01
-    OR mod16_0:mod16_1,mod16_r_H:mod16_r_L,mod16_0:mod16_1
+    OR mod16_0:mod16_1,mod16_r_H:mod16_r_L,#$00:#$01
     MOV mod16_r_H:mod16_r_L,mod16_0:mod16_1
     .LABEL mod16_vm_7
-    GTE mod16_1,mod16_r_H:mod16_r_L,mod16_b_H:mod16_b_L
+    SUB mod16_0:mod16_1,mod16_r_H:mod16_r_L,mod16_b_H:mod16_b_L
+    GTE mod16_1,mod16_0:mod16_1,#$00:#$00
     JZ mod16_vm_9,mod16_1
     SUB mod16_0:mod16_1,mod16_r_H:mod16_r_L,mod16_b_H:mod16_b_L
     MOV mod16_r_H:mod16_r_L,mod16_0:mod16_1

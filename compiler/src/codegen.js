@@ -47,20 +47,23 @@ const boolInstruction = function (dest, { address, type }) {
         return [`BOOL ${dest},${address}`];
     }
 };
+const castLiteral = function (type, src) {
+    let value = literalValue(src);
+    if (type === 'bool') {
+        return value ? '#1' : '#0';
+    } else if (type === 'char') {
+        return `#${hex(value)}`;
+    } else if (type === 'int') {
+        return `#${hex(value >> 8)}:#${hex(value)}`;
+    } else {
+        throw new Error(`'Not implemented cast to '${type}'`);
+    }
+};
 const castInstruction = function (dest, destType, src, srcType) {
     if (destType === srcType) {
         return moveInstruction(dest, src);
     } else if (isLiteral(src)) {
-        let value = literalValue(src);
-        if (destType === 'bool') {
-            return moveInstruction(dest, value ? '#1' : '#0');
-        } else if (destType === 'char') {
-            return moveInstruction(dest, `#${hex(value)}`);
-        } else if (destType === 'int') {
-            return moveInstruction(dest, `#${hex(value >> 8)}:#${hex(value)}`);
-        } else {
-            throw new Error(`'Not implemented cast from '${srcType}' to '${destType}'`);
-        }
+        return moveInstruction(dest, castLiteral(destType, src));
     } else if (destType === 'int' && srcType === 'char') {
         return [`CAST ${dest},${src}`];
     } else if (destType === 'bool') {
@@ -260,6 +263,12 @@ const createUnary = function (op, type, register, exp) {
     };
 };
 
+const assertEmpty = function (src) {
+    if (src.instructions.length) {
+        throw new Error(`Literal ${JSON.stringify(src)}`);
+    }
+};
+
 const unary = {
     '-'(register, src) {
         return createUnary('NEG', src.type, register, src);
@@ -273,6 +282,13 @@ const unary = {
     'bool'(register, src) {
         if (src.type === 'bool') {
             return src;
+        } else if (isLiteral(src.address)) {
+            assertEmpty(src);
+            return {
+                ...src,
+                address: castLiteral('bool', src.address),
+                type: 'bool',
+            };
         } else {
             return createUnary('BOOL', 'bool', register, src);
         }
@@ -285,6 +301,13 @@ const unary = {
                 ...src,
                 type: 'char',
             };
+        } else if (isLiteral(src.address)) {
+            assertEmpty(src);
+            return {
+                ...src,
+                address: castLiteral('char', src.address),
+                type: 'char',
+            };
         } else {
             return createUnary('MOV', 'char', register, src);
         }
@@ -292,6 +315,13 @@ const unary = {
     'int'(register, src) {
         if (src.type === 'int') {
             return src;
+        } else if (isLiteral(src.address)) {
+            assertEmpty(src);
+            return {
+                ...src,
+                address: castLiteral('int', src.address),
+                type: 'int',
+            };
         } else {
             return createUnary('CAST', 'int', register, src);
         }

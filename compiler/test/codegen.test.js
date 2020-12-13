@@ -7,10 +7,12 @@ import createRegister from '../src/register.js';
 
 const generateExp = (exp, context, register) => parse(exp, 'Exp').generate(context, register).instructions;
 const optimizeExp = (exp, context, register) => parse(exp, 'Exp').optimize().generate(context, register).instructions;
-const generate = (code) => {
+const generate = (code, optimize = false) => {
     let program = parse(code);
     program.analyze();
-    program = program.optimize();
+    if (optimize) {
+        program = program.optimize();
+    }
     return program.generate();
 };
 
@@ -710,11 +712,9 @@ describe('Generate code', () => {
             '.BYTE test_a_L 0',
             '.TMP',
             '.BYTE test_0 0',
-            '.BYTE test_1 0',
             '.CODE',
-            'CAST test_0:test_1,#$00',
-            'LT test_1,test_a_H:test_a_L,test_0:test_1',
-            'MOV test_return,test_1',
+            'LT test_0,test_a_H:test_a_L,#$00:#$00',
+            'MOV test_return,test_0',
             'JMP test_end',
             '.LABEL test_end',
             '.RETURN test',
@@ -722,17 +722,17 @@ describe('Generate code', () => {
         done();
     });
 
-    test('Cast literals', (done) => {
+    test('Auto-Cast literals', (done) => {
         let code = `
             int foo(char a, int b, bool c) {
                 return -40;
             }
             void test() {
-                foo(-3, -7, -2);
-                foo((char) 3000, 7, 0);
+                foo(-3, -7, -2u);
+                foo((char) -3000, 7, 0);
             }
         `;
-        expect(generate(code)).toEqual([
+        expect(generate(code, true)).toEqual([
             '.FUNCTION foo',
             '.BYTE foo_return_H 0',
             '.BYTE foo_return_L 0',
@@ -752,9 +752,44 @@ describe('Generate code', () => {
             'MOV foo_b_H:foo_b_L,#$FF:#$F9',
             'MOV foo_c,#1',
             'CALL foo',
-            'MOV foo_a,#$B8',
+            'MOV foo_a,#$48',
             'MOV foo_b_H:foo_b_L,#$00:#$07',
             'MOV foo_c,#0',
+            'CALL foo',
+            '.LABEL test_end',
+            '.RETURN test',
+        ]);
+        done();
+    });
+
+    test('Cast literals', (done) => {
+        let code = `
+            int foo(char a, int b, bool c) {
+                return (int) 40;
+            }
+            void test() {
+                foo((char) 4000, (int) 7, (bool) 2000);
+            }
+        `;
+        expect(generate(code, false)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_return_H 0',
+            '.BYTE foo_return_L 0',
+            '.BYTE foo_a 0',
+            '.BYTE foo_b_H 0',
+            '.BYTE foo_b_L 0',
+            '.BYTE foo_c 0',
+            '.CODE',
+            'MOV foo_return_H:foo_return_L,#$00:#$28',
+            'JMP foo_end',
+            '.LABEL foo_end',
+            '.RETURN foo',
+
+            '.FUNCTION test',
+            '.CODE',
+            'MOV foo_a,#$A0',
+            'MOV foo_b_H:foo_b_L,#$00:#$07',
+            'MOV foo_c,#1',
             'CALL foo',
             '.LABEL test_end',
             '.RETURN test',

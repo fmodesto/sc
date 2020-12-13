@@ -50,7 +50,7 @@ char div8(char a, char b) {
         if (flag & a) {
             r |= 1;
         }
-        if (r >= b) {
+        if (r - b >= 0) {
             r -= b;
             q |= flag;
         }
@@ -79,7 +79,7 @@ int div16(int a, int b) {
         if (flag & a) {
             r |= 1;
         }
-        if (r >= b) {
+        if (r - b >= 0) {
             r -= b;
             q |= flag;
         }
@@ -107,7 +107,7 @@ char mod8(char a, char b) {
         if (flag & a) {
             r |= 1;
         }
-        if (r >= b) {
+        if (r - b >= 0) {
             r -= b;
             q |= flag;
         }
@@ -135,7 +135,7 @@ int mod16(int a, int b) {
         if (flag & a) {
             r |= 1;
         }
-        if (r >= b) {
+        if (r - b >= 0) {
             r -= b;
             q |= flag;
         }
