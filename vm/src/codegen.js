@@ -22,6 +22,9 @@ const methods = {
     '.BYTE'() {
         return [];
     },
+    '.REGISTER'() {
+        return [];
+    },
     '.CODE'() {
         return [];
     },
@@ -29,6 +32,9 @@ const methods = {
         return [];
     },
     '.TMP'() {
+        return [];
+    },
+    '.DEP'() {
         return [];
     },
 };

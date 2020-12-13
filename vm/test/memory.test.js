@@ -1,7 +1,7 @@
 import parseVm from '../src/parser.js';
 import memoryVm from '../src/memory.js';
 
-const memory = (src) => memoryVm(parseVm(src));
+const memory = (src) => memoryVm(parseVm(src)).memory;
 
 describe('Handles memory', () => {
 

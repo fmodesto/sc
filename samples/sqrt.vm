@@ -1,0 +1,72 @@
+.REGISTER s_H 4094
+.REGISTER s_L 4095
+.FUNCTION sqrt
+.BYTE sqrt_return_H 0
+.BYTE sqrt_return_L 0
+.BYTE sqrt_x_H 0
+.BYTE sqrt_x_L 0
+.LOCALS
+.BYTE sqrt_left_H 0
+.BYTE sqrt_left_L 0
+.BYTE sqrt_right_H 0
+.BYTE sqrt_right_L 0
+.BYTE sqrt_mid_H 0
+.BYTE sqrt_mid_L 0
+.BYTE sqrt_res_H 0
+.BYTE sqrt_res_L 0
+.TMP
+.BYTE sqrt_0 0
+.BYTE sqrt_1 0
+.CODE
+LT sqrt_0,sqrt_x_H:sqrt_x_L,#$00:#$02
+JZ sqrt_vm_1,sqrt_0
+MOV sqrt_return_H:sqrt_return_L,sqrt_x_H:sqrt_x_L
+JMP sqrt_end
+.LABEL sqrt_vm_1
+MOV sqrt_left_H:sqrt_left_L,#$00:#$00
+MOV sqrt_right_H:sqrt_right_L,#$00:#$B5
+MOV sqrt_res_H:sqrt_res_L,#$00:#$00
+.LABEL sqrt_vm_2
+LTE sqrt_0,sqrt_left_H:sqrt_left_L,sqrt_right_H:sqrt_right_L
+JZ sqrt_vm_3,sqrt_0
+ADD sqrt_0:sqrt_1,sqrt_left_H:sqrt_left_L,sqrt_right_H:sqrt_right_L
+SHR sqrt_0:sqrt_1,sqrt_0:sqrt_1,#$01
+MOV sqrt_mid_H:sqrt_mid_L,sqrt_0:sqrt_1
+MUL sqrt_0:sqrt_1,sqrt_mid_H:sqrt_mid_L,sqrt_mid_H:sqrt_mid_L
+LTE sqrt_1,sqrt_0:sqrt_1,sqrt_x_H:sqrt_x_L
+JZ sqrt_vm_4,sqrt_1
+ADD sqrt_0:sqrt_1,sqrt_mid_H:sqrt_mid_L,#$00:#$01
+MOV sqrt_left_H:sqrt_left_L,sqrt_0:sqrt_1
+MOV sqrt_res_H:sqrt_res_L,sqrt_mid_H:sqrt_mid_L
+JMP sqrt_vm_5
+.LABEL sqrt_vm_4
+SUB sqrt_0:sqrt_1,sqrt_mid_H:sqrt_mid_L,#$00:#$01
+MOV sqrt_right_H:sqrt_right_L,sqrt_0:sqrt_1
+.LABEL sqrt_vm_5
+JMP sqrt_vm_2
+.LABEL sqrt_vm_3
+MOV sqrt_return_H:sqrt_return_L,sqrt_res_H:sqrt_res_L
+JMP sqrt_end
+.LABEL sqrt_end
+.RETURN sqrt
+.FUNCTION main
+.LOCALS
+.BYTE main_i_H 0
+.BYTE main_i_L 0
+.TMP
+.BYTE main_0 0
+.BYTE main_1 0
+.CODE
+MOV main_i_H:main_i_L,#$00:#$01
+.LABEL main_vm_0
+JZ main_vm_1,main_i_H:main_i_L
+MOV sqrt_x_H:sqrt_x_L,main_i_H:main_i_L
+CALL sqrt
+MOV main_0:main_1,sqrt_return_H:sqrt_return_L
+MOV s_H:s_L,main_0:main_1
+ADD main_0:main_1,main_i_H:main_i_L,#$00:#$01
+MOV main_i_H:main_i_L,main_0:main_1
+JMP main_vm_0
+.LABEL main_vm_1
+.LABEL main_end
+.RETURN main

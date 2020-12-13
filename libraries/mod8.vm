@@ -1,0 +1,58 @@
+.FUNCTION mod8
+.BYTE mod8_return 0
+.BYTE mod8_a 0
+.BYTE mod8_b 0
+.LOCALS
+.BYTE mod8_q 0
+.BYTE mod8_r 0
+.BYTE mod8_flag 0
+.BYTE mod8_sign 0
+.TMP
+.BYTE mod8_0 0
+.CODE
+MOV mod8_q,#$00
+MOV mod8_r,#$00
+MOV mod8_sign,#$00
+LT mod8_0,mod8_a,#$00
+JZ mod8_vm_1,mod8_0
+NEG mod8_0,mod8_a
+MOV mod8_a,mod8_0
+MOV mod8_sign,#$01
+.LABEL mod8_vm_1
+LT mod8_0,mod8_b,#$00
+JZ mod8_vm_3,mod8_0
+NEG mod8_0,mod8_b
+MOV mod8_b,mod8_0
+.LABEL mod8_vm_3
+MOV mod8_flag,#$80
+.LABEL mod8_vm_4
+JZ mod8_vm_5,mod8_flag
+SHL mod8_0,mod8_r,#$01
+MOV mod8_r,mod8_0
+AND mod8_0,mod8_flag,mod8_a
+JZ mod8_vm_7,mod8_0
+OR mod8_0,mod8_r,#$01
+MOV mod8_r,mod8_0
+.LABEL mod8_vm_7
+SUB mod8_0,mod8_r,mod8_b
+GTE mod8_0,mod8_0,#$00
+JZ mod8_vm_9,mod8_0
+SUB mod8_0,mod8_r,mod8_b
+MOV mod8_r,mod8_0
+OR mod8_0,mod8_q,mod8_flag
+MOV mod8_q,mod8_0
+.LABEL mod8_vm_9
+SHR mod8_0,mod8_flag,#$01
+MOV mod8_flag,mod8_0
+JMP mod8_vm_4
+.LABEL mod8_vm_5
+JZ mod8_vm_10,mod8_sign
+NEG mod8_0,mod8_r
+JMP mod8_vm_11
+.LABEL mod8_vm_10
+MOV mod8_0,mod8_r
+.LABEL mod8_vm_11
+MOV mod8_return,mod8_0
+JMP mod8_end
+.LABEL mod8_end
+.RETURN mod8

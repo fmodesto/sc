@@ -3,6 +3,7 @@ import fs from 'fs';
 import {
     Program,
     GlobalDeclaration,
+    RegisterDeclaration,
     MethodDeclaration,
     Var,
     AssignmentStatement,
@@ -40,11 +41,19 @@ semantics.addOperation('ast', {
             source: this.source.getLineAndColumnMessage(),
         });
     },
-    Global(type, id, _1, exp, _2) {
+    Global_mem(type, id, _1, exp, _2) {
         return GlobalDeclaration.create({
             type: type.sourceString,
             name: id.sourceString,
             expression: exp.ast(),
+            source: this.source.getLineAndColumnMessage(),
+        });
+    },
+    Global_reg(_1, _2, address, _3, type, id, _4) {
+        return RegisterDeclaration.create({
+            type: type.sourceString,
+            address: +address.sourceString,
+            name: id.sourceString,
             source: this.source.getLineAndColumnMessage(),
         });
     },

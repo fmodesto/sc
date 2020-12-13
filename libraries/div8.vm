@@ -1,0 +1,60 @@
+.FUNCTION div8
+.BYTE div8_return 0
+.BYTE div8_a 0
+.BYTE div8_b 0
+.LOCALS
+.BYTE div8_q 0
+.BYTE div8_r 0
+.BYTE div8_flag 0
+.BYTE div8_sign 0
+.TMP
+.BYTE div8_0 0
+.CODE
+MOV div8_q,#$00
+MOV div8_r,#$00
+MOV div8_sign,#$00
+LT div8_0,div8_a,#$00
+JZ div8_vm_1,div8_0
+NEG div8_0,div8_a
+MOV div8_a,div8_0
+MOV div8_sign,#$01
+.LABEL div8_vm_1
+LT div8_0,div8_b,#$00
+JZ div8_vm_3,div8_0
+NEG div8_0,div8_b
+MOV div8_b,div8_0
+XOR div8_0,div8_sign,#$01
+MOV div8_sign,div8_0
+.LABEL div8_vm_3
+MOV div8_flag,#$80
+.LABEL div8_vm_4
+JZ div8_vm_5,div8_flag
+SHL div8_0,div8_r,#$01
+MOV div8_r,div8_0
+AND div8_0,div8_flag,div8_a
+JZ div8_vm_7,div8_0
+OR div8_0,div8_r,#$01
+MOV div8_r,div8_0
+.LABEL div8_vm_7
+SUB div8_0,div8_r,div8_b
+GTE div8_0,div8_0,#$00
+JZ div8_vm_9,div8_0
+SUB div8_0,div8_r,div8_b
+MOV div8_r,div8_0
+OR div8_0,div8_q,div8_flag
+MOV div8_q,div8_0
+.LABEL div8_vm_9
+SHR div8_0,div8_flag,#$01
+MOV div8_flag,div8_0
+JMP div8_vm_4
+.LABEL div8_vm_5
+JZ div8_vm_10,div8_sign
+NEG div8_0,div8_q
+JMP div8_vm_11
+.LABEL div8_vm_10
+MOV div8_0,div8_q
+.LABEL div8_vm_11
+MOV div8_return,div8_0
+JMP div8_end
+.LABEL div8_end
+.RETURN div8

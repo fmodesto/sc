@@ -5,6 +5,7 @@ const memory = function (instructions) {
         calls: [],
     };
     let scopes = [current];
+    let registers = [];
     instructions.forEach((instruction) => {
         if (instruction[0] === '.FUNCTION') {
             current = {
@@ -18,7 +19,12 @@ const memory = function (instructions) {
                 name: instruction[1],
                 value: instruction[2],
             });
-        } else if (instruction[0] === 'CALL') {
+        } else if (instruction[0] === '.REGISTER') {
+            registers.push({
+                name: instruction[1],
+                address: +instruction[2],
+            });
+        } else if (instruction[0] === 'CALL' || instruction[0] === '.DEP') {
             current.calls.push(instruction[1]);
         }
     });
@@ -44,7 +50,17 @@ const memory = function (instructions) {
             mem[index] = [...(mem[index] || []), e.bytes[i]];
         }
     });
-    return mem.map((e) => [...e.map(({name}) => `${name}:`), `.byte ${e[0].value}`]).flat();
+    return {
+        registers: registers.map((e) => [
+            `.org $${e.address.toString(16).toUpperCase().padStart(3, '0')}`,
+            `${e.name}:`,
+            '.byte 0',
+        ]).flat(),
+        memory: mem.map((e) => [
+            ...e.map(({name}) => `${name}:`),
+            `.byte ${e[0].value}`,
+        ]).flat(),
+    };
 };
 
 export default memory;

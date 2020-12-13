@@ -1,0 +1,29 @@
+.FUNCTION mul8
+.BYTE mul8_return 0
+.BYTE mul8_a 0
+.BYTE mul8_b 0
+.LOCALS
+.BYTE mul8_res 0
+.BYTE mul8_flag 0
+.TMP
+.BYTE mul8_0 0
+.CODE
+MOV mul8_flag,#$01
+MOV mul8_res,#$00
+.LABEL mul8_vm_0
+JZ mul8_vm_1,mul8_flag
+AND mul8_0,mul8_flag,mul8_b
+JZ mul8_vm_3,mul8_0
+ADD mul8_0,mul8_res,mul8_a
+MOV mul8_res,mul8_0
+.LABEL mul8_vm_3
+SHL mul8_0,mul8_a,#$01
+MOV mul8_a,mul8_0
+SHL mul8_0,mul8_flag,#$01
+MOV mul8_flag,mul8_0
+JMP mul8_vm_0
+.LABEL mul8_vm_1
+MOV mul8_return,mul8_res
+JMP mul8_end
+.LABEL mul8_end
+.RETURN mul8

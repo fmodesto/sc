@@ -15,6 +15,7 @@ import {
     MethodCall,
     Literal,
     Variable,
+    RegisterDeclaration,
 } from './ast.js';
 import createContext from './context.js';
 import createRegister from './register.js';
@@ -116,6 +117,21 @@ GlobalDeclaration.generate = function () {
         return [
             `.BYTE ${this.name}_H ${hex(value >> 8)}`,
             `.BYTE ${this.name}_L ${hex(value)}`,
+        ];
+    } else {
+        throw new Error(`Unknown type ${this.type}`);
+    }
+};
+
+RegisterDeclaration.generate = function () {
+    if (this.type === 'bool') {
+        return [`.REGISTER ${this.name} ${this.address}`];
+    } else if (this.type === 'char') {
+        return [`.REGISTER ${this.name} ${this.address}`];
+    } else if (this.type === 'int') {
+        return [
+            `.REGISTER ${this.name}_H ${this.address}`,
+            `.REGISTER ${this.name}_L ${this.address + 1}`,
         ];
     } else {
         throw new Error(`Unknown type ${this.type}`);

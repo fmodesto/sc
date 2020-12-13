@@ -1,0 +1,67 @@
+.FUNCTION div16
+.BYTE div16_return_H 0
+.BYTE div16_return_L 0
+.BYTE div16_a_H 0
+.BYTE div16_a_L 0
+.BYTE div16_b_H 0
+.BYTE div16_b_L 0
+.LOCALS
+.BYTE div16_q_H 0
+.BYTE div16_q_L 0
+.BYTE div16_r_H 0
+.BYTE div16_r_L 0
+.BYTE div16_flag_H 0
+.BYTE div16_flag_L 0
+.BYTE div16_sign 0
+.TMP
+.BYTE div16_0 0
+.BYTE div16_1 0
+.CODE
+MOV div16_q_H:div16_q_L,#$00:#$00
+MOV div16_r_H:div16_r_L,#$00:#$00
+MOV div16_sign,#$00
+LT div16_0,div16_a_H:div16_a_L,#$00:#$00
+JZ div16_vm_1,div16_0
+NEG div16_0:div16_1,div16_a_H:div16_a_L
+MOV div16_a_H:div16_a_L,div16_0:div16_1
+MOV div16_sign,#$01
+.LABEL div16_vm_1
+LT div16_1,div16_b_H:div16_b_L,#$00:#$00
+JZ div16_vm_3,div16_1
+NEG div16_0:div16_1,div16_b_H:div16_b_L
+MOV div16_b_H:div16_b_L,div16_0:div16_1
+XOR div16_1,div16_sign,#$01
+MOV div16_sign,div16_1
+.LABEL div16_vm_3
+MOV div16_flag_H:div16_flag_L,#$80:#$00
+.LABEL div16_vm_4
+JZ div16_vm_5,div16_flag_H:div16_flag_L
+SHL div16_0:div16_1,div16_r_H:div16_r_L,#$01
+MOV div16_r_H:div16_r_L,div16_0:div16_1
+AND div16_0:div16_1,div16_flag_H:div16_flag_L,div16_a_H:div16_a_L
+JZ div16_vm_7,div16_0:div16_1
+OR div16_0:div16_1,div16_r_H:div16_r_L,#$00:#$01
+MOV div16_r_H:div16_r_L,div16_0:div16_1
+.LABEL div16_vm_7
+SUB div16_0:div16_1,div16_r_H:div16_r_L,div16_b_H:div16_b_L
+GTE div16_1,div16_0:div16_1,#$00:#$00
+JZ div16_vm_9,div16_1
+SUB div16_0:div16_1,div16_r_H:div16_r_L,div16_b_H:div16_b_L
+MOV div16_r_H:div16_r_L,div16_0:div16_1
+OR div16_0:div16_1,div16_q_H:div16_q_L,div16_flag_H:div16_flag_L
+MOV div16_q_H:div16_q_L,div16_0:div16_1
+.LABEL div16_vm_9
+SHR div16_0:div16_1,div16_flag_H:div16_flag_L,#$01
+MOV div16_flag_H:div16_flag_L,div16_0:div16_1
+JMP div16_vm_4
+.LABEL div16_vm_5
+JZ div16_vm_10,div16_sign
+NEG div16_0:div16_1,div16_q_H:div16_q_L
+JMP div16_vm_11
+.LABEL div16_vm_10
+MOV div16_0:div16_1,div16_q_H:div16_q_L
+.LABEL div16_vm_11
+MOV div16_return_H:div16_return_L,div16_0:div16_1
+JMP div16_end
+.LABEL div16_end
+.RETURN div16

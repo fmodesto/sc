@@ -9,7 +9,8 @@
     "test": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' jest",
     "test:coverage": "NODE_OPTIONS='--experimental-vm-modules --no-warnings' jest --collect-coverage",
     "lint": "eslint compiler --ext .js",
-    "lint:fix": "npm run lint -- --fix"
+    "lint:fix": "npm run lint -- --fix",
+    "libraries": "for i in mul8 mul16 div8 div16 mod8 mod16; do sc -o libraries/$i.c > libraries/$i.vm ; done"
   },
   "type": "module",
   "author": "Francisco Modesto",

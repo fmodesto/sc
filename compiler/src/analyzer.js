@@ -1,6 +1,7 @@
 import {
     Program,
     GlobalDeclaration,
+    RegisterDeclaration,
     MethodDeclaration,
     Var,
     Statement,
@@ -86,6 +87,13 @@ GlobalDeclaration.analyze = function (context) {
     }
     if (!compatibleType(this.type, expression.type)) {
         throw CompileError.create(this.source, `Incompatible types: can not convert '${expression.type}' to '${this.type}'`);
+    }
+    context.addVar(this.name, this.type);
+};
+
+RegisterDeclaration.analyze = function (context) {
+    if (context.containsVar(this.name)) {
+        throw CompileError.create(this.source, `Variable '${this.name}' already defined`);
     }
     context.addVar(this.name, this.type);
 };

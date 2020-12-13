@@ -1,7 +1,8 @@
 SimpleC {
    Program     =  directives* Global* Method+
 
-   Global      =  type id "=" Exp ";"
+   Global      =  type id "=" Exp ";"                -- mem
+               |  reg "(" hexlit ")" type id ";"     -- reg
 
    Method      =  methodType id "(" ListOf<Param, ","> ")" "{" Vars* Statements "}"
    Param       =  type id
@@ -63,12 +64,13 @@ SimpleC {
    void        =  "void" ~idrest
    true        =  "true" ~idrest
    false       =  "false" ~idrest
+   reg         =  "reg" ~idrest
    if          =  "if" ~idrest
    else        =  "else" ~idrest
    while       =  "while" ~idrest
    return      =  "return" ~idrest
 
-   keyword     =  char | int | bool | true | false | if | else | while | return | void
+   keyword     =  char | int | bool | true | false | reg | if | else | while | return | void
    id          =  ~keyword letter idrest*
    idrest      =  "_" | alnum
    intlit      =  ~"0x" digit+ "u"?
