@@ -58,3 +58,22 @@ for (let i = 0; i < ins.length; i++) {
         ins[i][0] = 'jmp';
     }
 }
+/*
+    public static void main(String[] args) {
+        long s = System.currentTimeMillis();
+        for (long i = 751; i < Long.MAX_VALUE; i+= 751) {
+            long t = i - 19;
+            if (((t+50) % 431) != 0) continue;
+            if (((t+60) % 41) != 0) continue;
+            if (((t+13) % 37) != 0) continue;
+            if (((t+21) % 29) != 0) continue;
+            if (((t+42) % 23) != 0) continue;
+            if ((t % 19) != 0) continue;
+            if (((t+67) % 17) != 0) continue;
+            if (((t+32) % 13) != 0) continue;
+            System.out.println(System.currentTimeMillis() - s);
+            System.out.println(t);
+            return;
+        }
+*/
+ß
