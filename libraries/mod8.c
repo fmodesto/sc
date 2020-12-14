@@ -21,7 +21,7 @@ char mod8(char a, char b) {
         if (flag & a) {
             r |= 1;
         }
-        if (r - b >= 0) {
+        if (r >= b) {
             r -= b;
             q |= flag;
         }

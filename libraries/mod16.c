@@ -21,7 +21,7 @@ int mod16(int a, int b) {
         if (flag & a) {
             r |= 1;
         }
-        if (r - b >= 0) {
+        if (r >= b) {
             r -= b;
             q |= flag;
         }

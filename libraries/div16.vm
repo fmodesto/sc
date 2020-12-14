@@ -43,8 +43,7 @@ JZ div16_vm_7,div16_0:div16_1
 OR div16_0:div16_1,div16_r_H:div16_r_L,#$00:#$01
 MOV div16_r_H:div16_r_L,div16_0:div16_1
 .LABEL div16_vm_7
-SUB div16_0:div16_1,div16_r_H:div16_r_L,div16_b_H:div16_b_L
-GTE div16_1,div16_0:div16_1,#$00:#$00
+GTE div16_1,div16_r_H:div16_r_L,div16_b_H:div16_b_L
 JZ div16_vm_9,div16_1
 SUB div16_0:div16_1,div16_r_H:div16_r_L,div16_b_H:div16_b_L
 MOV div16_r_H:div16_r_L,div16_0:div16_1

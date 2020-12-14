@@ -1,5 +1,5 @@
-.REGISTER s_H 4094
-.REGISTER s_L 4095
+.REGISTER screen_H 4094
+.REGISTER screen_L 4095
 .FUNCTION sqrt
 .BYTE sqrt_return_H 0
 .BYTE sqrt_return_L 0
@@ -53,6 +53,8 @@ JMP sqrt_end
 .LOCALS
 .BYTE main_i_H 0
 .BYTE main_i_L 0
+.BYTE main_j_H 0
+.BYTE main_j_L 0
 .TMP
 .BYTE main_0 0
 .BYTE main_1 0
@@ -63,7 +65,8 @@ JZ main_vm_1,main_i_H:main_i_L
 MOV sqrt_x_H:sqrt_x_L,main_i_H:main_i_L
 CALL sqrt
 MOV main_0:main_1,sqrt_return_H:sqrt_return_L
-MOV s_H:s_L,main_0:main_1
+MOV main_j_H:main_j_L,main_0:main_1
+MOV screen_H:screen_L,main_j_H:main_j_L
 ADD main_0:main_1,main_i_H:main_i_L,#$00:#$01
 MOV main_i_H:main_i_L,main_0:main_1
 JMP main_vm_0

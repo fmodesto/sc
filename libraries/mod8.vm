@@ -34,8 +34,7 @@ JZ mod8_vm_7,mod8_0
 OR mod8_0,mod8_r,#$01
 MOV mod8_r,mod8_0
 .LABEL mod8_vm_7
-SUB mod8_0,mod8_r,mod8_b
-GTE mod8_0,mod8_0,#$00
+GTE mod8_0,mod8_r,mod8_b
 JZ mod8_vm_9,mod8_0
 SUB mod8_0,mod8_r,mod8_b
 MOV mod8_r,mod8_0

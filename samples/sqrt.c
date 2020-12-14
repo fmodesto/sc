@@ -1,7 +1,7 @@
 #define reg(x)
 
 reg(0xFFE)
-int s;
+int screen;
 
 int sqrt(int x) {
     int left, right, mid, res;
@@ -26,10 +26,14 @@ int sqrt(int x) {
 }
 
 void main() {
-    int i;
+    int i, j;
     i = 1;
     while (i) {
-        s = sqrt(i);
+        // screen = i;
+        j = sqrt(i);
+        screen = j;
+        // screen = i - j * j;
+        // screen = 0;
         i += 1;
     }
 }

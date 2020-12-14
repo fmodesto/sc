@@ -34,6 +34,16 @@ describe('Analyzer detect error programs', () => {
         expect(check(src)).toThrow('Variable \'a\' already defined');
         done();
     });
+    test('Duplicate register', (done) => {
+        let src = `
+            char a = 5;
+            reg(7) char a;
+
+            void foo() {}
+        `;
+        expect(check(src)).toThrow('Variable \'a\' already defined');
+        done();
+    });
     test('Duplicate method', (done) => {
         let src = `
             char foo() {
@@ -253,6 +263,16 @@ describe('Analyzer detect error programs', () => {
         expect(check(src)).toThrow('Value 32768 exceeds \'int\'');
         done();
     });
+    test('Constant too long', (done) => {
+        let src = `
+            int foo(int a) {
+                a = 0x10000;
+                return 32768;
+            }
+        `;
+        expect(check(src)).toThrow('Value 65536 exceeds \'int\'');
+        done();
+    });
     test('Shift left by int amount', (done) => {
         let src = `
             int foo(int a) {
@@ -293,7 +313,7 @@ describe('Analyzer correct programs', () => {
     });
     test('Handles joined if statements', (done) => {
         let src = `
-            char a = 2;
+            reg(0xFFF) char a;
 
             void foo(char b) {
                 if (!b) {

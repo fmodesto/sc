@@ -289,6 +289,27 @@ describe('Generate code', () => {
         done();
     });
 
+    test('Register', (done) => {
+        let code = `
+            reg(0xFF) char ra;
+            reg(13456) int rb;
+            reg(0xFFF) bool rc;
+            void foo() {
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.REGISTER ra 255',
+            '.REGISTER rb_H 13456',
+            '.REGISTER rb_L 13457',
+            '.REGISTER rc 4095',
+            '.FUNCTION foo',
+            '.CODE',
+            '.LABEL foo_end',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
     test('Return function', (done) => {
         let code = `
             char foo(char a) {

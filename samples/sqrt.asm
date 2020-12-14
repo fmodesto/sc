@@ -1,8 +1,8 @@
 .org $FFE
-s_H:
+screen_H:
 .byte 0
 .org $FFF
-s_L:
+screen_L:
 .byte 0
 .org $000
 jsr main
@@ -63,6 +63,10 @@ sqrt_1:
 main_i_H:
 .byte 0
 main_i_L:
+.byte 0
+main_j_H:
+.byte 0
+main_j_L:
 .byte 0
 mul16:                        ; .FUNCTION mul16
 lda #$01                      ; MOV mul16_flag_H:mul16_flag_L,#$00:#$01
@@ -319,10 +323,14 @@ sta sqrt_x_L
 lda main_i_H
 sta sqrt_x_H
 jsr sqrt                      ; CALL sqrt
-lda sqrt_return_L             ; MOV s_H:s_L,sqrt_return_H:sqrt_return_L
-sta s_L
+lda sqrt_return_L             ; MOV main_j_H:main_j_L,sqrt_return_H:sqrt_return_L
+sta main_j_L
 lda sqrt_return_H
-sta s_H
+sta main_j_H
+lda main_j_L                  ; MOV screen_H:screen_L,main_j_H:main_j_L
+sta screen_L
+lda main_j_H
+sta screen_H
 lda #$01                      ; ADD main_i_H:main_i_L,main_i_H:main_i_L,#$00:#$01
 add main_i_L
 sta main_i_L

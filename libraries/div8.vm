@@ -36,8 +36,7 @@ JZ div8_vm_7,div8_0
 OR div8_0,div8_r,#$01
 MOV div8_r,div8_0
 .LABEL div8_vm_7
-SUB div8_0,div8_r,div8_b
-GTE div8_0,div8_0,#$00
+GTE div8_0,div8_r,div8_b
 JZ div8_vm_9,div8_0
 SUB div8_0,div8_r,div8_b
 MOV div8_r,div8_0

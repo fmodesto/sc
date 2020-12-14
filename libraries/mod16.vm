@@ -41,8 +41,7 @@ JZ mod16_vm_7,mod16_0:mod16_1
 OR mod16_0:mod16_1,mod16_r_H:mod16_r_L,#$00:#$01
 MOV mod16_r_H:mod16_r_L,mod16_0:mod16_1
 .LABEL mod16_vm_7
-SUB mod16_0:mod16_1,mod16_r_H:mod16_r_L,mod16_b_H:mod16_b_L
-GTE mod16_1,mod16_0:mod16_1,#$00:#$00
+GTE mod16_1,mod16_r_H:mod16_r_L,mod16_b_H:mod16_b_L
 JZ mod16_vm_9,mod16_1
 SUB mod16_0:mod16_1,mod16_r_H:mod16_r_L,mod16_b_H:mod16_b_L
 MOV mod16_r_H:mod16_r_L,mod16_0:mod16_1

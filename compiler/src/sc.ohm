@@ -2,7 +2,7 @@ SimpleC {
    Program     =  directives* Global* Method+
 
    Global      =  type id "=" Exp ";"                -- mem
-               |  reg "(" hexlit ")" type id ";"     -- reg
+               |  reg "(" numlit ")" type id ";"     -- reg
 
    Method      =  methodType id "(" ListOf<Param, ","> ")" "{" Vars* Statements "}"
    Param       =  type id
@@ -47,8 +47,7 @@ SimpleC {
                |  VarExp
                |  "(" Exp ")"                 -- parens
 
-   Literal     =  intlit
-               |  hexlit
+   Literal     =  numlit
                |  boollit
    VarExp      =  id
 
@@ -72,7 +71,8 @@ SimpleC {
 
    keyword     =  char | int | bool | true | false | reg | if | else | while | return | void
    id          =  ~keyword letter idrest*
-   idrest      =  "_" | alnum
+   idrest      =  alnum
+   numlit      =  intlit | hexlit
    intlit      =  ~"0x" digit+ "u"?
    hexlit      =  hex "u"?
    hex         =  "0x" hexDigit+
