@@ -16,6 +16,10 @@ const errors = [
 
 const valid = `
     char x = 3;
+    int array[2][3] = {
+        {1, 2, 3},
+        {4, 5, 6}
+    };
     char simple(char a, char b) {
         return a + b << 1;
     }

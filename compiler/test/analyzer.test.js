@@ -31,7 +31,7 @@ describe('Analyzer detect error programs', () => {
 
             void foo() {}
         `;
-        expect(check(src)).toThrow('Variable \'a\' already defined');
+        expect(check(src)).toThrow('Redefinition of \'a\'');
         done();
     });
     test('Duplicate register', (done) => {
@@ -41,7 +41,7 @@ describe('Analyzer detect error programs', () => {
 
             void foo() {}
         `;
-        expect(check(src)).toThrow('Variable \'a\' already defined');
+        expect(check(src)).toThrow('Redefinition of \'a\'');
         done();
     });
     test('Duplicate method', (done) => {
@@ -53,7 +53,17 @@ describe('Analyzer detect error programs', () => {
                 return 0;
             }
         `;
-        expect(check(src)).toThrow('Method \'foo\' already defined');
+        expect(check(src)).toThrow('Redefinition of \'foo\'');
+        done();
+    });
+    test('Redefinition', (done) => {
+        let src = `
+            int foo = 5;
+            char foo(char a) {
+                return 0;
+            }
+        `;
+        expect(check(src)).toThrow('Redefinition of \'foo\'');
         done();
     });
     test('Duplicate parameter', (done) => {
@@ -62,7 +72,7 @@ describe('Analyzer detect error programs', () => {
                 return 0;
             }
         `;
-        expect(check(src)).toThrow('Variable \'a\' already defined');
+        expect(check(src)).toThrow('Redefinition of \'a\'');
         done();
     });
     test('Duplicate local', (done) => {
@@ -72,7 +82,7 @@ describe('Analyzer detect error programs', () => {
                 return 0;
             }
         `;
-        expect(check(src)).toThrow('Variable \'a\' already defined');
+        expect(check(src)).toThrow('Redefinition of \'a\'');
         done();
     });
     test('Assignment unknown variable', (done) => {
@@ -241,7 +251,7 @@ describe('Analyzer detect error programs', () => {
                 bar(true);
             }
         `;
-        expect(check(src)).toThrow('Type missmatch. Can not convert \'bool\' to \'char\'');
+        expect(check(src)).toThrow('Incompatible types: can not convert \'bool\' to \'char\'');
         done();
     });
     test('Use undefined variable', (done) => {
@@ -289,6 +299,61 @@ describe('Analyzer detect error programs', () => {
             }
         `;
         expect(check(src)).toThrow('Invalid types for operation: \'int\' >> \'int\'');
+        done();
+    });
+    test('Array init', (done) => {
+        let src = `
+            int a = 8;
+            char a[2] = {1, 2};
+            void test() {
+            }
+        `;
+        expect(check(src)).toThrow('Redefinition of \'a\'');
+        done();
+    });
+    test('Array too large', (done) => {
+        let src = `
+            char a[5][8][6] = {1, 2, 3};
+            void test() {
+            }
+        `;
+        expect(check(src)).toThrow('Array does\'t fit in memory \'a[5,8,8]\'');
+        done();
+    });
+    test('Array init', (done) => {
+        let src = `
+            char a[2] = {1, 2, 3};
+            void test() {
+            }
+        `;
+        expect(check(src)).toThrow('Array initialization doesn\'t match dimensions. Expected 2 found 3');
+        done();
+    });
+    test('Array init', (done) => {
+        let src = `
+            char a[2][3] = {{1, 2, 3}, 4};
+            void test() {
+            }
+        `;
+        expect(check(src)).toThrow('Expecting array initialization');
+        done();
+    });
+    test('Array init', (done) => {
+        let src = `
+            char a[2][3] = {{1, 2, 3}, {1, 2, {3}}};
+            void test() {
+            }
+        `;
+        expect(check(src)).toThrow('Expecting list of literals');
+        done();
+    });
+    test('Array init', (done) => {
+        let src = `
+            char a[3] = {1u, 2, 3};
+            void test() {
+            }
+        `;
+        expect(check(src)).toThrow('Incompatible types: can not convert \'int\' to \'char\'');
         done();
     });
 });

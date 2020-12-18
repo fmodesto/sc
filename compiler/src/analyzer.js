@@ -2,6 +2,7 @@ import {
     Program,
     GlobalDeclaration,
     RegisterDeclaration,
+    ArrayDeclaration,
     MethodDeclaration,
     Var,
     Statement,
@@ -17,6 +18,7 @@ import {
     MethodCall,
     Literal,
     Variable,
+    ArrayContents,
 } from './ast.js';
 import createContext from './context.js';
 import CompileError from './error.js';
@@ -33,6 +35,14 @@ const logicBinaryOperations = ['&&', '||'];
 const relationalOperations = ['<=', '<', '==', '!=', '>=', '>'];
 
 const castOperations = ['char', 'bool', 'int'];
+
+const nearPower = function (e) {
+    let s = 1;
+    while (s < e) {
+        s <<= 1;
+    }
+    return s;
+};
 
 const doesReturn = function (list) {
     return list.length !== 0 && list[list.length - 1].doesReturn();
@@ -67,8 +77,8 @@ const combineType = function (source, left, right) {
 Program.analyze = function (context = createContext()) {
     this.globals.forEach((e) => e.analyze(context));
     this.methods.forEach((e) => {
-        if (context.containsMethod(e.name)) {
-            throw CompileError.create(e.source, `Method '${e.name}' already defined`);
+        if (context.contains(e.name)) {
+            throw CompileError.create(e.source, `Redefinition of '${e.name}'`);
         }
         context.addMethod(e.name, e.type, e.parameters.map((p) => p.type));
     });
@@ -82,8 +92,8 @@ GlobalDeclaration.analyze = function (context) {
     if (!Literal.isPrototypeOf(expression)) {
         throw CompileError.create(src, 'Expression must have a constant value');
     }
-    if (context.containsVar(this.name)) {
-        throw CompileError.create(this.source, `Variable '${this.name}' already defined`);
+    if (context.contains(this.name)) {
+        throw CompileError.create(this.source, `Redefinition of '${this.name}'`);
     }
     if (!compatibleType(this.type, expression.type)) {
         throw CompileError.create(this.source, `Incompatible types: can not convert '${expression.type}' to '${this.type}'`);
@@ -92,10 +102,45 @@ GlobalDeclaration.analyze = function (context) {
 };
 
 RegisterDeclaration.analyze = function (context) {
-    if (context.containsVar(this.name)) {
-        throw CompileError.create(this.source, `Variable '${this.name}' already defined`);
+    if (context.contains(this.name)) {
+        throw CompileError.create(this.source, `Redefinition of '${this.name}'`);
     }
     context.addVar(this.name, this.type);
+};
+
+ArrayDeclaration.analyze = function (context) {
+    if (context.contains(this.name)) {
+        throw CompileError.create(this.source, `Redefinition of '${this.name}'`);
+    }
+    let dimensions = this.dimensions.map((e, i) => (i === 0 ? e : nearPower(e)));
+    let size = (this.type === 'int' ? 2 : 1) * dimensions.reduce((a, e) => a * e, 1);
+    if (size > 256) {
+        throw CompileError.create(this.source, `Array does't fit in memory '${this.name}[${dimensions.join(',')}]'`);
+    }
+    this.value.checkDimensions(this.type, this.dimensions);
+    context.addArray(this.name, this.type, dimensions);
+};
+
+ArrayContents.checkDimensions = function (type, dimensions) {
+    if (this.elements.length !== dimensions[0]) {
+        throw CompileError.create(this.source, `Array initialization doesn't match dimensions. Expected ${dimensions[0]} found ${this.elements.length}`);
+    }
+    if (dimensions.length === 1) {
+        this.elements.forEach((e) => {
+            if (!Literal.isPrototypeOf(e)) {
+                throw CompileError.create(e.source, 'Expecting list of literals');
+            } else if (!compatibleType(type, e.type)) {
+                throw CompileError.create(e.source, `Incompatible types: can not convert '${e.type}' to '${type}'`);
+            }
+        });
+    } else {
+        this.elements.forEach((e) => {
+            if (!ArrayContents.isPrototypeOf(e)) {
+                throw CompileError.create(e.source, 'Expecting array initialization');
+            }
+            e.checkDimensions(type, dimensions.slice(1));
+        });
+    }
 };
 
 MethodDeclaration.analyze = function (context) {
@@ -108,8 +153,8 @@ MethodDeclaration.analyze = function (context) {
 };
 
 Var.analyze = function (context) {
-    if (context.containsVar(this.name)) {
-        throw CompileError.create(this.source, `Variable '${this.name}' already defined`);
+    if (context.contains(this.name)) {
+        throw CompileError.create(this.source, `Redefinition of '${this.name}'`);
     }
     context.addVar(this.name, this.type);
 };
@@ -223,7 +268,7 @@ MethodCall.analyze = function (context) {
     definedParams.forEach((destType, i) => {
         let type = params[i];
         if (!compatibleType(destType, type)) {
-            throw CompileError.create(this.parameters[i].source, `Type missmatch. Can not convert '${type}' to '${destType}'`);
+            throw CompileError.create(this.parameters[i].source, `Incompatible types: can not convert '${type}' to '${destType}'`);
         }
     });
     return context.getMethodType(this.name);

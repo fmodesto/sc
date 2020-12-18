@@ -4,6 +4,8 @@ import {
     Program,
     GlobalDeclaration,
     RegisterDeclaration,
+    ArrayDeclaration,
+    ArrayContents,
     MethodDeclaration,
     Var,
     AssignmentStatement,
@@ -54,6 +56,24 @@ semantics.addOperation('ast', {
             type: type.sourceString,
             address: +address.sourceString,
             name: id.sourceString,
+            source: this.source.getLineAndColumnMessage(),
+        });
+    },
+    Global_array(type, id, dimensions, _1, initialization, _2) {
+        return ArrayDeclaration.create({
+            type: type.sourceString,
+            dimensions: dimensions.ast(),
+            value: initialization.ast(),
+            name: id.sourceString,
+            source: this.source.getLineAndColumnMessage(),
+        });
+    },
+    ArrayDim(_1, size, _2) {
+        return +size.sourceString;
+    },
+    ArrayInit_block(_1, elements, _2) {
+        return ArrayContents.create({
+            elements: elements.asIteration().ast(),
             source: this.source.getLineAndColumnMessage(),
         });
     },

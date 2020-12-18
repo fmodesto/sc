@@ -1,8 +1,13 @@
 SimpleC {
    Program     =  directives* Global* Method+
 
-   Global      =  type id "=" Exp ";"                -- mem
-               |  reg "(" numlit ")" type id ";"     -- reg
+   Global      =  type id "=" Exp ";"                      -- mem
+               |  type id ArrayDim* "=" ArrayInit ";"          -- array
+               |  reg "(" numlit ")" type id ";"           -- reg
+
+   ArrayDim    = "[" numlit "]"
+   ArrayInit   =  "{" NonemptyListOf<ArrayInit, ","> "}"   -- block
+               |  Literal                                  -- literal
 
    Method      =  methodType id "(" ListOf<Param, ","> ")" "{" Vars* Statements "}"
    Param       =  type id
@@ -12,6 +17,7 @@ SimpleC {
    Statements  =  Stmt* ReturnStmt?
 
    Stmt        =  id assignop Exp ";"                      -- assignment
+               |  id "[" Exp "]" assignop Exp ";"          -- array
                |  if "(" Exp ")" "{" Statements "}" Else?  -- if
                |  while "(" Exp ")" "{" Stmt* "}"          -- while
                |  MethodCall ";"                           -- do
@@ -45,6 +51,7 @@ SimpleC {
    Exp9        =  Literal
                |  MethodCall
                |  VarExp
+               |  VarExp "[" Exp "]"          -- array
                |  "(" Exp ")"                 -- parens
 
    Literal     =  numlit
