@@ -4,6 +4,7 @@ import '../src/optimizer.js';
 const char = (value) => ({ type: 'char', value: value });
 const int = (value) => ({ type: 'int', value: value });
 const bool = (value) => ({ type: 'bool', value: value ? 1 : 0 });
+const id = (name) => ({ name });
 
 const expressions = [
     ['2 + 3', char(5)],
@@ -71,6 +72,16 @@ const expressions = [
     ['(bool) 0', bool(false)],
     ['(char) (513 + 6)', char(7)],
     ['(int) -7', int(-7)],
+    ['0 + a', id('a')],
+    ['a + 0', id('a')],
+    ['a - 0', id('a')],
+    ['0 * a', char(0)],
+    ['1 * a', id('a')],
+    ['a * 0', char(0)],
+    ['a * 1', id('a')],
+    ['a / 1', id('a')],
+    ['a << 0', id('a')],
+    ['a >> 0', id('a')],
 ];
 
 const noOptimized = [
@@ -79,13 +90,15 @@ const noOptimized = [
     '-a',
     '!a',
     '~a',
+    'a / b',
+    'a - b',
 ];
 
 const optimize = (exp, rule = 'Exp') => parse(exp, rule).optimize();
 
 describe('Optimize', () => {
     expressions.forEach(([exp, result]) => {
-        test(`${exp} = ${result.value.toString(16)}`, (done) => {
+        test(`${exp} = ${result.name ? result.name : result.value.toString(16)}`, (done) => {
             let optimized = optimize(exp);
             expect(optimized).toMatchObject(result);
             done();
@@ -124,6 +137,60 @@ describe('Optimize', () => {
                     value: 6,
                 },
             ],
+        });
+        done();
+    });
+
+    test('Mulyiply by power', (done) => {
+        let optimized = optimize('8 * a', 'Exp');
+        expect(optimized).toMatchObject({
+            kind: 'BinaryOperation',
+            operation: '<<',
+            lhs: {
+                kind: 'Variable',
+                name: 'a',
+            },
+            rhs: {
+                kind: 'Literal',
+                type: 'char',
+                value: 3,
+            },
+        });
+        done();
+    });
+
+    test('Mulyiply by power', (done) => {
+        let optimized = optimize('a * 1024', 'Exp');
+        expect(optimized).toMatchObject({
+            kind: 'BinaryOperation',
+            operation: '<<',
+            lhs: {
+                kind: 'Variable',
+                name: 'a',
+            },
+            rhs: {
+                kind: 'Literal',
+                type: 'char',
+                value: 10,
+            },
+        });
+        done();
+    });
+
+    test('Divide by power', (done) => {
+        let optimized = optimize('a / 4', 'Exp');
+        expect(optimized).toMatchObject({
+            kind: 'BinaryOperation',
+            operation: '>>',
+            lhs: {
+                kind: 'Variable',
+                name: 'a',
+            },
+            rhs: {
+                kind: 'Literal',
+                type: 'char',
+                value: 2,
+            },
         });
         done();
     });

@@ -205,6 +205,16 @@ describe('Analyzer detect error programs', () => {
         expect(check(src)).toThrow('Invalid types for operation: \'char\' + \'bool\'');
         done();
     });
+    test('Arithmetic expression with bools', (done) => {
+        let src = `
+            void foo() {
+                bool a;
+                a = false + true;
+            }
+        `;
+        expect(check(src)).toThrow('Invalid types for operation: \'bool\' + \'bool\'');
+        done();
+    });
     test('Relational expression with bool', (done) => {
         let src = `
             void foo() {
@@ -320,6 +330,15 @@ describe('Analyzer detect error programs', () => {
         expect(check(src)).toThrow('Array does\'t fit in memory \'a[5,8,8]\'');
         done();
     });
+    test('Array length 0', (done) => {
+        let src = `
+            char a[0][3] = { 0 };
+            void test() {
+            }
+        `;
+        expect(check(src)).toThrow('Array with 0 length');
+        done();
+    });
     test('Array init', (done) => {
         let src = `
             char a[2] = {1, 2, 3};
@@ -354,6 +373,91 @@ describe('Analyzer detect error programs', () => {
             }
         `;
         expect(check(src)).toThrow('Incompatible types: can not convert \'int\' to \'char\'');
+        done();
+    });
+    test('Array access, wrong dimensions', (done) => {
+        let src = `
+            char a[3] = {1, 2, 3};
+            void test() {
+                char b;
+                b = a[2][1];
+            }
+        `;
+        expect(check(src)).toThrow('Array access doesn\'t match dimensions. Expected 1 found 2');
+        done();
+    });
+    test('Array assignment, wrong dimensions', (done) => {
+        let src = `
+            char a[3] = {1, 2, 3};
+            void test() {
+                char b;
+                a[2][1] = b;
+            }
+        `;
+        expect(check(src)).toThrow('Array access doesn\'t match dimensions. Expected 1 found 2');
+        done();
+    });
+    test('Array assignment, not defined', (done) => {
+        let src = `
+            void test() {
+                a[2] = 5;
+            }
+        `;
+        expect(check(src)).toThrow('Variable \'a\' not defined');
+        done();
+    });
+    test('Array assignment, wrong type', (done) => {
+        let src = `
+            int a[7] = { 1,2,3,4,5,6,7 };
+            void test() {
+                a[2] = true;
+            }
+        `;
+        expect(check(src)).toThrow('Incompatible types: can not convert \'bool\' to \'int\'');
+        done();
+    });
+    test('Array shortcut assignment, wrong dimensions', (done) => {
+        let src = `
+            char a[3] = {1, 2, 3};
+            void test() {
+                char b;
+                a[2][1] += b;
+            }
+        `;
+        expect(check(src)).toThrow('Array access doesn\'t match dimensions. Expected 1 found 2');
+        done();
+    });
+    test('Array assignment, wrong index type', (done) => {
+        let src = `
+            char a[3] = {1, 2, 3};
+            void test() {
+                char b;
+                a[2u] = b;
+            }
+        `;
+        expect(check(src)).toThrow('Incompatible types: possible lossy conversion from \'int\' to \'char\'');
+        done();
+    });
+    test('Array compound assignment, wrong index type', (done) => {
+        let src = `
+            char a[3] = {1, 2, 3};
+            void test() {
+                char b;
+                a[2u] += b;
+            }
+        `;
+        expect(check(src)).toThrow('Incompatible types: possible lossy conversion from \'int\' to \'char\'');
+        done();
+    });
+    test('Array expression, wrong index type', (done) => {
+        let src = `
+            char a[3] = {1, 2, 3};
+            void test() {
+                char b;
+                b = a[2u];
+            }
+        `;
+        expect(check(src)).toThrow('Incompatible types: possible lossy conversion from \'int\' to \'char\'');
         done();
     });
 });
@@ -479,6 +583,20 @@ describe('Analyzer correct programs', () => {
                 int a;
                 a = 0xffff;
                 return 0xF0;
+            }
+        `;
+        expect(check(src)).not.toThrow();
+        done();
+    });
+    test('Handles array', (done) => {
+        let src = `
+            char a[5] = { 1,2,3,4,5 };
+            void swap(char l, char r) {
+                char t;
+                t = a[l];
+                a[l] = a[r];
+                a[r] = t;
+                a[0] += 5;
             }
         `;
         expect(check(src)).not.toThrow();

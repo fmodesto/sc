@@ -7,7 +7,9 @@ SimpleC {
 
    ArrayDim    = "[" numlit "]"
    ArrayInit   =  "{" NonemptyListOf<ArrayInit, ","> "}"   -- block
-               |  Literal                                  -- literal
+               |  ArrayLit                                 -- literal
+   ArrayLit    =  Literal
+               |  neglit
 
    Method      =  methodType id "(" ListOf<Param, ","> ")" "{" Vars* Statements "}"
    Param       =  type id
@@ -17,7 +19,7 @@ SimpleC {
    Statements  =  Stmt* ReturnStmt?
 
    Stmt        =  id assignop Exp ";"                      -- assignment
-               |  id "[" Exp "]" assignop Exp ";"          -- array
+               |  id ArrayAccess+ assignop Exp ";"         -- array
                |  if "(" Exp ")" "{" Statements "}" Else?  -- if
                |  while "(" Exp ")" "{" Stmt* "}"          -- while
                |  MethodCall ";"                           -- do
@@ -50,14 +52,17 @@ SimpleC {
                |  Exp9
    Exp9        =  Literal
                |  MethodCall
+               |  ArrayExp
                |  VarExp
-               |  VarExp "[" Exp "]"          -- array
                |  "(" Exp ")"                 -- parens
 
    Literal     =  numlit
                |  boollit
+
    VarExp      =  id
 
+   ArrayExp    =  id ArrayAccess+
+   ArrayAccess =  "[" Exp "]"
 
    MethodCall  =  id "(" ListOf<Exp, ","> ")"
 
@@ -80,6 +85,7 @@ SimpleC {
    id          =  ~keyword letter idrest*
    idrest      =  alnum
    numlit      =  intlit | hexlit
+   neglit      =  "-" digit+ "u"?
    intlit      =  ~"0x" digit+ "u"?
    hexlit      =  hex "u"?
    hex         =  "0x" hexDigit+

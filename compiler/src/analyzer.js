@@ -15,11 +15,14 @@ import {
     TernaryOperation,
     BinaryOperation,
     UnaryOperation,
+    ArrayAccess,
     MethodCall,
     Literal,
     Variable,
     ArrayContents,
+    ArrayStatement,
 } from './ast.js';
+import { nearPower } from './binary.js';
 import createContext from './context.js';
 import CompileError from './error.js';
 
@@ -35,14 +38,6 @@ const logicBinaryOperations = ['&&', '||'];
 const relationalOperations = ['<=', '<', '==', '!=', '>=', '>'];
 
 const castOperations = ['char', 'bool', 'int'];
-
-const nearPower = function (e) {
-    let s = 1;
-    while (s < e) {
-        s <<= 1;
-    }
-    return s;
-};
 
 const doesReturn = function (list) {
     return list.length !== 0 && list[list.length - 1].doesReturn();
@@ -72,6 +67,22 @@ const combineType = function (source, left, right) {
     } else {
         throw CompileError.create(source, `Incompatible types: can not convert between '${left}' and '${right}'`);
     }
+};
+
+const analyzeArray = function (context, { name, access, source }) {
+    if (!context.containsArray(name)) {
+        throw CompileError.create(source, `Variable '${name}' not defined`);
+    }
+    let definedDimension = context.getArrayDimensions(name);
+    if (definedDimension.length !== access.length) {
+        throw CompileError.create(source, `Array access doesn't match dimensions. Expected ${definedDimension.length} found ${access.length}`);
+    }
+    access.forEach((e) => {
+        let type = e.analyze(context);
+        if (type !== 'char') {
+            throw CompileError.create(source, `Incompatible types: possible lossy conversion from '${type}' to 'char'`);
+        }
+    });
 };
 
 Program.analyze = function (context = createContext()) {
@@ -112,6 +123,9 @@ ArrayDeclaration.analyze = function (context) {
     if (context.contains(this.name)) {
         throw CompileError.create(this.source, `Redefinition of '${this.name}'`);
     }
+    if (this.dimensions.some((e) => e < 1)) {
+        throw CompileError.create(this.source, 'Array with 0 length');
+    }
     let dimensions = this.dimensions.map((e, i) => (i === 0 ? e : nearPower(e)));
     let size = (this.type === 'int' ? 2 : 1) * dimensions.reduce((a, e) => a * e, 1);
     if (size > 256) {
@@ -129,7 +143,7 @@ ArrayContents.checkDimensions = function (type, dimensions) {
         this.elements.forEach((e) => {
             if (!Literal.isPrototypeOf(e)) {
                 throw CompileError.create(e.source, 'Expecting list of literals');
-            } else if (!compatibleType(type, e.type)) {
+            } else if (!compatibleType(type, e.type) || (type === 'bool' && e.value !== 0 && e.value !== 1)) {
                 throw CompileError.create(e.source, `Incompatible types: can not convert '${e.type}' to '${type}'`);
             }
         });
@@ -164,6 +178,17 @@ AssignmentStatement.analyze = function (context) {
         throw CompileError.create(this.source, `Variable '${this.name}' not defined`);
     }
     const destType = context.getVarType(this.name);
+    let type = this.expression.analyze(context);
+    if (!compatibleType(destType, type)) {
+        throw CompileError.create(this.source, `Incompatible types: can not convert '${type}' to '${destType}'`);
+    }
+};
+
+ArrayStatement.analyze = function (context) {
+    if (!this.compound) {
+        analyzeArray(context, this);
+    }
+    const destType = context.getArrayType(this.name);
     let type = this.expression.analyze(context);
     if (!compatibleType(destType, type)) {
         throw CompileError.create(this.source, `Incompatible types: can not convert '${type}' to '${destType}'`);
@@ -205,7 +230,7 @@ ReturnStatement.analyze = function (context) {
 };
 
 Expression.analyze = function () {
-    throw new Error('Not implemented');
+    throw new Error(`Not implemented: ${this.kind}.analyze()`);
 };
 
 TernaryOperation.analyze = function (context) {
@@ -237,6 +262,8 @@ BinaryOperation.analyze = function (context) {
         return 'bool';
     } else if (logicBinaryOperations.includes(this.operation)) {
         return 'bool';
+    } else {
+        throw new Error(`Unknown operation ${this.operation}`);
     }
 };
 
@@ -283,6 +310,11 @@ Variable.analyze = function (context) {
         throw CompileError.create(this.source, `Variable '${this.name}' not defined`);
     }
     return context.getVarType(this.name);
+};
+
+ArrayAccess.analyze = function (context) {
+    analyzeArray(context, this);
+    return context.getArrayType(this.name);
 };
 
 Statement.doesReturn = function () {

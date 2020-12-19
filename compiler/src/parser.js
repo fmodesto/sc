@@ -16,9 +16,11 @@ import {
     TernaryOperation,
     BinaryOperation,
     UnaryOperation,
+    ArrayAccess,
     MethodCall,
     Literal,
     Variable,
+    ArrayStatement,
 } from './ast.js';
 import CompileError from './error.js';
 import { byte, word } from './binary.js';
@@ -130,6 +132,33 @@ semantics.addOperation('ast', {
             });
         }
     },
+    Stmt_array(id, access, op, exp, _1) {
+        if (op.sourceString === '=') {
+            return ArrayStatement.create({
+                name: id.sourceString,
+                access: access.ast(),
+                compound: false,
+                expression: exp.ast(),
+                source: this.source.getLineAndColumnMessage(),
+            });
+        } else {
+            return ArrayStatement.create({
+                name: id.sourceString,
+                compound: true,
+                expression: BinaryOperation.create({
+                    operation: op.sourceString.substring(0, op.sourceString.length - 1),
+                    lhs: ArrayAccess.create({
+                        name: id.sourceString,
+                        access: access.ast(),
+                        source: this.source.getLineAndColumnMessage(),
+                    }),
+                    rhs: exp.ast(),
+                    source: this.source.getLineAndColumnMessage(),
+                }),
+                source: this.source.getLineAndColumnMessage(),
+            });
+        }
+    },
     Stmt_if(_if, _opp, predicate, _cpp, _opb1, consequent, _clb1, alternate) {
         return IfStatement.create({
             predicate: predicate.ast(),
@@ -221,6 +250,18 @@ semantics.addOperation('ast', {
             source: this.source.getLineAndColumnMessage(),
         });
     },
+    neglit(_1, val, suffix) {
+        let num = -val.sourceString;
+        if (num >= 32768 || num < -32768) {
+            throw CompileError.create(this.source.getLineAndColumnMessage(), `Value ${num} exceeds 'int'`);
+        }
+        console.log(num);
+        return Literal.create({
+            type: (num >= -128 && num < 128) && !suffix.sourceString ? 'char' : 'int',
+            value: num,
+            source: this.source.getLineAndColumnMessage(),
+        });
+    },
     hexlit(val, suffix) {
         let num = +val.sourceString;
         if (num >= 65536) {
@@ -239,6 +280,16 @@ semantics.addOperation('ast', {
             name: this.sourceString,
             source: this.source.getLineAndColumnMessage(),
         });
+    },
+    ArrayExp(id, access) {
+        return ArrayAccess.create({
+            name: id.sourceString,
+            access: access.ast(),
+            source: this.source.getLineAndColumnMessage(),
+        });
+    },
+    ArrayAccess(_1, exp, _2) {
+        return exp.ast();
     },
 });
 

@@ -21,6 +21,9 @@ describe('Generate code for expression', () => {
     globalContext.addVar('a', 'char');
     globalContext.addVar('b', 'char');
     globalContext.addVar('c', 'int');
+    globalContext.addArray('aa', 'char', [4]);
+    globalContext.addArray('ab', 'int', [2, 4]);
+    globalContext.addArray('ac', 'boolean', [4, 2, 8]);
     globalContext.addMethod('test', 'char', [{ name: 'p1', type: 'char' }, { name: 'p2', type: 'char' }]);
     globalContext.addMethod('foo', 'char', [{ name: 'p1', type: 'char' }, { name: 'p2', type: 'char' }, { name: 'p3', type: 'char' }]);
     globalContext.addMethod('bar', 'char', [{ name: 'p1', type: 'char' }, { name: 'p2', type: 'char' }]);
@@ -58,6 +61,8 @@ describe('Generate code for expression', () => {
         ['c + 1000', 'ADD test_0:test_1,c_H:c_L,#$03:#$E8'],
         ['c + -1000', 'ADD test_0:test_1,c_H:c_L,#$FC:#$18'],
         ['c + (int) -10', 'ADD test_0:test_1,c_H:c_L,#$FF:#$F6'],
+        ['aa[3]', 'GET test_0,aa,#$03'],
+        ['ab[1][3]', 'GET test_0:test_1,ab,#$0E'],
     ];
 
     simple.forEach(([exp, expected]) => {
@@ -814,6 +819,30 @@ describe('Generate code', () => {
             'CALL foo',
             '.LABEL test_end',
             '.RETURN test',
+        ]);
+        done();
+    });
+
+    test.skip('Array access', (done) => {
+        let code = `
+            int array[2][3][3] = {
+                {
+                    { 1, 2, 3 },
+                    { 4, 5, 6 },
+                    { 7, 8, 9 }
+                },
+                {
+                    { 11, 12, 13 },
+                    { 14, 15, 16 },
+                    { 17, 18, 19 }
+                }
+            };
+            void test(char b, char c) {
+                int a;
+                a = array[1][1][2] + array[0][b+b][c];
+            }
+        `;
+        expect(generate(code, false)).toEqual([
         ]);
         done();
     });

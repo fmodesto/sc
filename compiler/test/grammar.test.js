@@ -32,7 +32,7 @@ const valid = `
             b += foo(a, b);
             c <<= 1;
         }
-        return b;
+        return (char) array[1][b];
     }
     char ifStmt(char a, char b) {
         if (a) {

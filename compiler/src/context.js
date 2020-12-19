@@ -29,11 +29,17 @@ const context = {
     getVarType(name) {
         return this[`var_${name}`];
     },
+    getArrayType(name) {
+        return this[`arr_${name}`].type;
+    },
     getMethodType(name = this.currentMethod) {
         return this[`method_${name}`].type;
     },
     getMethodParameters(name = this.currentMethod) {
         return this[`method_${name}`].parameters;
+    },
+    getArrayDimensions(name) {
+        return this[`arr_${name}`].dimensions;
     },
     createContext(method) {
         return Object.assign(Object.create(this), { currentMethod: method });

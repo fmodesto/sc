@@ -31,6 +31,9 @@ const Statement = AST.create();
 const AssignmentStatement = Statement.create({
     kind: 'AssignmentStatement',
 });
+const ArrayStatement = Statement.create({
+    kind: 'AssignmentStatement',
+});
 const IfStatement = Statement.create({
     kind: 'IfStatement',
 });
@@ -62,6 +65,9 @@ const Literal = Expression.create({
 const Variable = Expression.create({
     kind: 'Variable',
 });
+const ArrayAccess = Expression.create({
+    kind: 'ArrayAccess',
+});
 AST.create = function (props) {
     return Object.freeze(Object.assign(Object.create(this), { kind: this.kind }, props));
 };
@@ -77,6 +83,7 @@ export {
     Var,
     Statement,
     AssignmentStatement,
+    ArrayStatement,
     IfStatement,
     WhileStatement,
     CallStatement,
@@ -85,6 +92,7 @@ export {
     TernaryOperation,
     BinaryOperation,
     UnaryOperation,
+    ArrayAccess,
     MethodCall,
     Literal,
     Variable,

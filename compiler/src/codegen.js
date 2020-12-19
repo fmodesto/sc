@@ -16,10 +16,14 @@ import {
     Literal,
     Variable,
     RegisterDeclaration,
+    ArrayAccess,
+    ArrayDeclaration,
+    ArrayContents,
 } from './ast.js';
 import createContext from './context.js';
 import createRegister from './register.js';
 import './optimizer.js';
+import { nearPower } from './binary.js';
 
 const isLiteral = function (address) {
     return address.split(':').every((e) => e.startsWith('#'));
@@ -95,16 +99,20 @@ const hex = function (value) {
 };
 
 AST.generate = function () {
-    throw new Error('Not implemented');
+    throw new Error(`Not implemented: ${this.kind}.generate()`);
 };
 
 Program.generate = function (context = createContext()) {
-    this.globals.forEach((e) => context.addVar(e.name, e.type));
-    this.methods.forEach((e) => context.addMethod(e.name, e.type, e.parameters.map((p) => ({ name: p.name, type: p.type }))));
+    this.globals.forEach((e) => e.addToContext(context));
+    this.methods.forEach((e) => e.addToContext(context));
     return [
         ...this.globals.map((e) => e.generate(context)).flat(),
         ...this.methods.map((e) => e.generate(context.createContext(e.name))).flat(),
     ];
+};
+
+GlobalDeclaration.addToContext = function (context) {
+    context.addVar(this.name, this.type);
 };
 
 GlobalDeclaration.generate = function () {
@@ -123,6 +131,10 @@ GlobalDeclaration.generate = function () {
     }
 };
 
+RegisterDeclaration.addToContext = function (context) {
+    context.addVar(this.name, this.type);
+};
+
 RegisterDeclaration.generate = function () {
     if (this.type === 'bool') {
         return [`.REGISTER ${this.name} ${this.address}`];
@@ -135,6 +147,41 @@ RegisterDeclaration.generate = function () {
         ];
     } else {
         throw new Error(`Unknown type ${this.type}`);
+    }
+};
+
+ArrayDeclaration.addToContext = function (context) {
+    let dimensions = this.dimensions.map((e, i) => (i === 0 ? e : nearPower(e)));
+    context.addArray(this.name, this.type, dimensions);
+};
+
+ArrayDeclaration.generate = function (context) {
+    let dimensions = context.getArrayDimensions(this.name);
+    let values = this.value.generateValues(this.type, dimensions).replace(/( #)*$/, '');
+    return [
+        `.ARRAY ${this.name} ${values}`,
+    ];
+};
+
+ArrayContents.generateValues = function (type, dimensions) {
+    if (dimensions.length === 1 && type === 'int') {
+        return [
+            ...this.elements.map((e) => `${hex(e.value >> 8)} ${hex(e.value)}`),
+            ...Array(dimensions[0] - this.elements.length).fill('# #'),
+        ].join(' ');
+    } else if (dimensions.length === 1) {
+        return [
+            ...this.elements.map((e) => `${hex(e.value)}`),
+            ...Array(dimensions[0] - this.elements.length).fill('#'),
+        ].join(' ');
+    } else {
+        let values = this.elements.map((e) => e.generateValues(type, dimensions.slice(1)));
+        let multiplier = type === 'int' ? 2 : 1;
+        let missing = multiplier * (dimensions[0] - this.elements.length) * dimensions.slice(1).reduce((a,b) => a * b);
+        return [
+            ...values,
+            ...Array(missing).fill('#'),
+        ].join(' ');
     }
 };
 
@@ -151,6 +198,10 @@ const returnAddress = function (name, type) {
     } else {
         throw new Error(`Unknown type ${type}`);
     }
+};
+
+MethodDeclaration.addToContext = function (context) {
+    context.addMethod(this.name, this.type, this.parameters.map((p) => ({ name: p.name, type: p.type })));
 };
 
 MethodDeclaration.generate = function (context) {
@@ -529,6 +580,41 @@ MethodCall.generate = function (context, register, isStatement = false) {
                 ...setParams,
                 `CALL ${this.name}`,
                 `MOV ${dest},${address(this.name, 'return', type)}`,
+            ],
+        };
+    }
+};
+
+ArrayAccess.generate = function (context, register, isCompound = false) {
+    let type = context.getArrayType(this.name);
+    let shifts = context.getArrayDimensions(this.name).reduceRight((a, e) => [a[0] + e.toString(2).length - 1, ...a ], [type === 'int' ? 1 : 0]).slice(1);
+    let index = this.access.map((e, i) => (shifts[i] === 0 ? e : BinaryOperation.create({ operation: '<<', lhs: e, rhs: Literal.create({ type: 'char', value: shifts[i]})})));
+    let address = index.reduce((a, e) => BinaryOperation.create({ operation: '+', lhs: a, rhs: e })).optimize();
+    let code = address.generate(context, register);
+    if (!isCompound || isLiteral(code.address)) {
+        register.release(code.address);
+        let address = register.fetch(type);
+        return {
+            address,
+            type,
+            index: code.address,
+            instructions: [
+                ...code.instructions,
+                `GET ${address},${this.name},${code.address}`,
+            ],
+        };
+    } else {
+        register.release(code.address);
+        let indexAddress = register.fetch('char');
+        let address = register.fetch(type);
+        return {
+            address,
+            type,
+            index: code.address,
+            instructions: [
+                ...code.instructions,
+                ...moveInstruction(indexAddress, code.address),
+                `GET ${address},${this.name},${indexAddress}`,
             ],
         };
     }

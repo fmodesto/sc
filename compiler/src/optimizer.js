@@ -4,10 +4,14 @@ import {
     UnaryOperation,
     Literal,
 } from './ast.js';
-import { word, byte } from './binary.js';
+import { word, byte, isPowerOfTwo, logTwo } from './binary.js';
 
 const isLiteral = (e) => Literal.isPrototypeOf(e);
 const isNumberLiteral = (e) => isLiteral(e) && (e.type === 'int' || e.type === 'char');
+const isZero = (e) => isLiteral(e) && e.value === 0;
+const isOne = (e) => isLiteral(e) && e.value === 1;
+const isPower = (e) => isLiteral(e) && isPowerOfTwo(e.value);
+const power = ({value, source}) => createCharLiteral(logTwo(value), source);
 
 const createIntLiteral = function (value, source) {
     return Literal.create({
@@ -32,6 +36,16 @@ const createBoolLiteral = function (value, source) {
         source,
     });
 };
+
+const createBinary = function (operation, lhs, rhs, source) {
+    return BinaryOperation.create({
+        operation,
+        lhs,
+        rhs,
+        source,
+    });
+};
+
 
 AST.optimize = function () {
     let properties = {};
@@ -82,14 +96,27 @@ BinaryOperation.optimize = function () {
         return this.foldNumberConstants(lhs, rhs);
     } else if (isLiteral(lhs) && isLiteral(rhs)) {
         return this.foldBoolConstants(lhs, rhs);
-    } else {
-        return BinaryOperation.create({
-            operation: this.operation,
-            lhs,
-            rhs,
-            source: this.source,
-        });
+    } else if (this.operation === '+') {
+        if (isZero(rhs)) return lhs;
+        if (isZero(lhs)) return rhs;
+    } else if (this.operation === '-') {
+        if (isZero(rhs)) return lhs;
+    } else if (this.operation === '*') {
+        if (isOne(rhs)) return lhs;
+        if (isOne(lhs)) return rhs;
+        if (isZero(rhs)) return rhs;
+        if (isZero(lhs)) return lhs;
+        if (isPower(lhs)) return createBinary('<<', rhs, power(lhs), this.source);
+        if (isPower(rhs)) return createBinary('<<', lhs, power(rhs), this.source);
+    } else if (this.operation === '/') {
+        if (isOne(rhs)) return lhs;
+        if (isPower(rhs)) return createBinary('>>', lhs, power(rhs), this.source);
+    } else if (this.operation === '<<') {
+        if (isZero(rhs)) return lhs;
+    } else if (this.operation === '>>') {
+        if (isZero(rhs)) return lhs;
     }
+    return createBinary(this.operation, lhs, rhs, this.source);
 };
 
 BinaryOperation.foldNumberConstants = function (lhs, rhs) {
