@@ -823,7 +823,7 @@ describe('Generate code', () => {
         done();
     });
 
-    test.skip('Array access', (done) => {
+    test('Array access', (done) => {
         let code = `
             int array[2][3][3] = {
                 {
@@ -843,6 +843,177 @@ describe('Generate code', () => {
             }
         `;
         expect(generate(code, false)).toEqual([
+            '.ARRAY array $00 $01 $00 $02 $00 $03 # # $00 $04 $00 $05 $00 $06 # # $00 $07 $00 $08 $00 $09 # # # # # # # # # # $00 $0B $00 $0C $00 $0D # # $00 $0E $00 $0F $00 $10 # # $00 $11 $00 $12 $00 $13',
+            '.FUNCTION test',
+            '.BYTE test_b 0',
+            '.BYTE test_c 0',
+            '.LOCALS',
+            '.BYTE test_a_H 0',
+            '.BYTE test_a_L 0',
+            '.TMP',
+            '.BYTE test_0 0',
+            '.BYTE test_1 0',
+            '.BYTE test_2 0',
+            '.BYTE test_3 0',
+            '.CODE',
+            'GET test_0:test_1,array,#$2C',
+            'ADD test_2,test_b,test_b',
+            'SHL test_2,test_2,#$02',
+            'ADD test_2,test_2,test_c',
+            'SHL test_2,test_2,#$01',
+            'GET test_2:test_3,array,test_2',
+            'ADD test_2:test_3,test_0:test_1,test_2:test_3',
+            'MOV test_a_H:test_a_L,test_2:test_3',
+            '.LABEL test_end',
+            '.RETURN test',
+        ]);
+        done();
+    });
+
+    test('Array assignment', (done) => {
+        let code = `
+            char array[2][3] = {
+                { 1, 2, 3 },
+                { 4, 5, 6 }
+            };
+            void test(char b, char c) {
+                array[b][c] = array[c][b];
+            }
+        `;
+        expect(generate(code, false)).toEqual([
+            '.ARRAY array $01 $02 $03 # $04 $05 $06',
+            '.FUNCTION test',
+            '.BYTE test_b 0',
+            '.BYTE test_c 0',
+            '.TMP',
+            '.BYTE test_0 0',
+            '.BYTE test_1 0',
+            '.CODE',
+            'SHL test_0,test_b,#$02',
+            'ADD test_0,test_0,test_c',
+            'SHL test_1,test_c,#$02',
+            'ADD test_1,test_1,test_b',
+            'GET test_1,array,test_1',
+            'PUT array,test_0,test_1',
+            '.LABEL test_end',
+            '.RETURN test',
+        ]);
+        done();
+    });
+
+    test('Array assignment cast literal', (done) => {
+        let code = `
+            bool array[3] = { 1, 0, 1 };
+            void test() {
+                array[2] = 5;
+            }
+        `;
+        expect(generate(code, false)).toEqual([
+            '.ARRAY array $01 $00 $01',
+            '.FUNCTION test',
+            '.CODE',
+            'PUT array,#$02,#1',
+            '.LABEL test_end',
+            '.RETURN test',
+        ]);
+        done();
+    });
+
+    test('Array assignment cast boolean', (done) => {
+        let code = `
+            bool array[3] = { 1, 0, 1 };
+            void test(char a) {
+                array[a] = a;
+            }
+        `;
+        expect(generate(code, false)).toEqual([
+            '.ARRAY array $01 $00 $01',
+            '.FUNCTION test',
+            '.BYTE test_a 0',
+            '.TMP',
+            '.BYTE test_0 0',
+            '.CODE',
+            'BOOL test_0,test_a',
+            'PUT array,test_a,test_0',
+            '.LABEL test_end',
+            '.RETURN test',
+        ]);
+        done();
+    });
+
+    test('Array assignment cast int', (done) => {
+        let code = `
+            int array[3] = { 1, 0, 1 };
+            void test(char a) {
+                array[a] = a;
+            }
+        `;
+        expect(generate(code, false)).toEqual([
+            '.ARRAY array $00 $01 $00 $00 $00 $01',
+            '.FUNCTION test',
+            '.BYTE test_a 0',
+            '.TMP',
+            '.BYTE test_0 0',
+            '.BYTE test_1 0',
+            '.BYTE test_2 0',
+            '.CODE',
+            'SHL test_0,test_a,#$01',
+            'CAST test_1:test_2,test_a',
+            'PUT array,test_0,test_1:test_2',
+            '.LABEL test_end',
+            '.RETURN test',
+        ]);
+        done();
+    });
+
+    test('Array compound assignment', (done) => {
+        let code = `
+            char array[2][3] = {
+                { 1, 2, 3 },
+                { 4, 5, 6 }
+            };
+            void test(char b, char c) {
+                array[b][c] += 5;
+            }
+        `;
+        expect(generate(code, false)).toEqual([
+            '.ARRAY array $01 $02 $03 # $04 $05 $06',
+            '.FUNCTION test',
+            '.BYTE test_b 0',
+            '.BYTE test_c 0',
+            '.TMP',
+            '.BYTE test_0 0',
+            '.BYTE test_1 0',
+            '.CODE',
+            'SHL test_0,test_b,#$02',
+            'ADD test_0,test_0,test_c',
+            'GET test_1,array,test_0',
+            'ADD test_1,test_1,#$05',
+            'PUT array,test_0,test_1',
+            '.LABEL test_end',
+            '.RETURN test',
+        ]);
+        done();
+    });
+
+    test('Array compound assignment constant index', (done) => {
+        let code = `
+            char array[3] = { 1, 2, 3 };
+            void test() {
+                array[0] += 5;
+            }
+        `;
+        expect(generate(code, false)).toEqual([
+            '.ARRAY array $01 $02 $03',
+            '.FUNCTION test',
+            '.TMP',
+            '.BYTE test_0 0',
+            '.CODE',
+            'GET test_0,array,#$00',
+            'ADD test_0,test_0,#$05',
+            'PUT array,#$00,test_0',
+            '.LABEL test_end',
+            '.RETURN test',
         ]);
         done();
     });

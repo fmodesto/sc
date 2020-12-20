@@ -32,7 +32,7 @@ const AssignmentStatement = Statement.create({
     kind: 'AssignmentStatement',
 });
 const ArrayStatement = Statement.create({
-    kind: 'AssignmentStatement',
+    kind: 'ArrayStatement',
 });
 const IfStatement = Statement.create({
     kind: 'IfStatement',

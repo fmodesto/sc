@@ -16,6 +16,7 @@ import {
     Literal,
     Variable,
     RegisterDeclaration,
+    ArrayStatement,
     ArrayAccess,
     ArrayDeclaration,
     ArrayContents,
@@ -23,7 +24,7 @@ import {
 import createContext from './context.js';
 import createRegister from './register.js';
 import './optimizer.js';
-import { nearPower } from './binary.js';
+import { logTwo, nearPower } from './binary.js';
 
 const isLiteral = function (address) {
     return address.split(':').every((e) => e.startsWith('#'));
@@ -96,6 +97,16 @@ const variable = function (context, name) {
 };
 const hex = function (value) {
     return `$${(value & 0xFF).toString(16).toUpperCase().padStart(2, '0')}`;
+};
+
+const codeArrayIndex = function (context, register, {name, access}) {
+    const char = (value) => Literal.create({ type: 'char', value });
+    const add = (lhs, rhs) => BinaryOperation.create({ operation: '+', lhs, rhs });
+    const shift = (lhs, rhs) => BinaryOperation.create({ operation: '<<', lhs, rhs });
+    let type = context.getArrayType(name);
+    let shifts = context.getArrayDimensions(name).reduceRight((a, e) => [logTwo(e), ...a ], [type === 'int' ? 1 : 0]).slice(1);
+    let address = access.reduce((a, e, i) => shift(add(a, e), char(shifts[i])), char(0)).optimize();
+    return address.generate(context, register);
 };
 
 AST.generate = function () {
@@ -250,6 +261,43 @@ AssignmentStatement.generate = function (context, register) {
     return [
         ...instructions,
         ...castInstruction(variable(context, this.name), context.getVarType(this.name), address, type),
+    ];
+};
+
+ArrayStatement.generate = function (context, register) {
+    let index = codeArrayIndex(context, register, this);
+    if (this.compound) {
+        register.save(`index_${this.name}`, index.address);
+    }
+
+    let type = context.getArrayType(this.name);
+    let exp = this.expression.generate(context, register);
+    let expAddress = exp.address;
+    let cast = [];
+    if (exp.type !== type) {
+        if (isLiteral(exp.address)) {
+            expAddress = castLiteral(type, exp.address);
+        } else if (type === 'int' && exp.type === 'char') {
+            register.release(exp.address);
+            expAddress = register.fetch(type);
+            cast = [`CAST ${expAddress},${exp.address}`];
+        } else if (type === 'bool') {
+            register.release(exp.address);
+            expAddress = register.fetch(type);
+            cast = [`BOOL ${expAddress},${exp.address}`];
+        } else {
+            throw new Error(`'Not implemented array cast from '${exp.type}' to '${type}'`);
+        }
+    }
+
+    register.release(expAddress);
+    register.release(index.address);
+
+    return [
+        ...index.instructions,
+        ...exp.instructions,
+        ...cast,
+        `PUT ${this.name},${index.address},${expAddress}`,
     ];
 };
 
@@ -557,13 +605,13 @@ UnaryOperation.generate = function (context, register) {
     return unary[this.operation](register, exp);
 };
 
-MethodCall.generate = function (context, register, isStatement = false) {
+MethodCall.generate = function (context, register) {
     let params = this.parameters.map((e) => e.generate(context, register));
     let methodParams = context.getMethodParameters(this.name);
     let setParams = methodParams.map((e, i) => castInstruction(address(this.name, e.name, e.type), e.type, params[i].address, params[i].type)).flat();
     params.forEach(({ address }) => register.release(address));
     let type = context.getMethodType(this.name);
-    if (isStatement) {
+    if (this.statement) {
         return [
             ...params.map((e) => e.instructions).flat(),
             ...setParams,
@@ -585,36 +633,27 @@ MethodCall.generate = function (context, register, isStatement = false) {
     }
 };
 
-ArrayAccess.generate = function (context, register, isCompound = false) {
+ArrayAccess.generate = function (context, register) {
     let type = context.getArrayType(this.name);
-    let shifts = context.getArrayDimensions(this.name).reduceRight((a, e) => [a[0] + e.toString(2).length - 1, ...a ], [type === 'int' ? 1 : 0]).slice(1);
-    let index = this.access.map((e, i) => (shifts[i] === 0 ? e : BinaryOperation.create({ operation: '<<', lhs: e, rhs: Literal.create({ type: 'char', value: shifts[i]})})));
-    let address = index.reduce((a, e) => BinaryOperation.create({ operation: '+', lhs: a, rhs: e })).optimize();
-    let code = address.generate(context, register);
-    if (!isCompound || isLiteral(code.address)) {
-        register.release(code.address);
+    if (this.compound) {
         let address = register.fetch(type);
         return {
             address,
             type,
-            index: code.address,
             instructions: [
-                ...code.instructions,
-                `GET ${address},${this.name},${code.address}`,
+                `GET ${address},${this.name},${register.state(`index_${this.name}`)}`,
             ],
         };
     } else {
+        let code = codeArrayIndex(context, register, this);
         register.release(code.address);
-        let indexAddress = register.fetch('char');
         let address = register.fetch(type);
         return {
             address,
             type,
-            index: code.address,
             instructions: [
                 ...code.instructions,
-                ...moveInstruction(indexAddress, code.address),
-                `GET ${address},${this.name},${indexAddress}`,
+                `GET ${address},${this.name},${code.address}`,
             ],
         };
     }

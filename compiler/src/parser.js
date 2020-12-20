@@ -142,14 +142,17 @@ semantics.addOperation('ast', {
                 source: this.source.getLineAndColumnMessage(),
             });
         } else {
+            let index = access.ast();
             return ArrayStatement.create({
                 name: id.sourceString,
+                access: index,
                 compound: true,
                 expression: BinaryOperation.create({
                     operation: op.sourceString.substring(0, op.sourceString.length - 1),
                     lhs: ArrayAccess.create({
                         name: id.sourceString,
-                        access: access.ast(),
+                        access: index,
+                        compound: true,
                         source: this.source.getLineAndColumnMessage(),
                     }),
                     rhs: exp.ast(),
@@ -182,7 +185,10 @@ semantics.addOperation('ast', {
     },
     Stmt_do(expression, _semi) {
         return CallStatement.create({
-            expression: expression.ast(),
+            expression: MethodCall.create({
+                ...expression.ast(),
+                statement: true,
+            }),
             source: this.source.getLineAndColumnMessage(),
         });
     },
@@ -230,6 +236,7 @@ semantics.addOperation('ast', {
             name: id.sourceString,
             parameters: exp.asIteration().ast(),
             source: this.source.getLineAndColumnMessage(),
+            statement: false,
         });
     },
     boollit(_) {
@@ -285,6 +292,7 @@ semantics.addOperation('ast', {
         return ArrayAccess.create({
             name: id.sourceString,
             access: access.ast(),
+            compound: false,
             source: this.source.getLineAndColumnMessage(),
         });
     },

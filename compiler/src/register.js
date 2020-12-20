@@ -3,6 +3,7 @@ const createRegister = (prefix) => {
     let available = [];
     let counter = 0;
     let label = 0;
+    let state = {};
     return {
         fetch(type) {
             if (type === 'int') {
@@ -41,6 +42,12 @@ const createRegister = (prefix) => {
         },
         generateLabel() {
             return `${prefix}_vm_${label++}`;
+        },
+        save(key, value) {
+            state[key] = value;
+        },
+        state(key) {
+            return state[key];
         },
     };
 };
