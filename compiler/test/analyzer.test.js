@@ -368,16 +368,34 @@ describe('Analyzer detect error programs', () => {
     });
     test('Array init', (done) => {
         let src = `
-            char a[3] = {1u, 2, 3};
+            char a[3] = {200, 5, 3};
             void test() {
             }
         `;
         expect(check(src)).toThrow('Incompatible types: can not convert \'int\' to \'char\'');
         done();
     });
+    test('Array init', (done) => {
+        let src = `
+            char a[3] = {-200, 120, 3};
+            void test() {
+            }
+        `;
+        expect(check(src)).toThrow('Incompatible types: can not convert \'int\' to \'char\'');
+        done();
+    });
+    test('Array init', (done) => {
+        let src = `
+            int a[4] = {-5u, -32000, -40000, 3};
+            void test() {
+            }
+        `;
+        expect(check(src)).toThrow('Value -40000 exceeds \'int\'');
+        done();
+    });
     test('Array access, wrong dimensions', (done) => {
         let src = `
-            char a[3] = {1, 2, 3};
+            char a[3] = {1, -2, 3};
             void test() {
                 char b;
                 b = a[2][1];

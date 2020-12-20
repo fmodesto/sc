@@ -259,12 +259,11 @@ semantics.addOperation('ast', {
     },
     neglit(_1, val, suffix) {
         let num = -val.sourceString;
-        if (num >= 32768 || num < -32768) {
+        if (num < -32768) {
             throw CompileError.create(this.source.getLineAndColumnMessage(), `Value ${num} exceeds 'int'`);
         }
-        console.log(num);
         return Literal.create({
-            type: (num >= -128 && num < 128) && !suffix.sourceString ? 'char' : 'int',
+            type: num < -128 || suffix.sourceString ? 'int' : 'char',
             value: num,
             source: this.source.getLineAndColumnMessage(),
         });

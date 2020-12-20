@@ -104,8 +104,6 @@ BinaryOperation.optimize = function () {
     } else if (this.operation === '*') {
         if (isOne(rhs)) return lhs;
         if (isOne(lhs)) return rhs;
-        if (isZero(rhs)) return rhs;
-        if (isZero(lhs)) return lhs;
         if (isPower(lhs)) return createBinary('<<', rhs, power(lhs), this.source);
         if (isPower(rhs)) return createBinary('<<', lhs, power(rhs), this.source);
     } else if (this.operation === '/') {
