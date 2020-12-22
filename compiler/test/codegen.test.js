@@ -417,6 +417,352 @@ describe('Generate code', () => {
         done();
     });
 
+    test('If-else-if-else statement', (done) => {
+        let code = `
+            char foo(char a) {
+                char res;
+                if (a > 0) {
+                    res = a;
+                } else if (a < 0) {
+                    res = -a;
+                } else {
+                    res = 0;
+                }
+                return res;
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_return 0',
+            '.BYTE foo_a 0',
+            '.LOCALS',
+            '.BYTE foo_res 0',
+            '.TMP',
+            '.BYTE foo_0 0',
+            '.CODE',
+            'GT foo_0,foo_a,#$00',
+            'JZ foo_vm_0,foo_0',
+            'MOV foo_res,foo_a',
+            'JMP foo_vm_1',
+            '.LABEL foo_vm_0',
+            'LT foo_0,foo_a,#$00',
+            'JZ foo_vm_2,foo_0',
+            'NEG foo_0,foo_a',
+            'MOV foo_res,foo_0',
+            'JMP foo_vm_3',
+            '.LABEL foo_vm_2',
+            'MOV foo_res,#$00',
+            '.LABEL foo_vm_3',
+            '.LABEL foo_vm_1',
+            'MOV foo_return,foo_res',
+            'JMP foo_end',
+            '.LABEL foo_end',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test('If always true', (done) => {
+        let code = `
+            char foo(char a) {
+                if (1) {
+                    return 10 / a;
+                } else {
+                    return 0;
+                }
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_return 0',
+            '.BYTE foo_a 0',
+            '.TMP',
+            '.BYTE foo_0 0',
+            '.CODE',
+            'DIV foo_0,#$0A,foo_a',
+            'MOV foo_return,foo_0',
+            'JMP foo_end',
+            '.LABEL foo_end',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test('If always false', (done) => {
+        let code = `
+            char foo(char a) {
+                if (0) {
+                    return 10 / a;
+                } else {
+                    return 0;
+                }
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_return 0',
+            '.BYTE foo_a 0',
+            '.CODE',
+            'MOV foo_return,#$00',
+            'JMP foo_end',
+            '.LABEL foo_end',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test('For loop statement', (done) => {
+        let code = `
+            int sum(char max) {
+                int res;
+                char i;
+                for (i = 0, res = 0; i < max; i+=1) {
+                    res += i;
+                }
+                return res;
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION sum',
+            '.BYTE sum_return_H 0',
+            '.BYTE sum_return_L 0',
+            '.BYTE sum_max 0',
+            '.LOCALS',
+            '.BYTE sum_res_H 0',
+            '.BYTE sum_res_L 0',
+            '.BYTE sum_i 0',
+            '.TMP',
+            '.BYTE sum_0 0',
+            '.BYTE sum_1 0',
+            '.CODE',
+            'MOV sum_i,#$00',
+            'MOV sum_res_H:sum_res_L,#$00:#$00',
+            '.LABEL sum_vm_0',
+            'LT sum_1,sum_i,sum_max',
+            'JZ sum_vm_1,sum_1',
+            'CAST sum_0:sum_1,sum_i',
+            'ADD sum_0:sum_1,sum_res_H:sum_res_L,sum_0:sum_1',
+            'MOV sum_res_H:sum_res_L,sum_0:sum_1',
+            'ADD sum_0,sum_i,#$01',
+            'MOV sum_i,sum_0',
+            'JMP sum_vm_0',
+            '.LABEL sum_vm_1',
+            'MOV sum_return_H:sum_return_L,sum_res_H:sum_res_L',
+            'JMP sum_end',
+            '.LABEL sum_end',
+            '.RETURN sum',
+        ]);
+        done();
+    });
+
+    test('For loop statement, missing condition', (done) => {
+        let code = `
+            void foo(int a) {
+                char i;
+                for (i = 0;; i+=1) {
+                    a += i;
+                }
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_a_H 0',
+            '.BYTE foo_a_L 0',
+            '.LOCALS',
+            '.BYTE foo_i 0',
+            '.TMP',
+            '.BYTE foo_0 0',
+            '.BYTE foo_1 0',
+            '.CODE',
+            'MOV foo_i,#$00',
+            '.LABEL foo_vm_0',
+            'CAST foo_0:foo_1,foo_i',
+            'ADD foo_0:foo_1,foo_a_H:foo_a_L,foo_0:foo_1',
+            'MOV foo_a_H:foo_a_L,foo_0:foo_1',
+            'ADD foo_0,foo_i,#$01',
+            'MOV foo_i,foo_0',
+            'JMP foo_vm_0',
+            '.LABEL foo_end',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test('For loop statement, always true', (done) => {
+        let code = `
+            void foo(int a) {
+                char i;
+                for (i = 0; 7; i+=1) {
+                    a += i;
+                }
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_a_H 0',
+            '.BYTE foo_a_L 0',
+            '.LOCALS',
+            '.BYTE foo_i 0',
+            '.TMP',
+            '.BYTE foo_0 0',
+            '.BYTE foo_1 0',
+            '.CODE',
+            'MOV foo_i,#$00',
+            '.LABEL foo_vm_0',
+            'CAST foo_0:foo_1,foo_i',
+            'ADD foo_0:foo_1,foo_a_H:foo_a_L,foo_0:foo_1',
+            'MOV foo_a_H:foo_a_L,foo_0:foo_1',
+            'ADD foo_0,foo_i,#$01',
+            'MOV foo_i,foo_0',
+            'JMP foo_vm_0',
+            '.LABEL foo_end',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test('For loop statement, forever', (done) => {
+        let code = `
+            void foo(char a) {
+                for (;;) {
+                    a += 1;
+                }
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_a 0',
+            '.TMP',
+            '.BYTE foo_0 0',
+            '.CODE',
+            '.LABEL foo_vm_0',
+            'ADD foo_0,foo_a,#$01',
+            'MOV foo_a,foo_0',
+            'JMP foo_vm_0',
+            '.LABEL foo_end',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test('For loop statement, always false', (done) => {
+        let code = `
+            void foo(int a) {
+                char i;
+                for (i = 0; 0; i+=1) {
+                    a += i;
+                }
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_a_H 0',
+            '.BYTE foo_a_L 0',
+            '.LOCALS',
+            '.BYTE foo_i 0',
+            '.TMP',
+            '.BYTE foo_0 0',
+            '.BYTE foo_1 0',
+            '.CODE',
+            'MOV foo_i,#$00',
+            'CAST foo_0:foo_1,foo_i',
+            'ADD foo_0:foo_1,foo_a_H:foo_a_L,foo_0:foo_1',
+            'MOV foo_a_H:foo_a_L,foo_0:foo_1',
+            'ADD foo_0,foo_i,#$01',
+            'MOV foo_i,foo_0',
+            '.LABEL foo_end',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+
+    test('Do-While statement', (done) => {
+        let code = `
+            char foo(char a) {
+                char b;
+                b = 0;
+                do {
+                    a <<= 1;
+                    b += 1;
+                } while (a);
+                return b;
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_return 0',
+            '.BYTE foo_a 0',
+            '.LOCALS',
+            '.BYTE foo_b 0',
+            '.TMP',
+            '.BYTE foo_0 0',
+            '.CODE',
+            'MOV foo_b,#$00',
+            '.LABEL foo_vm_0',
+            'SHL foo_0,foo_a,#$01',
+            'MOV foo_a,foo_0',
+            'ADD foo_0,foo_b,#$01',
+            'MOV foo_b,foo_0',
+            'JNZ foo_vm_0,foo_a',
+            'MOV foo_return,foo_b',
+            'JMP foo_end',
+            '.LABEL foo_end',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test('Do-While statement always false', (done) => {
+        let code = `
+            char foo(char a) {
+                do {
+                    a += 1;
+                } while (false);
+                return a;
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_return 0',
+            '.BYTE foo_a 0',
+            '.TMP',
+            '.BYTE foo_0 0',
+            '.CODE',
+            'ADD foo_0,foo_a,#$01',
+            'MOV foo_a,foo_0',
+            'MOV foo_return,foo_a',
+            'JMP foo_end',
+            '.LABEL foo_end',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test('Do-While statement always true', (done) => {
+        let code = `
+            void foo(char a) {
+                do {
+                    a += 1;
+                } while (true);
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_a 0',
+            '.TMP',
+            '.BYTE foo_0 0',
+            '.CODE',
+            '.LABEL foo_vm_0',
+            'ADD foo_0,foo_a,#$01',
+            'MOV foo_a,foo_0',
+            'JMP foo_vm_0',
+            '.LABEL foo_end',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
     test('While statement', (done) => {
         let code = `
             char foo(char a) {
@@ -449,6 +795,52 @@ describe('Generate code', () => {
             '.LABEL foo_vm_1',
             'MOV foo_return,foo_b',
             'JMP foo_end',
+            '.LABEL foo_end',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test('While statement always false', (done) => {
+        let code = `
+            char foo(char a) {
+                while (false) {
+                    a += 1;
+                }
+                return a;
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_return 0',
+            '.BYTE foo_a 0',
+            '.CODE',
+            'MOV foo_return,foo_a',
+            'JMP foo_end',
+            '.LABEL foo_end',
+            '.RETURN foo',
+        ]);
+        done();
+    });
+
+    test('While statement always true', (done) => {
+        let code = `
+            void foo(char a) {
+                while (4) {
+                    a += 1;
+                }
+            }
+        `;
+        expect(generate(code)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_a 0',
+            '.TMP',
+            '.BYTE foo_0 0',
+            '.CODE',
+            '.LABEL foo_vm_0',
+            'ADD foo_0,foo_a,#$01',
+            'MOV foo_a,foo_0',
+            'JMP foo_vm_0',
             '.LABEL foo_end',
             '.RETURN foo',
         ]);

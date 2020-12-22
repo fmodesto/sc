@@ -37,6 +37,12 @@ const ArrayStatement = Statement.create({
 const IfStatement = Statement.create({
     kind: 'IfStatement',
 });
+const ForStatement = Statement.create({
+    kind: 'ForStatement',
+});
+const DoStatement = Statement.create({
+    kind: 'DoStatement',
+});
 const WhileStatement = Statement.create({
     kind: 'WhileStatement',
 });
@@ -85,6 +91,8 @@ export {
     AssignmentStatement,
     ArrayStatement,
     IfStatement,
+    ForStatement,
+    DoStatement,
     WhileStatement,
     CallStatement,
     ReturnStatement,

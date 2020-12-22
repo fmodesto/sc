@@ -8,6 +8,8 @@ import {
     Statement,
     AssignmentStatement,
     IfStatement,
+    ForStatement,
+    DoStatement,
     WhileStatement,
     CallStatement,
     ReturnStatement,
@@ -199,6 +201,20 @@ IfStatement.analyze = function (context) {
     this.predicate.analyze(context);
     this.consequent.forEach((e) => e.analyze(context));
     this.alternate.forEach((e) => e.analyze(context));
+    return this;
+};
+
+ForStatement.analyze = function (context) {
+    this.initialize.forEach((e) => e.analyze(context));
+    this.predicate.forEach((e) => e.analyze(context));
+    this.iteration.forEach((e) => e.analyze(context));
+    this.block.forEach((e) => e.analyze(context));
+    return this;
+};
+
+DoStatement.analyze = function (context) {
+    this.predicate.analyze(context);
+    this.block.forEach((e) => e.analyze(context));
     return this;
 };
 

@@ -23,6 +23,24 @@ const valid = `
     char simple(char a, char b) {
         return a + b << 1;
     }
+    char forStmt(char a, char b) {
+        char c, d;
+        for (c = 1, d = 30; c < d; c += 1, d -= 1) {
+            a -= b;
+        }
+        return (char) array[1][b];
+    }
+    char doStmt(char a, char b) {
+        char c;
+        bool b;
+        b = (int) c;
+        c = 0x1;
+        do {
+            b += foo(a, b);
+            c <<= 1;
+        } while (c);
+        return (char) array[1][b];
+    }
     char whileStmt(char a, char b) {
         char c;
         bool b;

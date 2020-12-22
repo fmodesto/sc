@@ -6,6 +6,8 @@ import {
     Var,
     AssignmentStatement,
     IfStatement,
+    ForStatement,
+    DoStatement,
     WhileStatement,
     CallStatement,
     ReturnStatement,
@@ -97,6 +99,11 @@ const variable = function (context, name) {
 };
 const hex = function (value) {
     return `$${(value & 0xFF).toString(16).toUpperCase().padStart(2, '0')}`;
+};
+const warning = function (src, message) {
+    if (typeof process.env.JEST_WORKER_ID === 'undefined') {
+        console.error(`${message}\n${src}`);
+    }
 };
 
 const codeArrayIndex = function (context, register, {name, access}) {
@@ -302,6 +309,14 @@ ArrayStatement.generate = function (context, register) {
 };
 
 IfStatement.generate = function (context, register) {
+    if (Literal.isPrototypeOf(this.predicate)) {
+        warning(this.source, 'If statement with constant predicate');
+        if (this.predicate.value) {
+            return this.consequent.map((e) => e.generate(context, register)).flat();
+        } else {
+            return this.alternate.map((e) => e.generate(context, register)).flat();
+        }
+    }
     let elseLabel = register.generateLabel();
     let endLabel = register.generateLabel();
     let { address, instructions: pred } = this.predicate.generate(context, register);
@@ -328,20 +343,95 @@ IfStatement.generate = function (context, register) {
     }
 };
 
-WhileStatement.generate = function (context, register) {
-    let whileLabel = register.generateLabel();
-    let endLabel = register.generateLabel();
-    let { address, instructions: pred } = this.predicate.generate(context, register);
-    register.release(address);
+ForStatement.generate = function (context, register) {
+    let init = this.initialize.map((e) => e.generate(context, register)).flat();
+    let iterate = this.iteration.map((e) => e.generate(context, register)).flat();
     let block = this.block.map((e) => e.generate(context, register)).flat();
-    return [
-        `.LABEL ${whileLabel}`,
-        ...pred,
-        `JZ ${endLabel},${address}`,
-        ...block,
-        `JMP ${whileLabel}`,
-        `.LABEL ${endLabel}`,
-    ];
+    if (this.predicate.length === 0 || Literal.isPrototypeOf(this.predicate[0]) && this.predicate[0].value) {
+        let loopLabel = register.generateLabel();
+        return [
+            ...init,
+            `.LABEL ${loopLabel}`,
+            ...block,
+            ...iterate,
+            `JMP ${loopLabel}`,
+        ];
+    } else if (Literal.isPrototypeOf(this.predicate[0])) {
+        return [
+            ...init,
+            ...block,
+            ...iterate,
+        ];
+    } else {
+        let loopLabel = register.generateLabel();
+        let endLabel = register.generateLabel();
+        let { address, instructions } = this.predicate[0].generate(context, register);
+        return [
+            ...init,
+            `.LABEL ${loopLabel}`,
+            ...instructions,
+            `JZ ${endLabel},${address}`,
+            ...block,
+            ...iterate,
+            `JMP ${loopLabel}`,
+            `.LABEL ${endLabel}`,
+        ];
+    }
+};
+
+DoStatement.generate = function (context, register) {
+    let block = this.block.map((e) => e.generate(context, register)).flat();
+    if (Literal.isPrototypeOf(this.predicate) && !this.predicate.value) {
+        warning(this.source, 'Unnecessary do while statement');
+        return block;
+    }
+
+    let loopLabel = register.generateLabel();
+    if (Literal.isPrototypeOf(this.predicate)) {
+        return [
+            `.LABEL ${loopLabel}`,
+            ...block,
+            `JMP ${loopLabel}`,
+        ];
+    } else {
+        let { address, instructions: pred } = this.predicate.generate(context, register);
+        register.release(address);
+        return [
+            `.LABEL ${loopLabel}`,
+            ...block,
+            ...pred,
+            `JNZ ${loopLabel},${address}`,
+        ];
+    }
+};
+
+WhileStatement.generate = function (context, register) {
+    if (Literal.isPrototypeOf(this.predicate) && !this.predicate.value) {
+        warning(this.source, 'Unexecutable while statement');
+        return [];
+    }
+
+    let block = this.block.map((e) => e.generate(context, register)).flat();
+    let loopLabel = register.generateLabel();
+    let endLabel = register.generateLabel();
+    if (Literal.isPrototypeOf(this.predicate)) {
+        return [
+            `.LABEL ${loopLabel}`,
+            ...block,
+            `JMP ${loopLabel}`,
+        ];
+    } else {
+        let { address, instructions: pred } = this.predicate.generate(context, register);
+        register.release(address);
+        return [
+            `.LABEL ${loopLabel}`,
+            ...pred,
+            `JZ ${endLabel},${address}`,
+            ...block,
+            `JMP ${loopLabel}`,
+            `.LABEL ${endLabel}`,
+        ];
+    }
 };
 
 CallStatement.generate = function (context, register) {

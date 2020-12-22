@@ -18,11 +18,15 @@ SimpleC {
    Var         =  id
    Statements  =  Stmt* ReturnStmt?
 
-   Stmt        =  id assignop Exp ";"                      -- assignment
-               |  id ArrayAccess+ assignop Exp ";"         -- array
-               |  if "(" Exp ")" "{" Statements "}" Else?  -- if
-               |  while "(" Exp ")" "{" Stmt* "}"          -- while
-               |  MethodCall ";"                           -- do
+   Stmt        =  Assignment ";"                                                                         -- assign
+               |  if "(" Exp ")" "{" Statements "}" Else?                                                -- if
+               |  for "(" ListOf<Assignment, ","> ";" Exp? ";" ListOf<Assignment, ","> ")" "{" Stmt* "}" -- for
+               |  do "{" Stmt* "}" while "(" Exp ")" ";"                                                 -- do
+               |  while "(" Exp ")" "{" Stmt* "}"                                                        -- while
+               |  MethodCall ";"                                                                         -- call
+
+   Assignment  =  id assignop Exp                          -- simple
+               |  id ArrayAccess+ assignop Exp             -- array
 
    Else        = else "{" Statements "}"                   -- block
                | else Stmt_if                              -- if
@@ -80,8 +84,10 @@ SimpleC {
    else        =  "else" ~idrest
    while       =  "while" ~idrest
    return      =  "return" ~idrest
+   for         =  "for" ~idrest
+   do          =  "do" ~idrest
 
-   keyword     =  char | int | bool | true | false | reg | if | else | while | return | void
+   keyword     =  char | int | bool | true | false | reg | if | else | while | do | for | return | void
    id          =  ~keyword letter idrest*
    idrest      =  alnum
    numlit      =  intlit | hexlit

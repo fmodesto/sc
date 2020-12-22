@@ -9,7 +9,10 @@ import {
     MethodDeclaration,
     Var,
     AssignmentStatement,
+    ArrayStatement,
     IfStatement,
+    ForStatement,
+    DoStatement,
     WhileStatement,
     CallStatement,
     ReturnStatement,
@@ -20,7 +23,6 @@ import {
     MethodCall,
     Literal,
     Variable,
-    ArrayStatement,
 } from './ast.js';
 import CompileError from './error.js';
 import { byte, word } from './binary.js';
@@ -109,7 +111,10 @@ semantics.addOperation('ast', {
     Statements(statements, returnStatement) {
         return [...statements.ast(), ...returnStatement.ast()];
     },
-    Stmt_assignment(id, op, exp, _1) {
+    Stmt_assign(assign, _1) {
+        return assign.ast();
+    },
+    Assignment_simple(id, op, exp) {
         if (op.sourceString === '=') {
             return AssignmentStatement.create({
                 name: id.sourceString,
@@ -132,7 +137,7 @@ semantics.addOperation('ast', {
             });
         }
     },
-    Stmt_array(id, access, op, exp, _1) {
+    Assignment_array(id, access, op, exp) {
         if (op.sourceString === '=') {
             return ArrayStatement.create({
                 name: id.sourceString,
@@ -176,6 +181,22 @@ semantics.addOperation('ast', {
     Else_if(_1, statement) {
         return [statement.ast()];
     },
+    Stmt_for(_for, _opp, assign, _sc1, predicate, _sc2, iteration, _clp, _opb, block, _clb) {
+        return ForStatement.create({
+            initialize: assign.asIteration().ast(),
+            predicate: predicate.ast(),
+            iteration: iteration.asIteration().ast(),
+            block: block.ast(),
+            source: this.source.getLineAndColumnMessage(),
+        });
+    },
+    Stmt_do(_do, _opb, block, _clb, _while, _opp, predicate, _clp, _sc) {
+        return DoStatement.create({
+            predicate: predicate.ast(),
+            block: block.ast(),
+            source: this.source.getLineAndColumnMessage(),
+        });
+    },
     Stmt_while(_while, _opp, predicate, _clp, _opb, block, _clb) {
         return WhileStatement.create({
             predicate: predicate.ast(),
@@ -183,7 +204,7 @@ semantics.addOperation('ast', {
             source: this.source.getLineAndColumnMessage(),
         });
     },
-    Stmt_do(expression, _semi) {
+    Stmt_call(expression, _semi) {
         return CallStatement.create({
             expression: MethodCall.create({
                 ...expression.ast(),

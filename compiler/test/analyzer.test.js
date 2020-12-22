@@ -488,7 +488,6 @@ describe('Analyzer correct programs', () => {
             void bar() {
             }
             void foo(char b) {
-                while (0) {}
                 if (!b) {
                     return;
                 }
@@ -507,6 +506,33 @@ describe('Analyzer correct programs', () => {
                 } else if (a == b) {
                 } else {
                 }
+            }
+        `;
+        expect(check(src)).not.toThrow();
+        done();
+    });
+    test('Handles for statements', (done) => {
+        let src = `
+            char a = 2;
+
+            void foo(char b) {
+                int c;
+                for (c = 3; c < 20; c += 1) {
+                    b += 1;
+                }
+            }
+        `;
+        expect(check(src)).not.toThrow();
+        done();
+    });
+    test('Handles do while statements', (done) => {
+        let src = `
+            char a = 2;
+
+            void foo(char b) {
+                do {
+                    b += 1;
+                } while (b);
             }
         `;
         expect(check(src)).not.toThrow();
