@@ -646,10 +646,23 @@ describe('Analyzer correct programs', () => {
         expect(check(src)).not.toThrow();
         done();
     });
-    test('Handles boolean comparison', (done) => {
+    test('Handles boolean logic or', (done) => {
         let src = `
             char check(char a, char b) {
                 if (a == 0 || a == b) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+            }
+        `;
+        expect(check(src)).not.toThrow();
+        done();
+    });
+    test('Handles boolean logic and', (done) => {
+        let src = `
+            char check(char a, char b) {
+                if (a == 0 && a == b) {
                     return 0;
                 } else {
                     return 1;
