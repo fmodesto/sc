@@ -40,12 +40,16 @@ const methods = {
 };
 
 const generateInstruction = function (opcode, params) {
-    if (opcode.startsWith('.')) {
-        return methods[opcode](params);
-    } else if (params.some((e) => e.includes(':'))) {
-        return operations16[opcode](...params.map((e) => e.split(':')));
-    } else {
-        return operations8[opcode](...params);
+    try {
+        if (opcode.startsWith('.')) {
+            return methods[opcode](params);
+        } else if (params.some((e) => e.includes(':'))) {
+            return operations16[opcode](...params.map((e) => e.split(':')));
+        } else {
+            return operations8[opcode](...params);
+        }
+    } catch (e) {
+        throw new Error(`Unknown instruction ${opcode} ${params}`);
     }
 };
 

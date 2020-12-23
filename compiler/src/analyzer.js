@@ -31,7 +31,7 @@ const integerUnaryOperations = ['-', '~'];
 const integerBinaryOperations = ['+', '-', '*', '/', '%', '<<', '>>', '&', '|', '^'];
 const shiftOperations = ['<<', '>>'];
 
-const booleanOperations = ['&', '|', '^', '==', '!='];
+const booleanOperations = ['&', '|', '^', '==', '!=', '||', '&&'];
 
 const logicUnaryOperations = ['!'];
 const logicBinaryOperations = ['&&', '||'];

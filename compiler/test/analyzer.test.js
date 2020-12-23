@@ -34,7 +34,7 @@ describe('Analyzer detect error programs', () => {
         expect(check(src)).toThrow('Redefinition of \'a\'');
         done();
     });
-    test.only('Duplicate register', (done) => {
+    test('Duplicate register', (done) => {
         let src = `
             char a = 5;
             reg(7) char a;
@@ -641,6 +641,19 @@ describe('Analyzer correct programs', () => {
                 a[l] = a[r];
                 a[r] = t;
                 a[0] += 5;
+            }
+        `;
+        expect(check(src)).not.toThrow();
+        done();
+    });
+    test('Handles boolean comparison', (done) => {
+        let src = `
+            char check(char a, char b) {
+                if (a == 0 || a == b) {
+                    return 0;
+                } else {
+                    return 1;
+                }
             }
         `;
         expect(check(src)).not.toThrow();
