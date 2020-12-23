@@ -34,7 +34,7 @@ describe('Analyzer detect error programs', () => {
         expect(check(src)).toThrow('Redefinition of \'a\'');
         done();
     });
-    test('Duplicate register', (done) => {
+    test.only('Duplicate register', (done) => {
         let src = `
             char a = 5;
             reg(7) char a;

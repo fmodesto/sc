@@ -17,7 +17,6 @@ import {
     MethodCall,
     Literal,
     Variable,
-    RegisterDeclaration,
     ArrayStatement,
     ArrayAccess,
     ArrayDeclaration,
@@ -135,33 +134,15 @@ GlobalDeclaration.addToContext = function (context) {
 
 GlobalDeclaration.generate = function () {
     let value = this.expression.optimize().value;
+    const mem = (inc = 0) => (this.address.length === 0 ? '.BYTE' : `.RBYTE $${(this.address[0] + inc).toString(16).toUpperCase().padStart(3, '0')}`);
     if (this.type === 'bool') {
-        return [`.BYTE ${this.name} ${hex(value ? 1 : 0)}`];
+        return [`${mem(0)} ${this.name} ${hex(value ? 1 : 0)}`];
     } else if (this.type === 'char') {
-        return [`.BYTE ${this.name} ${hex(value)}`];
+        return [`${mem(0)} ${this.name} ${hex(value)}`];
     } else if (this.type === 'int') {
         return [
-            `.BYTE ${this.name}_H ${hex(value >> 8)}`,
-            `.BYTE ${this.name}_L ${hex(value)}`,
-        ];
-    } else {
-        throw new Error(`Unknown type ${this.type}`);
-    }
-};
-
-RegisterDeclaration.addToContext = function (context) {
-    context.addVar(this.name, this.type);
-};
-
-RegisterDeclaration.generate = function () {
-    if (this.type === 'bool') {
-        return [`.REGISTER ${this.name} ${this.address}`];
-    } else if (this.type === 'char') {
-        return [`.REGISTER ${this.name} ${this.address}`];
-    } else if (this.type === 'int') {
-        return [
-            `.REGISTER ${this.name}_H ${this.address}`,
-            `.REGISTER ${this.name}_L ${this.address + 1}`,
+            `${mem(0)} ${this.name}_H ${hex(value >> 8)}`,
+            `${mem(1)} ${this.name}_L ${hex(value)}`,
         ];
     } else {
         throw new Error(`Unknown type ${this.type}`);
@@ -176,8 +157,9 @@ ArrayDeclaration.addToContext = function (context) {
 ArrayDeclaration.generate = function (context) {
     let dimensions = context.getArrayDimensions(this.name);
     let values = this.value.generateValues(this.type, dimensions).replace(/( #)*$/, '');
+    let opcode = this.address.length === 0 ? '.ARRAY' : `.RARRAY $${(this.address[0]).toString(16).toUpperCase().padStart(3, '0')}`;
     return [
-        `.ARRAY ${this.name} ${values}`,
+        `${opcode} ${this.name} ${values}`,
     ];
 };
 

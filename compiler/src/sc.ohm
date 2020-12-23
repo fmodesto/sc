@@ -1,9 +1,12 @@
 SimpleC {
    Program     =  directives* Global* Method+
 
-   Global      =  type id "=" Exp ";"                      -- mem
-               |  type id ArrayDim* "=" ArrayInit ";"          -- array
-               |  reg "(" numlit ")" type id ";"           -- reg
+   Global      =  Register? type id GlobalValue? ";"                 -- mem
+               |  Register? type id ArrayDim* GlobalArray? ";"       -- array
+
+   Register    =  reg "(" numlit ")"
+   GlobalValue =  "=" Exp
+   GlobalArray =  "=" ArrayInit
 
    ArrayDim    = "[" numlit "]"
    ArrayInit   =  "{" NonemptyListOf<ArrayInit, ","> "}"   -- block

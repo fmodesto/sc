@@ -265,7 +265,7 @@ describe('Generate code', () => {
         let code = `
             char ga = 73;
             int gb = -7;
-            bool gc = true;
+            bool gc;
             void foo(char a, int b, bool c) {
                 char pa;
                 int pb;
@@ -276,7 +276,7 @@ describe('Generate code', () => {
             '.BYTE ga $49',
             '.BYTE gb_H $FF',
             '.BYTE gb_L $F9',
-            '.BYTE gc $01',
+            '.BYTE gc $00',
             '.FUNCTION foo',
             '.BYTE foo_a 0',
             '.BYTE foo_b_H 0',
@@ -297,16 +297,16 @@ describe('Generate code', () => {
     test('Register', (done) => {
         let code = `
             reg(0xFF) char ra;
-            reg(13456) int rb;
-            reg(0xFFF) bool rc;
+            reg(3456) int rb;
+            reg(0xFFF) bool rc = true;
             void foo() {
             }
         `;
         expect(generate(code)).toEqual([
-            '.REGISTER ra 255',
-            '.REGISTER rb_H 13456',
-            '.REGISTER rb_L 13457',
-            '.REGISTER rc 4095',
+            '.RBYTE $0FF ra $00',
+            '.RBYTE $D80 rb_H $00',
+            '.RBYTE $D81 rb_L $00',
+            '.RBYTE $FFF rc $01',
             '.FUNCTION foo',
             '.CODE',
             '.LABEL foo_end',
@@ -675,7 +675,6 @@ describe('Generate code', () => {
         ]);
         done();
     });
-
 
     test('Do-While statement', (done) => {
         let code = `
@@ -1209,6 +1208,76 @@ describe('Generate code', () => {
             'MOV foo_b_H:foo_b_L,#$00:#$07',
             'MOV foo_c,#1',
             'CALL foo',
+            '.LABEL test_end',
+            '.RETURN test',
+        ]);
+        done();
+    });
+
+    test('Array declaration', (done) => {
+        let code = `
+            int array[2][3][3] = {
+                {
+                    { 1, 2, 3 },
+                    { 4, 5, 6 },
+                    { 7, 8, 9 }
+                },
+                {
+                    { 11, 12, 13 },
+                    { 14, 15, 16 },
+                    { 17, 18, 19 }
+                }
+            };
+            void test() {
+            }
+        `;
+        expect(generate(code, false)).toEqual([
+            '.ARRAY array $00 $01 $00 $02 $00 $03 # # $00 $04 $00 $05 $00 $06 # # $00 $07 $00 $08 $00 $09 # # # # # # # # # # $00 $0B $00 $0C $00 $0D # # $00 $0E $00 $0F $00 $10 # # $00 $11 $00 $12 $00 $13',
+            '.FUNCTION test',
+            '.CODE',
+            '.LABEL test_end',
+            '.RETURN test',
+        ]);
+        done();
+    });
+
+    test('Array register', (done) => {
+        let code = `
+            reg(0xf00) int array[2][3][3] = {
+                {
+                    { 1, 2, 3 },
+                    { 4, 5, 6 },
+                    { 7, 8, 9 }
+                },
+                {
+                    { 11, 12, 13 },
+                    { 14, 15, 16 },
+                    { 17, 18, 19 }
+                }
+            };
+            void test() {
+            }
+        `;
+        expect(generate(code, false)).toEqual([
+            '.RARRAY $F00 array $00 $01 $00 $02 $00 $03 # # $00 $04 $00 $05 $00 $06 # # $00 $07 $00 $08 $00 $09 # # # # # # # # # # $00 $0B $00 $0C $00 $0D # # $00 $0E $00 $0F $00 $10 # # $00 $11 $00 $12 $00 $13',
+            '.FUNCTION test',
+            '.CODE',
+            '.LABEL test_end',
+            '.RETURN test',
+        ]);
+        done();
+    });
+
+    test('Array no initialized', (done) => {
+        let code = `
+            int array[2][3][3];
+            void test() {
+            }
+        `;
+        expect(generate(code, false)).toEqual([
+            '.ARRAY array $00 $00 $00 $00 $00 $00 # # $00 $00 $00 $00 $00 $00 # # $00 $00 $00 $00 $00 $00 # # # # # # # # # # $00 $00 $00 $00 $00 $00 # # $00 $00 $00 $00 $00 $00 # # $00 $00 $00 $00 $00 $00',
+            '.FUNCTION test',
+            '.CODE',
             '.LABEL test_end',
             '.RETURN test',
         ]);

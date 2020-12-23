@@ -3,7 +3,6 @@ import fs from 'fs';
 import {
     Program,
     GlobalDeclaration,
-    RegisterDeclaration,
     ArrayDeclaration,
     ArrayContents,
     MethodDeclaration,
@@ -39,6 +38,16 @@ function createBinary(lhs, op, rhs) {
     });
 }
 
+function initArray(dimensions, source) {
+    if (dimensions.length === 0) {
+        return Literal.create({ value: 0, type: 'char', source });
+    }
+    return ArrayContents.create({
+        source,
+        elements: Array(dimensions[0]).fill(initArray(dimensions.slice(1), source)),
+    });
+}
+
 semantics.addOperation('ast', {
     Program(_1, globals, methods) {
         return Program.create({
@@ -47,30 +56,39 @@ semantics.addOperation('ast', {
             source: this.source.getLineAndColumnMessage(),
         });
     },
-    Global_mem(type, id, _1, exp, _2) {
+    Global_mem(register, typeNode, id, initialization, _1) {
+        let type = typeNode.sourceString;
+        let source = this.source.getLineAndColumnMessage();
+        let expression = initialization.numChildren === 0 ? Literal.create({ value: 0, type, source }) : initialization.child(0).ast();
         return GlobalDeclaration.create({
-            type: type.sourceString,
+            type,
             name: id.sourceString,
-            expression: exp.ast(),
-            source: this.source.getLineAndColumnMessage(),
+            address: register.ast(),
+            expression: expression,
+            source,
         });
     },
-    Global_reg(_1, _2, address, _3, type, id, _4) {
-        return RegisterDeclaration.create({
-            type: type.sourceString,
-            address: +address.sourceString,
-            name: id.sourceString,
-            source: this.source.getLineAndColumnMessage(),
-        });
-    },
-    Global_array(type, id, dimensions, _1, initialization, _2) {
+    Global_array(register, type, id, dim, initialization, _1) {
+        let source = this.source.getLineAndColumnMessage();
+        let dimensions = dim.ast();
+        let value = initialization.numChildren === 0 ? initArray(dimensions, source) : initialization.child(0).ast();
         return ArrayDeclaration.create({
             type: type.sourceString,
-            dimensions: dimensions.ast(),
-            value: initialization.ast(),
+            dimensions,
+            address: register.ast(),
+            value,
             name: id.sourceString,
-            source: this.source.getLineAndColumnMessage(),
+            source,
         });
+    },
+    Register(_1, _2, address, _3) {
+        return +address.sourceString;
+    },
+    GlobalValue(_1, exp) {
+        return exp.ast();
+    },
+    GlobalArray(_1, initialization) {
+        return initialization.ast();
     },
     ArrayDim(_1, size, _2) {
         return +size.sourceString;

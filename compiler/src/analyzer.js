@@ -1,7 +1,6 @@
 import {
     Program,
     GlobalDeclaration,
-    RegisterDeclaration,
     ArrayDeclaration,
     MethodDeclaration,
     Var,
@@ -99,24 +98,16 @@ Program.analyze = function (context = createContext()) {
 };
 
 GlobalDeclaration.analyze = function (context) {
-    const src = this.expression.source;
     this.expression.analyze(context);
     let expression = this.expression.optimize();
-    if (!Literal.isPrototypeOf(expression)) {
-        throw CompileError.create(src, 'Expression must have a constant value');
-    }
     if (context.contains(this.name)) {
         throw CompileError.create(this.source, `Redefinition of '${this.name}'`);
+    }
+    if (!Literal.isPrototypeOf(expression)) {
+        throw CompileError.create(this.expression.source, 'Expression must have a constant value');
     }
     if (!compatibleType(this.type, expression.type)) {
         throw CompileError.create(this.source, `Incompatible types: can not convert '${expression.type}' to '${this.type}'`);
-    }
-    context.addVar(this.name, this.type);
-};
-
-RegisterDeclaration.analyze = function (context) {
-    if (context.contains(this.name)) {
-        throw CompileError.create(this.source, `Redefinition of '${this.name}'`);
     }
     context.addVar(this.name, this.type);
 };

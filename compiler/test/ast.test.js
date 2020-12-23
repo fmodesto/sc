@@ -23,6 +23,7 @@ describe('AST', () => {
                         type: 'char',
                         value: 1,
                     },
+                    address: [],
                 },
             ],
             methods: [

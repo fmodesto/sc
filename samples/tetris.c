@@ -1,4 +1,4 @@
-int array[2][3][3] = {
+int array1[2][3][3] = {
     {
         { 1, 2, 3 },
         { 4, 5, 6 },
@@ -11,9 +11,11 @@ int array[2][3][3] = {
     }
 };
 
+int array2[2][3][3];
+
 void test(char b, char c) {
     int a;
-    a = array[1][1][2] + array[1][b+b][c];
+    a = array1[1][1][2] + array1[1][b+b][c];
 }
 /*
 GET test_0:test_1,array,#$2C

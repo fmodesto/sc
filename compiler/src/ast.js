@@ -12,9 +12,6 @@ const Program = AST.create({
 const GlobalDeclaration = AST.create({
     kind: 'GlobalDeclaration',
 });
-const RegisterDeclaration = AST.create({
-    kind: 'RegisterDeclaration',
-});
 const ArrayDeclaration = AST.create({
     kind: 'ArrayDeclaration',
 });
@@ -82,7 +79,6 @@ export {
     AST,
     Program,
     GlobalDeclaration,
-    RegisterDeclaration,
     ArrayDeclaration,
     ArrayContents,
     MethodDeclaration,
