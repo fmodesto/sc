@@ -1,6 +1,5 @@
-int seed = 0xACE1;
-
 char rand() {
+    static int seed = 0xACE1;
     char bit, low;
     low = (char) seed;
     bit = ((low >> 0) ^ (low >> 2) ^ (low >> 3) ^ (low >> 5)) & 1;

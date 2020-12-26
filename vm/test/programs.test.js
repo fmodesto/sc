@@ -59,8 +59,8 @@ const rand = function (x) {
         '_end_:',
     ];
     let mem = {
-        seed_H: 0xAC,
-        seed_L: 0xE1,
+        rand_seed_H: 0xAC,
+        rand_seed_L: 0xE1,
     };
     for (let i = 0; i <= x; i++)
         mem = execute(code, mem);

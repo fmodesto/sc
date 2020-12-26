@@ -1,17 +1,18 @@
-.BYTE seed_H $AC
-.BYTE seed_L $E1
 .FUNCTION rand
-.BYTE rand_return 0
+.BYTE rand_return $00
+.STATIC
+.BYTE rand_seed_H $AC
+.BYTE rand_seed_L $E1
 .LOCALS
-.BYTE rand_bit 0
-.BYTE rand_low 0
+.BYTE rand_bit $00
+.BYTE rand_low $00
 .TMP
-.BYTE rand_0 0
-.BYTE rand_1 0
-.BYTE rand_2 0
-.BYTE rand_3 0
+.BYTE rand_0 $00
+.BYTE rand_1 $00
+.BYTE rand_2 $00
+.BYTE rand_3 $00
 .CODE
-MOV rand_0,seed_H:seed_L
+MOV rand_0,rand_seed_H:rand_seed_L
 MOV rand_low,rand_0
 SHR rand_0,rand_low,#$02
 XOR rand_0,rand_low,rand_0
@@ -21,7 +22,7 @@ SHR rand_0,rand_low,#$05
 XOR rand_0,rand_1,rand_0
 AND rand_0,rand_0,#$01
 MOV rand_bit,rand_0
-SHR rand_1:rand_0,seed_H:seed_L,#$01
+SHR rand_1:rand_0,rand_seed_H:rand_seed_L,#$01
 JZ rand_vm_0,rand_bit
 MOV rand_2:rand_3,#$80:#$00
 JMP rand_vm_1
@@ -29,8 +30,8 @@ JMP rand_vm_1
 MOV rand_2:rand_3,#$00:#$00
 .LABEL rand_vm_1
 OR rand_2:rand_3,rand_1:rand_0,rand_2:rand_3
-MOV seed_H:seed_L,rand_2:rand_3
-MOV rand_3,seed_H:seed_L
+MOV rand_seed_H:rand_seed_L,rand_2:rand_3
+MOV rand_3,rand_seed_H:rand_seed_L
 MOV rand_return,rand_3
 JMP rand_end
 .LABEL rand_end
