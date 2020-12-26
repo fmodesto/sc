@@ -15,6 +15,17 @@ describe('Analyzer detect error programs', () => {
         expect(check(src)).toThrow('Expression must have a constant value');
         done();
     });
+    test('Static must be constant', (done) => {
+        let src = `
+            char a = 2;
+
+            void foo() {
+                static char b = 5 * a;
+            }
+        `;
+        expect(check(src)).toThrow('Expression must have a constant value');
+        done();
+    });
     test('Global must match the type', (done) => {
         let src = `
             char a = true;
@@ -645,6 +656,17 @@ describe('Analyzer correct programs', () => {
 
             int check(int a, int b) {
                 return sum(a, b);
+            }
+        `;
+        expect(check(src)).not.toThrow();
+        done();
+    });
+    test('Handles static variables', (done) => {
+        let src = `
+            int count() {
+                static int n = 0;
+                n += 1;
+                return n;
             }
         `;
         expect(check(src)).not.toThrow();

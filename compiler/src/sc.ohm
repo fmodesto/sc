@@ -18,7 +18,8 @@ SimpleC {
                |  methodType id "(" ListOf<Param, ","> ")" ";"                      -- extern
    Param       =  type id
 
-   Vars        =  type ListOf<Var, ","> ";"
+   Vars        =  type ListOf<Var, ","> ";"   -- local
+               |  static type Var "=" Exp ";" -- static
    Var         =  id
    Statements  =  Stmt* ReturnStmt?
 
@@ -90,8 +91,9 @@ SimpleC {
    return      =  "return" ~idrest
    for         =  "for" ~idrest
    do          =  "do" ~idrest
+   static          =  "static" ~idrest
 
-   keyword     =  char | int | bool | true | false | reg | if | else | while | do | for | return | void
+   keyword     =  char | int | bool | true | false | reg | if | else | while | do | for | return | void | static
    id          =  ~keyword letter idrest*
    idrest      =  alnum
    numlit      =  intlit | hexlit

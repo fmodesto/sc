@@ -158,8 +158,16 @@ MethodDeclaration.analyze = function (context) {
 };
 
 Var.analyze = function (context) {
+    this.expression.analyze(context);
+    let expression = this.expression.optimize();
     if (context.contains(this.name)) {
         throw CompileError.create(this.source, `Redefinition of '${this.name}'`);
+    }
+    if (!Literal.isPrototypeOf(expression)) {
+        throw CompileError.create(this.expression.source, 'Expression must have a constant value');
+    }
+    if (!compatibleType(this.type, expression.type)) {
+        throw CompileError.create(this.source, `Incompatible types: can not convert '${expression.type}' to '${this.type}'`);
     }
     context.addVar(this.name, this.type);
 };

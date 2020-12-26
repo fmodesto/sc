@@ -11,7 +11,7 @@ describe('AST', () => {
                 return a + b;
             }
         `;
-        expect(ast(src)).toStrictEqual({
+        expect(ast(src)).toMatchObject({
             kind: 'Program',
             globals: [
                 {
@@ -36,6 +36,7 @@ describe('AST', () => {
                             kind: 'Var',
                             type: 'char',
                             name: 'b',
+                            static: false,
                         },
                     ],
                     declaration: true,

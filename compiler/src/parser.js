@@ -28,6 +28,7 @@ import { byte, word } from './binary.js';
 
 const grammar = ohm.grammar(fs.readFileSync('compiler/src/sc.ohm'));
 const semantics = grammar.createSemantics();
+const zero = (source = '') => Literal.create({ value: 0, type: 'char', source });
 
 function createBinary(lhs, op, rhs) {
     return BinaryOperation.create({
@@ -40,7 +41,7 @@ function createBinary(lhs, op, rhs) {
 
 function initArray(dimensions, source) {
     if (dimensions.length === 0) {
-        return Literal.create({ value: 0, type: 'char', source });
+        return zero(source);
     }
     return ArrayContents.create({
         source,
@@ -59,7 +60,7 @@ semantics.addOperation('ast', {
     Global_mem(register, typeNode, id, initialization, _1) {
         let type = typeNode.sourceString;
         let source = this.source.getLineAndColumnMessage();
-        let expression = initialization.numChildren === 0 ? Literal.create({ value: 0, type, source }) : initialization.child(0).ast();
+        let expression = initialization.numChildren === 0 ? zero(source) : initialization.child(0).ast();
         return GlobalDeclaration.create({
             type,
             name: id.sourceString,
@@ -120,18 +121,35 @@ semantics.addOperation('ast', {
         });
     },
     Param(type, name) {
+        let source = this.source.getLineAndColumnMessage();
         return Var.create({
             type: type.sourceString,
             name: name.sourceString,
-            source: this.source.getLineAndColumnMessage(),
+            expression: zero(source),
+            static: false,
+            source,
         });
     },
-    Vars(type, names, _1) {
+    Vars_local(type, names, _1) {
+        let source = this.source.getLineAndColumnMessage();
         return names.asIteration().ast().map((e) => Var.create({
             type: type.sourceString,
             name: e,
-            source: this.source.getLineAndColumnMessage(),
+            expression: zero(source),
+            static: false,
+            source,
         }));
+    },
+    Vars_static(_1, typeNode, id, _2, expression, _3) {
+        let type = typeNode.sourceString;
+        let source = this.source.getLineAndColumnMessage();
+        return Var.create({
+            type,
+            name: id.sourceString,
+            expression: expression.ast(),
+            static: true,
+            source,
+        });
     },
     Var(name) {
         return name.sourceString;

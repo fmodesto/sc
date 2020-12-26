@@ -57,7 +57,7 @@ const boolInstruction = function (dest, { address, type }) {
 const castLiteral = function (type, src) {
     let value = literalValue(src);
     if (type === 'bool') {
-        return value ? '#1' : '#0';
+        return `#${hex(value ? 1 : 0)}`;
     } else if (type === 'char') {
         return `#${hex(value)}`;
     } else if (type === 'int') {
@@ -190,11 +190,11 @@ const returnAddress = function (name, type) {
     if (type === 'void') {
         return [];
     } else if (type === 'bool' || type === 'char') {
-        return [`.BYTE ${name}_return 0`];
+        return [`.BYTE ${name}_return $00`];
     } else if (type === 'int') {
         return [
-            `.BYTE ${name}_return_H 0`,
-            `.BYTE ${name}_return_L 0`,
+            `.BYTE ${name}_return_H $00`,
+            `.BYTE ${name}_return_L $00`,
         ];
     } else {
         throw new Error(`Unknown type ${type}`);
@@ -214,17 +214,19 @@ MethodDeclaration.generate = function (context) {
 
     if (this.declaration) {
         this.vars.forEach((e) => context.addVar(e.name, e.type));
-        let vars = this.vars.map((e) => e.generate(context)).flat();
+        let vars = this.vars.filter((e) => !e.static).map((e) => e.generate(context)).flat();
+        let fixed = this.vars.filter((e) => e.static).map((e) => e.generate(context)).flat();
 
         let register = createRegister(context.getCurrentMethod());
         let instructions = this.statements.map((e) => e.generate(context, register)).flat();
-        let tmps = register.getGenerated().map((e) => `.BYTE ${e} 0`);
+        let tmps = register.getGenerated().map((e) => `.BYTE ${e} $00`);
 
         const prefix = (label, array) => (array.length ? [label, ...array] : []);
         return [
             `.FUNCTION ${this.name}`,
             ...ret,
             ...params,
+            ...prefix('.STATIC', fixed),
             ...prefix('.LOCALS', vars),
             ...prefix('.TMP', tmps),
             '.CODE',
@@ -243,14 +245,15 @@ MethodDeclaration.generate = function (context) {
 };
 
 Var.generate = function (context) {
+    let value = this.expression.optimize().value;
     if (context.getVarType(this.name) === 'int') {
         return [
-            `.BYTE ${context.getCurrentMethod()}_${this.name}_H 0`,
-            `.BYTE ${context.getCurrentMethod()}_${this.name}_L 0`,
+            `.BYTE ${context.getCurrentMethod()}_${this.name}_H ${hex(value >> 8)}`,
+            `.BYTE ${context.getCurrentMethod()}_${this.name}_L ${hex(value)}`,
         ];
     } else {
         return [
-            `.BYTE ${context.getCurrentMethod()}_${this.name} 0`,
+            `.BYTE ${context.getCurrentMethod()}_${this.name} ${hex(value)}`,
         ];
     }
 };
