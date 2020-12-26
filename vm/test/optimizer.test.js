@@ -88,7 +88,7 @@ describe('Optimizes vm code', () => {
                 MOV test_a,test_0
                 JMP test_end
                 .LABEL test_end
-            .RETURN test`;
+            .ENDFUNCTION test`;
 
         expect(optimize(src)).toEqual([
             ['.FUNCTION', 'test'],
@@ -102,7 +102,7 @@ describe('Optimizes vm code', () => {
             ['MOV', 'test_a', 'test_b_H:test_b_L'],
             ['MOV', 'test_a', 'test_c'],
             ['.LABEL', 'test_end'],
-            ['.RETURN', 'test'],
+            ['.ENDFUNCTION', 'test'],
         ]);
         done();
     });
@@ -127,7 +127,7 @@ describe('Optimizes vm code', () => {
                 MOV test_b_H:test_b_L,test_0:test_1
                 JMP test_end
                 .LABEL test_end
-            .RETURN test`;
+            .ENDFUNCTION test`;
 
         expect(optimize(src)).toEqual([
             ['.FUNCTION', 'test'],
@@ -141,7 +141,7 @@ describe('Optimizes vm code', () => {
             ['MOV', 'test_b_H:test_b_L', 'test_a'],
             ['MOV', 'test_b_H:test_b_L', 'test_c'],
             ['.LABEL', 'test_end'],
-            ['.RETURN', 'test'],
+            ['.ENDFUNCTION', 'test'],
         ]);
         done();
     });
@@ -166,7 +166,7 @@ describe('Optimizes vm code', () => {
                 MOV test_c,test_1
                 JMP test_end
                 .LABEL test_end
-            .RETURN test`;
+            .ENDFUNCTION test`;
 
         expect(optimize(src)).toEqual([
             ['.FUNCTION', 'test'],
@@ -180,7 +180,7 @@ describe('Optimizes vm code', () => {
             ['BOOL', 'test_c', 'test_a'],
             ['BOOL', 'test_c', 'test_b_H:test_b_L'],
             ['.LABEL', 'test_end'],
-            ['.RETURN', 'test'],
+            ['.ENDFUNCTION', 'test'],
         ]);
         done();
     });
@@ -203,7 +203,7 @@ describe('Optimizes vm code', () => {
                 CAST test_return_H:test_return_L,test_1
                 JMP test_end
                 .LABEL test_end
-            .RETURN test`;
+            .ENDFUNCTION test`;
 
         expect(optimize(src)).toEqual([
             ['.FUNCTION', 'test'],
@@ -219,7 +219,7 @@ describe('Optimizes vm code', () => {
             ['SHR', 'test_1', 'test_b_H:test_b_L', 'test_a'],
             ['CAST', 'test_return_H:test_return_L', 'test_1'],
             ['.LABEL', 'test_end'],
-            ['.RETURN', 'test'],
+            ['.ENDFUNCTION', 'test'],
         ]);
         done();
     });

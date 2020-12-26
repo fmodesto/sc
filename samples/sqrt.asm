@@ -136,7 +136,7 @@ sta mul16_return_L
 lda mul16_res_H
 sta mul16_return_H
 mul16_end:                    ; .LABEL mul16_end
-ret mul16                     ; .RETURN mul16
+ret mul16                     ; .ENDFUNCTION mul16
 sqrt:                         ; .FUNCTION sqrt
 lda sqrt_x_H                  ; LT sqrt_0,sqrt_x_H:sqrt_x_L,#$00:#$02
 xor #$00
@@ -308,7 +308,7 @@ sta sqrt_return_L
 lda sqrt_res_H
 sta sqrt_return_H
 sqrt_end:                     ; .LABEL sqrt_end
-ret sqrt                      ; .RETURN sqrt
+ret sqrt                      ; .ENDFUNCTION sqrt
 main:                         ; .FUNCTION main
 lda #$01                      ; MOV main_i_H:main_i_L,#$00:#$01
 sta main_i_L
@@ -346,4 +346,4 @@ sta main_i_H
 jmp main_vm_0                 ; JMP main_vm_0
 main_vm_1:                    ; .LABEL main_vm_1
 main_end:                     ; .LABEL main_end
-ret main                      ; .RETURN main
+ret main                      ; .ENDFUNCTION main

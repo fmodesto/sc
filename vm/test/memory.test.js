@@ -17,20 +17,20 @@ describe('Handles memory', () => {
                 .BYTE goo_c 0
                 .BYTE goo_d 0
                 .CODE
-            .RETURN goo
+            .ENDFUNCTION goo
 
             .FUNCTION baz
                 .BYTE baz_return 0
                 .BYTE baz_a 0
                 .CODE
-            .RETURN baz
+            .ENDFUNCTION baz
 
             .FUNCTION bar
                 .BYTE bar_return 0
                 .BYTE bar_a 0
                 CALL baz
                 .CODE
-            .RETURN bar
+            .ENDFUNCTION bar
 
             .FUNCTION foo
                 .BYTE foo_return 0
@@ -39,7 +39,7 @@ describe('Handles memory', () => {
                 .CODE
                 CALL bar
                 CALL goo
-            .RETURN foo
+            .ENDFUNCTION foo
         `;
 
         expect(memory(src)).toEqual([
@@ -76,12 +76,12 @@ describe('Handles memory', () => {
             .FUNCTION foo
                 .CODE
                 CALL bar
-            .RETURN foo
+            .ENDFUNCTION foo
 
             .FUNCTION bar
                 .CODE
                 CALL foo
-            .RETURN bar
+            .ENDFUNCTION bar
         `;
 
         expect(() => memory(src)).toThrow('Recursion detected');

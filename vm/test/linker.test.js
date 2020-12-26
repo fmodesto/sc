@@ -13,7 +13,7 @@ describe('Links requirements', () => {
                 .BYTE foo_b 0
                 .CODE
                 MUL foo_return,foo_a,foo_b
-            .RETURN foo
+            .ENDFUNCTION foo
         `;
 
         expect(link(src, 'foo')).toEqual(expect.arrayContaining([

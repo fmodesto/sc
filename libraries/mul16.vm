@@ -32,4 +32,4 @@ JMP mul16_vm_0
 MOV mul16_return_H:mul16_return_L,mul16_res_H:mul16_res_L
 JMP mul16_end
 .LABEL mul16_end
-.RETURN mul16
+.ENDFUNCTION mul16

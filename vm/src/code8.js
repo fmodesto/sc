@@ -343,6 +343,26 @@ const operations = {
     GT(dest, lhs, rhs) {
         return operations.LT(dest, rhs, lhs);
     },
+    GET(dest, array, index) {
+        const address = createLabel();
+        return [
+            `lda ${index}`,
+            `sta ${address}+1`,
+            `${address}:`,
+            `lda ${array}`,
+            `sta ${dest}`,
+        ];
+    },
+    PUT(array, index, src) {
+        const address = createLabel();
+        return [
+            `lda ${index}`,
+            `sta ${address}+1`,
+            `lda ${src}`,
+            `${address}:`,
+            `sta ${array}`,
+        ];
+    },
 };
 
 export default operations;

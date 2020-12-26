@@ -6,7 +6,16 @@ const memory = function (instructions) {
     };
     let scopes = [current];
     let registers = [];
+    let switchContext = false;
     instructions.forEach((instruction) => {
+        if (instruction[0] === '.STATIC') {
+            switchContext = true;
+            current = scopes[0];
+        } else if (switchContext && instruction[0] !== '.BYTE' && instruction[0] !== '.RBYTE') {
+            switchContext = false;
+            current = scopes[scopes.length - 1];
+        }
+
         if (instruction[0] === '.FUNCTION') {
             current = {
                 name: instruction[1],
@@ -14,12 +23,20 @@ const memory = function (instructions) {
                 calls: ['_global_'],
             };
             scopes.push(current);
+        } else if (instruction[0] === '.EXTERN') {
+            current = {
+                name: instruction[1],
+                bytes: [],
+                calls: [],
+            };
+        } else if (instruction[0] === '.ENDFUNCTION' || instruction[0] === '.ENDEXTERN') {
+            current = scopes[0];
         } else if (instruction[0] === '.BYTE') {
             current.bytes.push({
                 name: instruction[1],
                 value: instruction[2],
             });
-        } else if (instruction[0] === '.REGISTER') {
+        } else if (instruction[0] === '.RBYTE') {
             registers.push({
                 name: instruction[1],
                 address: +instruction[2],
@@ -57,7 +74,7 @@ const memory = function (instructions) {
             '.byte 0',
         ]).flat(),
         memory: mem.map((e) => [
-            ...e.map(({name}) => `${name}:`),
+            ...e.map(({ name }) => `${name}:`),
             `.byte ${e[0].value}`,
         ]).flat(),
     };

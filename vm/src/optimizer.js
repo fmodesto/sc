@@ -21,7 +21,7 @@ const optimizer = function (instructions) {
                 } else {
                     tmps.push(e[1]);
                 }
-            } else if (e[0] === '.RETURN') {
+            } else if (e[0] === '.ENDFUNCTION') {
                 let unused = tmps.filter((e) => !used.includes(e));
                 if (unused.length) {
                     unused.forEach((e) => toRemove.push(e));

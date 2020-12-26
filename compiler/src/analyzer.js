@@ -78,12 +78,7 @@ const analyzeArray = function (context, { name, access, source }) {
     if (definedDimension.length !== access.length) {
         throw CompileError.create(source, `Array access doesn't match dimensions. Expected ${definedDimension.length} found ${access.length}`);
     }
-    access.forEach((e) => {
-        let type = e.analyze(context);
-        if (type !== 'char') {
-            throw CompileError.create(source, `Incompatible types: possible lossy conversion from '${type}' to 'char'`);
-        }
-    });
+    access.forEach((e) => e.analyze(context));
 };
 
 Program.analyze = function (context = createContext()) {
@@ -151,6 +146,9 @@ ArrayContents.checkDimensions = function (type, dimensions) {
 };
 
 MethodDeclaration.analyze = function (context) {
+    if (!this.declaration) {
+        return;
+    }
     this.parameters.forEach((e) => e.analyze(context));
     this.vars.forEach((e) => e.analyze(context));
     this.statements.forEach((e) => e.analyze(context));
@@ -265,6 +263,10 @@ BinaryOperation.analyze = function (context) {
     } else if (relationalOperations.includes(this.operation)) {
         if (lhsType === 'bool' || rhsType === 'bool') {
             throw CompileError.create(this.source, `Invalid types for operation: '${lhsType}' ${this.operation} '${rhsType}'`);
+        } else if (lhsType === 'char' && rhsType === 'int' && Literal.isPrototypeOf(this.rhs.optimize())) {
+            throw CompileError.create(this.source, `Logical comparison of constant out of range: '${lhsType}' ${this.operation} 'int constant'`);
+        } else if (lhsType === 'int' && rhsType === 'char' && Literal.isPrototypeOf(this.lhs.optimize())) {
+            throw CompileError.create(this.source, `Logical comparison of constant out of range: 'int constant' ${this.operation} '${rhsType}'`);
         }
         return 'bool';
     } else if (logicBinaryOperations.includes(this.operation)) {

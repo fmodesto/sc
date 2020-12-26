@@ -445,39 +445,6 @@ describe('Analyzer detect error programs', () => {
         expect(check(src)).toThrow('Array access doesn\'t match dimensions. Expected 1 found 2');
         done();
     });
-    test('Array assignment, wrong index type', (done) => {
-        let src = `
-            char a[3] = {1, 2, 3};
-            void test() {
-                char b;
-                a[2u] = b;
-            }
-        `;
-        expect(check(src)).toThrow('Incompatible types: possible lossy conversion from \'int\' to \'char\'');
-        done();
-    });
-    test('Array compound assignment, wrong index type', (done) => {
-        let src = `
-            char a[3] = {1, 2, 3};
-            void test() {
-                char b;
-                a[2u] += b;
-            }
-        `;
-        expect(check(src)).toThrow('Incompatible types: possible lossy conversion from \'int\' to \'char\'');
-        done();
-    });
-    test('Array expression, wrong index type', (done) => {
-        let src = `
-            char a[3] = {1, 2, 3};
-            void test() {
-                char b;
-                b = a[2u];
-            }
-        `;
-        expect(check(src)).toThrow('Incompatible types: possible lossy conversion from \'int\' to \'char\'');
-        done();
-    });
 });
 
 describe('Analyzer correct programs', () => {
@@ -667,6 +634,17 @@ describe('Analyzer correct programs', () => {
                 } else {
                     return 1;
                 }
+            }
+        `;
+        expect(check(src)).not.toThrow();
+        done();
+    });
+    test('Handles external references', (done) => {
+        let src = `
+            int sum(int a, int b);
+
+            int check(int a, int b) {
+                return sum(a, b);
             }
         `;
         expect(check(src)).not.toThrow();

@@ -21,7 +21,7 @@ const addRequirements = function (instructions) {
 
 const linker = function (program, options = {}) {
     program = addRequirements(program);
-    let requires = program.filter(([opcode]) => opcode === '.DEP').map(([_, dep]) => dep);
+    let requires = program.filter(([opcode]) => opcode === '.DEP' || opcode === '.EXTERN').map(([_, dep]) => dep);
     requires = requires.filter((e, i) => requires.indexOf(e) === i);
     program = [
         ...requires.map((e) => loadDep(e)).flat(),

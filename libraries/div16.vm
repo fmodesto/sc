@@ -63,4 +63,4 @@ MOV div16_0:div16_1,div16_q_H:div16_q_L
 MOV div16_return_H:div16_return_L,div16_0:div16_1
 JMP div16_end
 .LABEL div16_end
-.RETURN div16
+.ENDFUNCTION div16

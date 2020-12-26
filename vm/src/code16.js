@@ -567,6 +567,38 @@ const operations = {
     GT(dest, lhs, rhs) {
         return operations.LT(dest, rhs, lhs);
     },
+    GET([destH, destL], [array], [index]) {
+        const addressL = createLabel();
+        const addressH = createLabel();
+        return [
+            `lda ${index}`,
+            `sta ${addressL}+1`,
+            'add #$01',
+            `sta ${addressH}+1`,
+            `${addressL}:`,
+            `lda ${array}`,
+            `sta ${destL}`,
+            `${addressH}:`,
+            `lda ${array}`,
+            `sta ${destH}`,
+        ];
+    },
+    PUT([array], [index], [srcH, srcL]) {
+        const addressL = createLabel();
+        const addressH = createLabel();
+        return [
+            `lda ${index}`,
+            `sta ${addressL}+1`,
+            'add #$01',
+            `sta ${addressH}+1`,
+            `lda ${srcL}`,
+            `${addressL}:`,
+            `sta ${array}`,
+            `lda ${srcH}`,
+            `${addressH}:`,
+            `sta ${array}`,
+        ];
+    },
 };
 
 export default operations;

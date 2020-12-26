@@ -38,6 +38,7 @@ describe('AST', () => {
                             name: 'b',
                         },
                     ],
+                    declaration: true,
                     vars: [],
                     statements: [
                         {

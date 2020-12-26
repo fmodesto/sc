@@ -1,0 +1,43 @@
+.FUNCTION fib
+.BYTE fib_return_H 0
+.BYTE fib_return_L 0
+.BYTE fib_n 0
+.LOCALS
+.BYTE fib_i 0
+.BYTE fib_f0_H 0
+.BYTE fib_f0_L 0
+.BYTE fib_f1_H 0
+.BYTE fib_f1_L 0
+.BYTE fib_f2_H 0
+.BYTE fib_f2_L 0
+.TMP
+.BYTE fib_0 0
+.BYTE fib_1 0
+.BYTE fib_2 0
+.CODE
+MOV fib_f2_H:fib_f2_L,#$00:#$00
+MOV fib_f1_H:fib_f1_L,#$00:#$01
+MOV fib_f0_H:fib_f0_L,#$00:#$01
+MOV fib_i,#$02
+.LABEL fib_vm_0
+LTE fib_1,fib_i,fib_n
+JZ fib_vm_1,fib_1
+ADD fib_0:fib_1,fib_f1_H:fib_f1_L,fib_f2_H:fib_f2_L
+MOV fib_f0_H:fib_f0_L,fib_0:fib_1
+MOV fib_f2_H:fib_f2_L,fib_f1_H:fib_f1_L
+MOV fib_f1_H:fib_f1_L,fib_f0_H:fib_f0_L
+ADD fib_0,fib_i,#$01
+MOV fib_i,fib_0
+JMP fib_vm_0
+.LABEL fib_vm_1
+LT fib_0,fib_n,#$02
+JZ fib_vm_2,fib_0
+CAST fib_0:fib_2,fib_n
+JMP fib_vm_3
+.LABEL fib_vm_2
+MOV fib_0:fib_2,fib_f0_H:fib_f0_L
+.LABEL fib_vm_3
+MOV fib_return_H:fib_return_L,fib_0:fib_2
+JMP fib_end
+.LABEL fib_end
+.ENDFUNCTION fib

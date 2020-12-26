@@ -37,6 +37,21 @@ const execute = function (instructions, memory) {
         memory[`${address}_H`] = (value >> 8) & 0xFF;
         return memory[`${address}_H`];
     }
+    function modifiesCode(address) {
+        return address.includes('+1');
+    }
+    function updateInstruction(address, acc) {
+        let label = address.substring(0, address.indexOf('+1'));
+        let pc = addressOf(label) + 1;
+        if (instructions[pc].includes('[')) {
+            instructions[pc] = instructions[pc].substring(0, instructions[pc].indexOf('['));
+        }
+        if (instructions[pc].startsWith('lda') || instructions[pc].startsWith('sta')) {
+            instructions[pc] = `${instructions[pc]}[${acc}]`;
+        } else {
+            throw new Error(`Trying to modify ${instructions[pc]}`);
+        }
+    }
     function updateFlags() {
         flags = 0;
         if (acc > 255) {
@@ -88,7 +103,11 @@ const execute = function (instructions, memory) {
                 pc = flags & zr ? addressOf(param) : pc + 1;
                 break;
             case 'sta':
-                memory[param] = acc;
+                if (modifiesCode(param)) {
+                    updateInstruction(param, acc);
+                } else {
+                    memory[param] = acc;
+                }
                 pc += 1;
                 break;
             case 'jnc':

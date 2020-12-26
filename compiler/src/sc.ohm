@@ -14,7 +14,8 @@ SimpleC {
    ArrayLit    =  Literal
                |  neglit
 
-   Method      =  methodType id "(" ListOf<Param, ","> ")" "{" Vars* Statements "}"
+   Method      =  methodType id "(" ListOf<Param, ","> ")" "{" Vars* Statements "}" -- declaration
+               |  methodType id "(" ListOf<Param, ","> ")" ";"                      -- extern
    Param       =  type id
 
    Vars        =  type ListOf<Var, ","> ";"

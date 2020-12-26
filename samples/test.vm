@@ -1,0 +1,10 @@
+.EXTERN rand
+.BYTE rand_return 0
+.ENDEXTERN rand
+.FUNCTION main
+.LOCALS
+.BYTE main_a_H 0
+.BYTE main_a_L 0
+.CODE
+.LABEL main_end
+.ENDFUNCTION main

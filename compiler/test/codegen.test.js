@@ -240,7 +240,7 @@ describe('Generate code', () => {
             '.FUNCTION foo',
             '.CODE',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -256,7 +256,7 @@ describe('Generate code', () => {
             '.CODE',
             'JMP foo_end',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -289,7 +289,7 @@ describe('Generate code', () => {
             '.BYTE foo_pc 0',
             '.CODE',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -310,7 +310,7 @@ describe('Generate code', () => {
             '.FUNCTION foo',
             '.CODE',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -329,7 +329,7 @@ describe('Generate code', () => {
             'MOV foo_return,foo_a',
             'JMP foo_end',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -351,7 +351,7 @@ describe('Generate code', () => {
             'MOV foo_return,foo_0',
             'JMP foo_end',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -380,7 +380,7 @@ describe('Generate code', () => {
             'MOV foo_return,#$00',
             'JMP foo_end',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -412,7 +412,7 @@ describe('Generate code', () => {
             'JMP foo_end',
             '.LABEL foo_vm_1',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -457,7 +457,7 @@ describe('Generate code', () => {
             'MOV foo_return,foo_res',
             'JMP foo_end',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -483,7 +483,7 @@ describe('Generate code', () => {
             'MOV foo_return,foo_0',
             'JMP foo_end',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -506,7 +506,7 @@ describe('Generate code', () => {
             'MOV foo_return,#$00',
             'JMP foo_end',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -550,7 +550,7 @@ describe('Generate code', () => {
             'MOV sum_return_H:sum_return_L,sum_res_H:sum_res_L',
             'JMP sum_end',
             '.LABEL sum_end',
-            '.RETURN sum',
+            '.ENDFUNCTION sum',
         ]);
         done();
     });
@@ -583,7 +583,7 @@ describe('Generate code', () => {
             'MOV foo_i,foo_0',
             'JMP foo_vm_0',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -616,7 +616,7 @@ describe('Generate code', () => {
             'MOV foo_i,foo_0',
             'JMP foo_vm_0',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -640,7 +640,7 @@ describe('Generate code', () => {
             'MOV foo_a,foo_0',
             'JMP foo_vm_0',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -671,7 +671,7 @@ describe('Generate code', () => {
             'ADD foo_0,foo_i,#$01',
             'MOV foo_i,foo_0',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -707,7 +707,7 @@ describe('Generate code', () => {
             'MOV foo_return,foo_b',
             'JMP foo_end',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -733,7 +733,7 @@ describe('Generate code', () => {
             'MOV foo_return,foo_a',
             'JMP foo_end',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -757,7 +757,7 @@ describe('Generate code', () => {
             'MOV foo_a,foo_0',
             'JMP foo_vm_0',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -795,7 +795,7 @@ describe('Generate code', () => {
             'MOV foo_return,foo_b',
             'JMP foo_end',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -817,7 +817,7 @@ describe('Generate code', () => {
             'MOV foo_return,foo_a',
             'JMP foo_end',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -841,7 +841,7 @@ describe('Generate code', () => {
             'MOV foo_a,foo_0',
             'JMP foo_vm_0',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -860,7 +860,7 @@ describe('Generate code', () => {
             '.BYTE bar_a 0',
             '.CODE',
             '.LABEL bar_end',
-            '.RETURN bar',
+            '.ENDFUNCTION bar',
 
             '.FUNCTION foo',
             '.BYTE foo_a 0',
@@ -868,7 +868,7 @@ describe('Generate code', () => {
             'MOV bar_a,foo_a',
             'CALL bar',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -887,7 +887,7 @@ describe('Generate code', () => {
             'BOOL foo_return,foo_a',
             'JMP foo_end',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -913,7 +913,7 @@ describe('Generate code', () => {
             'MOV bar_return,bar_0',
             'JMP bar_end',
             '.LABEL bar_end',
-            '.RETURN bar',
+            '.ENDFUNCTION bar',
             '.FUNCTION foo',
             '.BYTE foo_return 0',
             '.BYTE foo_a 0',
@@ -927,7 +927,7 @@ describe('Generate code', () => {
             'MOV foo_return,foo_0',
             'JMP foo_end',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
         ]);
         done();
     });
@@ -967,7 +967,7 @@ describe('Generate code', () => {
             'MOV shr_return_H:shr_return_L,shr_a_H:shr_a_L',
             'JMP shr_end',
             '.LABEL shr_end',
-            '.RETURN shr',
+            '.ENDFUNCTION shr',
         ]);
         done();
     });
@@ -994,7 +994,7 @@ describe('Generate code', () => {
             'CAST test_return_H:test_return_L,test_1',
             'JMP test_end',
             '.LABEL test_end',
-            '.RETURN test',
+            '.ENDFUNCTION test',
         ]);
         done();
     });
@@ -1022,7 +1022,7 @@ describe('Generate code', () => {
             'MOV foo_return,foo_1',
             'JMP foo_end',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
 
             '.FUNCTION test',
             '.BYTE test_return_H 0',
@@ -1037,7 +1037,7 @@ describe('Generate code', () => {
             'CAST test_return_H:test_return_L,test_0',
             'JMP test_end',
             '.LABEL test_end',
-            '.RETURN test',
+            '.ENDFUNCTION test',
         ]);
         done();
     });
@@ -1082,7 +1082,7 @@ describe('Generate code', () => {
             'BOOL test_1,test_b_H:test_b_L',
             'MOV test_c,test_1',
             '.LABEL test_end',
-            '.RETURN test',
+            '.ENDFUNCTION test',
         ]);
         done();
     });
@@ -1111,7 +1111,7 @@ describe('Generate code', () => {
             'ADD test_0:test_1,test_b_H:test_b_L,test_0:test_1',
             'MOV test_b_H:test_b_L,test_0:test_1',
             '.LABEL test_end',
-            '.RETURN test',
+            '.ENDFUNCTION test',
         ]);
         done();
     });
@@ -1134,7 +1134,7 @@ describe('Generate code', () => {
             'MOV test_return,test_0',
             'JMP test_end',
             '.LABEL test_end',
-            '.RETURN test',
+            '.ENDFUNCTION test',
         ]);
         done();
     });
@@ -1161,7 +1161,7 @@ describe('Generate code', () => {
             'MOV foo_return_H:foo_return_L,#$FF:#$D8',
             'JMP foo_end',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
 
             '.FUNCTION test',
             '.CODE',
@@ -1174,7 +1174,7 @@ describe('Generate code', () => {
             'MOV foo_c,#0',
             'CALL foo',
             '.LABEL test_end',
-            '.RETURN test',
+            '.ENDFUNCTION test',
         ]);
         done();
     });
@@ -1200,7 +1200,7 @@ describe('Generate code', () => {
             'MOV foo_return_H:foo_return_L,#$00:#$28',
             'JMP foo_end',
             '.LABEL foo_end',
-            '.RETURN foo',
+            '.ENDFUNCTION foo',
 
             '.FUNCTION test',
             '.CODE',
@@ -1209,7 +1209,35 @@ describe('Generate code', () => {
             'MOV foo_c,#1',
             'CALL foo',
             '.LABEL test_end',
-            '.RETURN test',
+            '.ENDFUNCTION test',
+        ]);
+        done();
+    });
+
+    test('Cast literals', (done) => {
+        let code = `
+            int foo(char a, int b, bool c);
+            void test() {
+                foo(1, 1000, true);
+            }
+        `;
+        expect(generate(code, false)).toEqual([
+            '.EXTERN foo',
+            '.BYTE foo_return_H 0',
+            '.BYTE foo_return_L 0',
+            '.BYTE foo_a 0',
+            '.BYTE foo_b_H 0',
+            '.BYTE foo_b_L 0',
+            '.BYTE foo_c 0',
+            '.ENDEXTERN foo',
+            '.FUNCTION test',
+            '.CODE',
+            'MOV foo_a,#$01',
+            'MOV foo_b_H:foo_b_L,#$03:#$E8',
+            'MOV foo_c,#$01',
+            'CALL foo',
+            '.LABEL test_end',
+            '.ENDFUNCTION test',
         ]);
         done();
     });
@@ -1236,7 +1264,7 @@ describe('Generate code', () => {
             '.FUNCTION test',
             '.CODE',
             '.LABEL test_end',
-            '.RETURN test',
+            '.ENDFUNCTION test',
         ]);
         done();
     });
@@ -1263,7 +1291,7 @@ describe('Generate code', () => {
             '.FUNCTION test',
             '.CODE',
             '.LABEL test_end',
-            '.RETURN test',
+            '.ENDFUNCTION test',
         ]);
         done();
     });
@@ -1279,7 +1307,7 @@ describe('Generate code', () => {
             '.FUNCTION test',
             '.CODE',
             '.LABEL test_end',
-            '.RETURN test',
+            '.ENDFUNCTION test',
         ]);
         done();
     });
@@ -1326,7 +1354,7 @@ describe('Generate code', () => {
             'ADD test_2:test_3,test_0:test_1,test_2:test_3',
             'MOV test_a_H:test_a_L,test_2:test_3',
             '.LABEL test_end',
-            '.RETURN test',
+            '.ENDFUNCTION test',
         ]);
         done();
     });
@@ -1357,7 +1385,7 @@ describe('Generate code', () => {
             'GET test_1,array,test_1',
             'PUT array,test_0,test_1',
             '.LABEL test_end',
-            '.RETURN test',
+            '.ENDFUNCTION test',
         ]);
         done();
     });
@@ -1375,7 +1403,7 @@ describe('Generate code', () => {
             '.CODE',
             'PUT array,#$02,#1',
             '.LABEL test_end',
-            '.RETURN test',
+            '.ENDFUNCTION test',
         ]);
         done();
     });
@@ -1397,7 +1425,7 @@ describe('Generate code', () => {
             'BOOL test_0,test_a',
             'PUT array,test_a,test_0',
             '.LABEL test_end',
-            '.RETURN test',
+            '.ENDFUNCTION test',
         ]);
         done();
     });
@@ -1422,7 +1450,7 @@ describe('Generate code', () => {
             'CAST test_1:test_2,test_a',
             'PUT array,test_0,test_1:test_2',
             '.LABEL test_end',
-            '.RETURN test',
+            '.ENDFUNCTION test',
         ]);
         done();
     });
@@ -1452,7 +1480,7 @@ describe('Generate code', () => {
             'ADD test_1,test_1,#$05',
             'PUT array,test_0,test_1',
             '.LABEL test_end',
-            '.RETURN test',
+            '.ENDFUNCTION test',
         ]);
         done();
     });
@@ -1474,7 +1502,43 @@ describe('Generate code', () => {
             'ADD test_0,test_0,#$05',
             'PUT array,#$00,test_0',
             '.LABEL test_end',
-            '.RETURN test',
+            '.ENDFUNCTION test',
+        ]);
+        done();
+    });
+
+    test('Array iteration', (done) => {
+        let code = `
+            char array[10];
+            void test() {
+                int i;
+                for (i = 0; i < 10; i += 1) {
+                    array[i] = 0;
+                }
+            }
+        `;
+        expect(generate(code, false)).toEqual([
+            '.ARRAY array $00 $00 $00 $00 $00 $00 $00 $00 $00 $00',
+            '.FUNCTION test',
+            '.LOCALS',
+            '.BYTE test_i_H 0',
+            '.BYTE test_i_L 0',
+            '.TMP',
+            '.BYTE test_0 0',
+            '.BYTE test_1 0',
+            '.CODE',
+            'MOV test_i_H:test_i_L,#$00:#$00',
+            '.LABEL test_vm_0',
+            'LT test_1,test_i_H:test_i_L,#$00:#$0A',
+            'JZ test_vm_1,test_1',
+            'MOV test_1,test_i_H:test_i_L',
+            'PUT array,test_1,#$00',
+            'ADD test_0:test_1,test_i_H:test_i_L,#$00:#$01',
+            'MOV test_i_H:test_i_L,test_0:test_1',
+            'JMP test_vm_0',
+            '.LABEL test_vm_1',
+            '.LABEL test_end',
+            '.ENDFUNCTION test',
         ]);
         done();
     });

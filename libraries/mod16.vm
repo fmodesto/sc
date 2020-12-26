@@ -61,4 +61,4 @@ MOV mod16_0:mod16_1,mod16_r_H:mod16_r_L
 MOV mod16_return_H:mod16_return_L,mod16_0:mod16_1
 JMP mod16_end
 .LABEL mod16_end
-.RETURN mod16
+.ENDFUNCTION mod16

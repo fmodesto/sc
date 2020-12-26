@@ -99,13 +99,23 @@ semantics.addOperation('ast', {
             source: this.source.getLineAndColumnMessage(),
         });
     },
-    Method(type, name, _1, params, _2, _3, vars, statements, _4) {
+    Method_declaration(type, name, _1, params, _2, _3, vars, statements, _4) {
         return MethodDeclaration.create({
             type: type.sourceString,
             name: name.sourceString,
             parameters: params.asIteration().ast(),
             vars: vars.ast().flat(),
             statements: statements.ast(),
+            declaration: true,
+            source: this.source.getLineAndColumnMessage(),
+        });
+    },
+    Method_extern(type, name, _1, params, _2, _3) {
+        return MethodDeclaration.create({
+            type: type.sourceString,
+            name: name.sourceString,
+            parameters: params.asIteration().ast(),
+            declaration: false,
             source: this.source.getLineAndColumnMessage(),
         });
     },

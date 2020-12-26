@@ -15,7 +15,6 @@ const { argv } = yargs(process.argv.slice(2))
     .describe('o', 'do optimizations')
     .demand(1);
 
-
 const compile = (text, options) => {
     let program = parse(text);
     program.analyze();
@@ -38,7 +37,7 @@ readFile(argv._[0], 'utf-8', (error, text) => {
         compile(text, argv);
     } catch (e) {
         if (CompileError.isPrototypeOf(e))
-            e.print();
+            e.print(argv._[0]);
         else
             throw e;
     }

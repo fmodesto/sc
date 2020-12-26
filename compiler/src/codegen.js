@@ -105,13 +105,14 @@ const warning = function (src, message) {
     }
 };
 
-const codeArrayIndex = function (context, register, {name, access}) {
+const codeArrayIndex = function (context, register, { name, access }) {
     const char = (value) => Literal.create({ type: 'char', value });
     const add = (lhs, rhs) => BinaryOperation.create({ operation: '+', lhs, rhs });
     const shift = (lhs, rhs) => BinaryOperation.create({ operation: '<<', lhs, rhs });
+    const cast = (expression) => UnaryOperation.create({ operation: 'char', expression });
     let type = context.getArrayType(name);
-    let shifts = context.getArrayDimensions(name).reduceRight((a, e) => [logTwo(e), ...a ], [type === 'int' ? 1 : 0]).slice(1);
-    let address = access.reduce((a, e, i) => shift(add(a, e), char(shifts[i])), char(0)).optimize();
+    let shifts = context.getArrayDimensions(name).reduceRight((a, e) => [logTwo(e), ...a], [type === 'int' ? 1 : 0]).slice(1);
+    let address = access.reduce((a, e, i) => shift(add(a, cast(e)), char(shifts[i])), char(0)).optimize();
     return address.generate(context, register);
 };
 
@@ -177,7 +178,7 @@ ArrayContents.generateValues = function (type, dimensions) {
     } else {
         let values = this.elements.map((e) => e.generateValues(type, dimensions.slice(1)));
         let multiplier = type === 'int' ? 2 : 1;
-        let missing = multiplier * (dimensions[0] - this.elements.length) * dimensions.slice(1).reduce((a,b) => a * b);
+        let missing = multiplier * (dimensions[0] - this.elements.length) * dimensions.slice(1).reduce((a, b) => a * b);
         return [
             ...values,
             ...Array(missing).fill('#'),
@@ -206,29 +207,39 @@ MethodDeclaration.addToContext = function (context) {
 
 MethodDeclaration.generate = function (context) {
     context.addVar('return', this.type);
-    this.parameters.forEach((e) => context.addVar(e.name, e.type));
-    this.vars.forEach((e) => context.addVar(e.name, e.type));
-
-    let params = this.parameters.map((e) => e.generate(context)).flat();
-    let vars = this.vars.map((e) => e.generate(context)).flat();
     let ret = returnAddress(this.name, this.type);
 
-    let register = createRegister(context.getCurrentMethod());
-    let instructions = this.statements.map((e) => e.generate(context, register)).flat();
-    let tmps = register.getGenerated().map((e) => `.BYTE ${e} 0`);
+    this.parameters.forEach((e) => context.addVar(e.name, e.type));
+    let params = this.parameters.map((e) => e.generate(context)).flat();
 
-    const prefix = (label, array) => (array.length ? [label, ...array] : []);
-    return [
-        `.FUNCTION ${this.name}`,
-        ...ret,
-        ...params,
-        ...prefix('.LOCALS', vars),
-        ...prefix('.TMP', tmps),
-        '.CODE',
-        ...instructions,
-        `.LABEL ${this.name}_end`,
-        `.RETURN ${this.name}`,
-    ];
+    if (this.declaration) {
+        this.vars.forEach((e) => context.addVar(e.name, e.type));
+        let vars = this.vars.map((e) => e.generate(context)).flat();
+
+        let register = createRegister(context.getCurrentMethod());
+        let instructions = this.statements.map((e) => e.generate(context, register)).flat();
+        let tmps = register.getGenerated().map((e) => `.BYTE ${e} 0`);
+
+        const prefix = (label, array) => (array.length ? [label, ...array] : []);
+        return [
+            `.FUNCTION ${this.name}`,
+            ...ret,
+            ...params,
+            ...prefix('.LOCALS', vars),
+            ...prefix('.TMP', tmps),
+            '.CODE',
+            ...instructions,
+            `.LABEL ${this.name}_end`,
+            `.ENDFUNCTION ${this.name}`,
+        ];
+    } else {
+        return [
+            `.EXTERN ${this.name}`,
+            ...ret,
+            ...params,
+            `.ENDEXTERN ${this.name}`,
+        ];
+    }
 };
 
 Var.generate = function (context) {
@@ -537,7 +548,7 @@ const createBinary = function (op, type, register, lhs, rhs, cast = true) {
     };
 };
 
-const combineTypes = function ({type : lhs}, {type : rhs}) {
+const combineTypes = function ({ type: lhs }, { type: rhs }) {
     if (lhs === rhs) {
         return lhs;
     } else if (lhs === 'int' && rhs === 'char' || lhs === 'char' && rhs === 'int') {
@@ -732,7 +743,7 @@ ArrayAccess.generate = function (context, register) {
 };
 
 Literal.generate = function () {
-    let value = this.type === 'int' ?  `#${hex(this.value >> 8)}:#${hex(this.value)}` : `#${hex(this.value)}`;
+    let value = this.type === 'int' ? `#${hex(this.value >> 8)}:#${hex(this.value)}` : `#${hex(this.value)}`;
     return {
         address: value,
         type: this.type,

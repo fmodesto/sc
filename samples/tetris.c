@@ -1,40 +1,62 @@
-int array1[2][3][3] = {
-    {
-        { 1, 2, 3 },
-        { 4, 5, 6 },
-        { 7, 8, 9 }
-    },
-    {
-        { 11, 12, 13 },
-        { 14, 15, 16 },
-        { 17, 18, 19 }
+#define bool unsigned char
+#define true 1
+#define false 0
+
+int pieces[7][4] = {
+    {0x6600, 0x6600, 0x6600, 0x6600},
+    {0x0F00, 0x2222, 0x00F0, 0x4444},
+    {0x4E00, 0x4640, 0x0E40, 0x4C40},
+    {0xC600, 0x2640, 0x0C60, 0x4C80},
+    {0x6C00, 0x4620, 0x06C0, 0x8C40},
+    {0x2E00, 0x4460, 0x0E80, 0xC440},
+    {0x8E00, 0x6440, 0x0E20, 0x44C0}};
+
+int mask[4][4] = {
+    {0x8000, 0x4000, 0x2000, 0x1000},
+    {0x0800, 0x0400, 0x0200, 0x0100},
+    {0x0080, 0x0040, 0x0020, 0x0010},
+    {0x0008, 0x0004, 0x0002, 0x0001}};
+
+bool board[21][12];
+
+char screen[32][8];
+
+char x;
+char y;
+char piece;
+char next;
+char rotation;
+char speed;
+
+char rand();
+void delay(int ms);
+
+void initBoard() {
+    char i, j;
+    for (j = 0; j < 20; j += 1) {
+        board[j][0] = true;
+        board[j][11] = true;
+        for (i = 1; i <= 10; i += 1) {
+            board[j][i] = false;
+        }
     }
-};
-
-int array2[2][3][3];
-
-void test(char b, char c) {
-    int a;
-    a = array1[1][1][2] + array1[1][b+b][c];
+    for (i = 0; i < 12; i += 1) {
+        board[20][i] = true;
+    }
 }
-/*
-GET test_0:test_1,array,#$2C
-ADD test_2,test_b,test_b
-SHL test_2,test_2,#$03
-SHL test_3,test_c,#$01
-ADD test_3,test_2,test_3
-GET test_2:test_3,array,test_3
-ADD test_2:test_3,test_0:test_1,test_2:test_3
-MOV test_a_H:test_a_L,test_2:test_3
 
+void nextPiece() {
+    piece = next;
+    rotation = 0;
+    do {
+        next = rand() & 0x07;
+    } while (next == 7);
+}
 
-GET test_0:test_1,array,#$2C
-ADD test_2,test_b,test_b
-SHL test_2,test_2,#$02
-ADD test_2,test_2,test_c
-SHL test_2,test_2,#$01
-GET test_2:test_3,array,test_2
-ADD test_2:test_3,test_0:test_1,test_2:test_3
-MOV test_a_H:test_a_L,test_2:test_3
-
-*/
+void main() {
+    initBoard();
+    nextPiece();
+    nextPiece();
+    while (true) {
+    }
+}

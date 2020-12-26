@@ -56,4 +56,4 @@ MOV div8_0,div8_q
 MOV div8_return,div8_0
 JMP div8_end
 .LABEL div8_end
-.RETURN div8
+.ENDFUNCTION div8

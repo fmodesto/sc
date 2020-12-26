@@ -1,0 +1,59 @@
+.ARRAY coins $01 $05 $0A $19 $32 $64
+.ARRAY total $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00
+.FUNCTION change
+.BYTE change_return_H 0
+.BYTE change_return_L 0
+.BYTE change_amount 0
+.LOCALS
+.BYTE change_i 0
+.BYTE change_j 0
+.TMP
+.BYTE change_0 0
+.BYTE change_1 0
+.BYTE change_2 0
+.BYTE change_3 0
+.BYTE change_4 0
+.BYTE change_5 0
+.CODE
+PUT total,#$00,#$00:#$01
+MOV change_i,#$01
+.LABEL change_vm_0
+GTE change_0,change_i,#$00
+JZ change_vm_1,change_0
+SHL change_0,change_i,#$01
+PUT total,change_0,#$00:#$00
+ADD change_0,change_i,#$01
+MOV change_i,change_0
+JMP change_vm_0
+.LABEL change_vm_1
+MOV change_i,#$00
+.LABEL change_vm_4
+LT change_5,change_i,#$06
+JZ change_vm_5,change_5
+GET change_1,coins,change_i
+MOV change_j,change_1
+.LABEL change_vm_2
+GTE change_1,change_j,#$00
+JZ change_vm_3,change_1
+SHL change_1,change_j,#$01
+GET change_2:change_3,total,change_1
+GET change_4,coins,change_i
+SUB change_4,change_j,change_4
+SHL change_4,change_4,#$01
+GET change_4:change_5,total,change_4
+ADD change_4:change_5,change_2:change_3,change_4:change_5
+PUT total,change_1,change_4:change_5
+ADD change_1,change_j,#$01
+MOV change_j,change_1
+JMP change_vm_2
+.LABEL change_vm_3
+ADD change_1,change_i,#$01
+MOV change_i,change_1
+JMP change_vm_4
+.LABEL change_vm_5
+SHL change_4,change_amount,#$01
+GET change_3:change_4,total,change_4
+MOV change_return_H:change_return_L,change_3:change_4
+JMP change_end
+.LABEL change_end
+.ENDFUNCTION change

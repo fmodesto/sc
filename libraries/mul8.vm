@@ -26,4 +26,4 @@ JMP mul8_vm_0
 MOV mul8_return,mul8_res
 JMP mul8_end
 .LABEL mul8_end
-.RETURN mul8
+.ENDFUNCTION mul8

@@ -54,4 +54,4 @@ MOV mod8_0,mod8_r
 MOV mod8_return,mod8_0
 JMP mod8_end
 .LABEL mod8_end
-.RETURN mod8
+.ENDFUNCTION mod8

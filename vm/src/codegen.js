@@ -2,6 +2,8 @@ import { configureLabel } from './labels.js';
 import operations8 from './code8.js';
 import operations16 from './code16.js';
 
+const noop = () => [];
+
 const methods = {
     '.FUNCTION'([method]) {
         configureLabel(method, 0);
@@ -9,7 +11,7 @@ const methods = {
             `${method}:`,
         ];
     },
-    '.RETURN'([method]) {
+    '.ENDFUNCTION'([method]) {
         return [
             `ret ${method}`,
         ];
@@ -19,29 +21,24 @@ const methods = {
             `${label}:`,
         ];
     },
-    '.BYTE'() {
-        return [];
-    },
-    '.REGISTER'() {
-        return [];
-    },
-    '.CODE'() {
-        return [];
-    },
-    '.LOCALS'() {
-        return [];
-    },
-    '.TMP'() {
-        return [];
-    },
-    '.DEP'() {
-        return [];
-    },
+    '.EXTERN': noop,
+    '.ENDEXTERN': noop,
+    '.BYTE': noop,
+    '.RBYTE': noop,
+    '.ARRAY': noop,
+    '.RARRAY': noop,
+    '.CODE': noop,
+    '.LOCALS': noop,
+    '.STATIC': noop,
+    '.TMP': noop,
+    '.DEP': noop,
 };
 
 const generateInstruction = function (opcode, params) {
     try {
-        if (opcode.startsWith('.')) {
+        if (opcode === '.ASM') {
+            return params;
+        } else if (opcode.startsWith('.')) {
             return methods[opcode](params);
         } else if (params.some((e) => e.includes(':'))) {
             return operations16[opcode](...params.map((e) => e.split(':')));
