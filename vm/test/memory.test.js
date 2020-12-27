@@ -15,6 +15,7 @@ describe('Handles memory', () => {
                 .BYTE goo_a 0
                 .BYTE goo_b 0
                 .BYTE goo_c 0
+                .STATIC
                 .BYTE goo_d 0
                 .CODE
             .ENDFUNCTION goo
@@ -47,6 +48,8 @@ describe('Handles memory', () => {
             '.byte 24',
             'b:',
             '.byte 240',
+            'goo_d:',
+            '.byte 0',
             'goo_return:',
             'baz_return:',
             '.byte 0',
@@ -58,8 +61,6 @@ describe('Handles memory', () => {
             '.byte 0',
             'goo_c:',
             'bar_a:',
-            '.byte 0',
-            'goo_d:',
             '.byte 0',
             'foo_return:',
             '.byte 0',

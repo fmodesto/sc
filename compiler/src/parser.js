@@ -69,14 +69,13 @@ semantics.addOperation('ast', {
             source,
         });
     },
-    Global_array(register, type, id, dim, initialization, _1) {
+    Global_array(type, id, dim, initialization, _1) {
         let source = this.source.getLineAndColumnMessage();
         let dimensions = dim.ast();
         let value = initialization.numChildren === 0 ? initArray(dimensions, source) : initialization.child(0).ast();
         return ArrayDeclaration.create({
             type: type.sourceString,
             dimensions,
-            address: register.ast(),
             value,
             name: id.sourceString,
             source,

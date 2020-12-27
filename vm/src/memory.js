@@ -6,6 +6,7 @@ const memory = function (instructions) {
     };
     let scopes = [current];
     let registers = [];
+    let arrays = [];
     let switchContext = false;
     instructions.forEach((instruction) => {
         if (instruction[0] === '.STATIC') {
@@ -40,6 +41,11 @@ const memory = function (instructions) {
             registers.push({
                 name: instruction[1],
                 address: +instruction[2],
+            });
+        } else if (instruction[0] === '.ARRAY') {
+            arrays.push({
+                name: instruction[1],
+                value: instruction.slice(2),
             });
         } else if (instruction[0] === 'CALL' || instruction[0] === '.DEP') {
             current.calls.push(instruction[1]);

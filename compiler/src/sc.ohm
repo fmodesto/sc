@@ -1,8 +1,8 @@
 SimpleC {
    Program     =  directives* Global* Method+
 
-   Global      =  Register? type id GlobalValue? ";"                 -- mem
-               |  Register? type id ArrayDim* GlobalArray? ";"       -- array
+   Global      =  Register? type id GlobalValue? ";"       -- mem
+               |  type id ArrayDim* GlobalArray? ";"       -- array
 
    Register    =  reg "(" numlit ")"
    GlobalValue =  "=" Exp
