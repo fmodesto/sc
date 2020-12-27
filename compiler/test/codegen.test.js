@@ -1367,46 +1367,6 @@ describe('Generate code', () => {
         done();
     });
 
-    test('Array assignment cast literal', (done) => {
-        let code = `
-            bool array[3] = { 1, 0, 1 };
-            void test() {
-                array[2] = 5;
-            }
-        `;
-        expect(generate(code, false)).toEqual([
-            '.ARRAY array $01 $00 $01',
-            '.FUNCTION test',
-            '.CODE',
-            'PUT array,#$02,#$01',
-            '.LABEL test_end',
-            '.ENDFUNCTION test',
-        ]);
-        done();
-    });
-
-    test('Array assignment cast boolean', (done) => {
-        let code = `
-            bool array[3] = { 1, 0, 1 };
-            void test(char a) {
-                array[a] = a;
-            }
-        `;
-        expect(generate(code, false)).toEqual([
-            '.ARRAY array $01 $00 $01',
-            '.FUNCTION test',
-            '.BYTE test_a $00',
-            '.TMP',
-            '.BYTE test_0 $00',
-            '.CODE',
-            'BOOL test_0,test_a',
-            'PUT array,test_a,test_0',
-            '.LABEL test_end',
-            '.ENDFUNCTION test',
-        ]);
-        done();
-    });
-
     test('Array assignment cast int', (done) => {
         let code = `
             int array[3] = { 1, 0, 1 };
@@ -1514,6 +1474,101 @@ describe('Generate code', () => {
             'MOV test_i_H:test_i_L,test_0:test_1',
             'JMP test_vm_0',
             '.LABEL test_vm_1',
+            '.LABEL test_end',
+            '.ENDFUNCTION test',
+        ]);
+        done();
+    });
+
+
+    test('Array booleans', (done) => {
+        let code = `
+            bool a[10] = { 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 };
+            bool b[3][20] = {
+                { 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 },
+                { 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 },
+                { 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 }
+            };
+            void test() {
+            }
+        `;
+        expect(generate(code, false)).toEqual([
+            '.ARRAY a $55 $01',
+            '.ARRAY b $55 $55 $05 # $AA $AA $0A # $F0 $00 $0F',
+            '.FUNCTION test',
+            '.CODE',
+            '.LABEL test_end',
+            '.ENDFUNCTION test',
+        ]);
+        done();
+    });
+
+    test('Array booleans', (done) => {
+        let code = `
+            bool array[10] = { 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 };
+            void test() {
+                array[0] = true;
+                array[7] = 0;
+                array[9] = array[3];
+                array[(char) array[4]] ^= array[8];
+            }
+        `;
+        expect(generate(code, false)).toEqual([
+            '.ARRAY array $55 $01',
+            '.FUNCTION test',
+            '.TMP',
+            '.BYTE test_0 $00',
+            '.BYTE test_1 $00',
+            '.BYTE test_2 $00',
+            '.BYTE test_3 $00',
+            '.CODE',
+
+            'GET test_0,array,#$00',
+            'OR test_0,#$01,test_0',
+            'PUT array,#$00,test_0',
+
+            'GET test_0,array,#$00',
+            'AND test_0,#$7F,test_0',
+            'PUT array,#$00,test_0',
+
+            'GET test_0,array,#$00',
+            'AND test_0,#$08,test_0',
+            'BOOL test_0,test_0',
+            'GET test_1,array,#$01',
+            'JZ test_vm_0,test_0',
+            'OR test_1,#$02,test_1',
+            'JMP test_vm_1',
+            '.LABEL test_vm_0',
+            'AND test_1,#$FD,test_1',
+            '.LABEL test_vm_1',
+            'PUT array,#$01,test_1',
+
+            'GET test_1,array,#$00',
+            'AND test_1,#$10,test_1',
+            'BOOL test_1,test_1',
+            'SHL test_0,#$01,test_1',
+            // test_0 <- bool mask
+            'SHR test_1,test_1,#$03',
+            // test_1 <- dest index
+            'GET test_2,array,test_1',
+            'AND test_2,test_0,test_2',
+            'BOOL test_2,test_2',
+            // test_2 <- array[test_1]
+            'GET test_3,array,#$01',
+            'AND test_3,#$01,test_3',
+            'BOOL test_3,test_3',
+            'XOR test_3,test_2,test_3',
+            // test_3 <- evaluation
+            'GET test_2,array,test_1',
+            'JZ test_vm_2,test_3',
+            'OR test_2,test_0,test_2',
+            'JMP test_vm_3',
+            '.LABEL test_vm_2',
+            'INV test_0,test_0',
+            'AND test_2,test_2,test_0',
+            '.LABEL test_vm_3',
+            'PUT array,test_1,test_2',
+
             '.LABEL test_end',
             '.ENDFUNCTION test',
         ]);

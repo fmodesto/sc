@@ -79,6 +79,9 @@ const castInstruction = function (dest, destType, src, srcType) {
         throw new Error(`'Not implemented cast from '${srcType}' to '${destType}'`);
     }
 };
+const castExpression = function (type, expression) {
+    return UnaryOperation.create({ operation: type, expression });
+};
 const address = function (prefix, name, type) {
     if (prefix.length) {
         prefix += '_';
@@ -106,14 +109,53 @@ const warning = function (src, message) {
 };
 
 const codeArrayIndex = function (context, register, { name, access }) {
+    // Example:
+    // char[5][16]
+    // shifts = [3,4,0] -> [4,0]
+    // address = ((idx(0) << 4) + idx(1)) << 0)
     const char = (value) => Literal.create({ type: 'char', value });
     const add = (lhs, rhs) => BinaryOperation.create({ operation: '+', lhs, rhs });
-    const shift = (lhs, rhs) => BinaryOperation.create({ operation: '<<', lhs, rhs });
-    const cast = (expression) => UnaryOperation.create({ operation: 'char', expression });
+    const shl = (lhs, rhs) => BinaryOperation.create({ operation: '<<', lhs, rhs });
+    const shr = (lhs, rhs) => BinaryOperation.create({ operation: '>>', lhs, rhs });
+    const cast = (expression) => castExpression('char', expression);
     let type = context.getArrayType(name);
     let shifts = context.getArrayDimensions(name).reduceRight((a, e) => [logTwo(e), ...a], [type === 'int' ? 1 : 0]).slice(1);
-    let address = access.reduce((a, e, i) => shift(add(a, cast(e)), char(shifts[i])), char(0)).optimize();
-    return address.generate(context, register);
+    let boolMask = '#$00';
+    if (type === 'bool') {
+        if (shifts.length > 1) {
+            shifts[shifts.length - 2] = Math.max(shifts[shifts.length - 2] - 3, 0);
+        }
+        let lastExp = cast(access[access.length - 1]).optimize();
+        if (Literal.isPrototypeOf(lastExp)) {
+            boolMask = `#${hex(1 << (lastExp.value & 0x07))}`;
+            access[access.length - 1] = shr(lastExp, char(3));
+        } else {
+            access[access.length - 1] = {
+                optimize() { return this; },
+                generate(context, register) {
+                    let code = lastExp.generate(context, register);
+                    boolMask = register.fetch('char');
+                    register.release(code.address);
+                    let address = register.fetch('char');
+                    return {
+                        type: 'char',
+                        address,
+                        instructions: [
+                            ...code.instructions,
+                            `SHL ${boolMask},#$01,${code.address}`,
+                            `SHR ${address},${code.address},#$03`,
+                        ],
+                    };
+                },
+            };
+        }
+    }
+    let address = access.reduce((a, e, i) => shl(add(a, cast(e)), char(shifts[i])), char(0)).optimize();
+    let code = address.generate(context, register);
+    return {
+        ...code,
+        boolMask,
+    };
 };
 
 AST.generate = function () {
@@ -164,16 +206,27 @@ ArrayDeclaration.generate = function (context) {
 };
 
 ArrayContents.generateValues = function (type, dimensions) {
-    if (dimensions.length === 1 && type === 'int') {
-        return [
-            ...this.elements.map((e) => `${hex(e.value >> 8)} ${hex(e.value)}`),
-            ...Array(dimensions[0] - this.elements.length).fill('# #'),
-        ].join(' ');
-    } else if (dimensions.length === 1) {
-        return [
-            ...this.elements.map((e) => `${hex(e.value)}`),
-            ...Array(dimensions[0] - this.elements.length).fill('#'),
-        ].join(' ');
+    const chunkArray = (array, size) => (array.length <= size ? [ array ] : [array.slice(0,size), ...chunkArray(array.slice(size), size)]);
+    const toHex = (array) => (array.every((e) => e === -1) ? '#' : hex(array.map((e) => (e === -1 ? 0 : e)).reduceRight((a, e) => (a << 1) | e, 0)));
+    if (dimensions.length === 1) {
+        if (type === 'int') {
+            return [
+                ...this.elements.map((e) => `${hex(e.value >> 8)} ${hex(e.value)}`),
+                ...Array(dimensions[0] - this.elements.length).fill('# #'),
+            ].join(' ');
+        } else if (type === 'char') {
+            return [
+                ...this.elements.map((e) => `${hex(e.value)}`),
+                ...Array(dimensions[0] - this.elements.length).fill('#'),
+            ].join(' ');
+        } else if (type === 'bool') {
+            return chunkArray([
+                ...this.elements.map((e) => (e.value ? 1 : 0)),
+                ...Array(dimensions[0] - this.elements.length).fill(-1),
+            ], 8).map((e) => toHex(e)).join(' ');
+        } else {
+            throw new Error(`Unknown type ${type}`);
+        }
     } else {
         let values = this.elements.map((e) => e.generateValues(type, dimensions.slice(1)));
         let multiplier = type === 'int' ? 2 : 1;
@@ -221,6 +274,9 @@ MethodDeclaration.generate = function (context) {
         let tmps = register.getGenerated().map((e) => `.BYTE ${e} $00`);
 
         const prefix = (label, array) => (array.length ? [label, ...array] : []);
+        if (register.getInUse().length) {
+            throw new Error(`Memory leak detected ${register.getInUse()}`);
+        }
         return [
             `.FUNCTION ${this.name}`,
             ...ret,
@@ -270,25 +326,50 @@ ArrayStatement.generate = function (context, register) {
     let index = codeArrayIndex(context, register, this);
     if (this.compound) {
         register.save(`index_${this.name}`, index.address);
+        register.save(`indexMask_${this.name}`, index.boolMask);
     }
 
     let type = context.getArrayType(this.name);
-    let exp = this.expression.generate(context, register);
+    let castExp = type === 'bool' ? this.expression : castExpression(type, this.expression);
+    let exp = castExp.generate(context, register);
     let expAddress = exp.address;
     let cast = [];
-    if (exp.type !== type) {
-        if (isLiteral(exp.address)) {
-            expAddress = castLiteral(type, exp.address);
-        } else if (type === 'int' && exp.type === 'char') {
-            register.release(exp.address);
-            expAddress = register.fetch(type);
-            cast = [`CAST ${expAddress},${exp.address}`];
-        } else if (type === 'bool') {
-            register.release(exp.address);
-            expAddress = register.fetch(type);
-            cast = [`BOOL ${expAddress},${exp.address}`];
+    if (type === 'bool') {
+        expAddress = register.fetch('char');
+        register.release(exp.address);
+        register.release(index.boolMask);
+        let setMask = [ `OR ${expAddress},${index.boolMask},${expAddress}` ];
+        let clearMask = [];
+        if (isLiteral(index.boolMask)) {
+            clearMask = [
+                `AND ${expAddress},#${hex(~literalValue(index.boolMask))},${expAddress}`,
+            ];
         } else {
-            throw new Error(`'Not implemented array cast from '${exp.type}' to '${type}'`);
+            let tmpAddress = register.fetch('char');
+            register.release(tmpAddress);
+            clearMask = [
+                `INV ${tmpAddress},${index.boolMask}`,
+                `AND ${expAddress},${expAddress},${tmpAddress}`,
+            ];
+        }
+        if (isLiteral(exp.address)) {
+            let mask = literalValue(exp.address) ? setMask : clearMask;
+            cast = [
+                `GET ${expAddress},${this.name},${index.address}`,
+                ...mask,
+            ];
+        } else {
+            let falseLabel = register.generateLabel();
+            let endLabel = register.generateLabel();
+            cast = [
+                `GET ${expAddress},${this.name},${index.address}`,
+                `JZ ${falseLabel},${exp.address}`,
+                ...setMask,
+                `JMP ${endLabel}`,
+                `.LABEL ${falseLabel}`,
+                ...clearMask,
+                `.LABEL ${endLabel}`,
+            ];
         }
     }
 
@@ -361,6 +442,7 @@ ForStatement.generate = function (context, register) {
         let loopLabel = register.generateLabel();
         let endLabel = register.generateLabel();
         let { address, instructions } = this.predicate[0].generate(context, register);
+        register.release(address);
         return [
             ...init,
             `.LABEL ${loopLabel}`,
@@ -720,19 +802,34 @@ MethodCall.generate = function (context, register) {
 
 ArrayAccess.generate = function (context, register) {
     let type = context.getArrayType(this.name);
+    let code = {};
+    let address = '';
     if (this.compound) {
-        let address = register.fetch(type);
+        code = {
+            instructions: [],
+            address: register.state(`index_${this.name}`),
+            boolMask: register.state(`indexMask_${this.name}`),
+        };
+        address = register.fetch(type);
+    } else {
+        code = codeArrayIndex(context, register, this);
+        register.release(code.address);
+        address = register.fetch(type);
+        register.release(code.boolMask);
+    }
+
+    if (type === 'bool') {
         return {
             address,
             type,
             instructions: [
-                `GET ${address},${this.name},${register.state(`index_${this.name}`)}`,
+                ...code.instructions,
+                `GET ${address},${this.name},${code.address}`,
+                `AND ${address},${code.boolMask},${address}`,
+                `BOOL ${address},${address}`,
             ],
         };
     } else {
-        let code = codeArrayIndex(context, register, this);
-        register.release(code.address);
-        let address = register.fetch(type);
         return {
             address,
             type,

@@ -107,6 +107,19 @@ GlobalDeclaration.analyze = function (context) {
     context.addVar(this.name, this.type);
 };
 
+const computeArraySize = function (type, dimensions) {
+    if (type === 'int') {
+        return 2 * dimensions.reduce((a, e) => a * e, 1);
+    } else if (type === 'char') {
+        return dimensions.reduce((a, e) => a * e, 1);
+    } else if (type === 'bool') {
+        let last = dimensions.length - 1;
+        return dimensions.reduce((a, e, i) => a * (i === last ? Math.max(1, e / 8) : e), 1);
+    } else {
+        throw CompileError.create(`Unknown type '${type}'`);
+    }
+};
+
 ArrayDeclaration.analyze = function (context) {
     if (context.contains(this.name)) {
         throw CompileError.create(this.source, `Redefinition of '${this.name}'`);
@@ -114,8 +127,11 @@ ArrayDeclaration.analyze = function (context) {
     if (this.dimensions.some((e) => e < 1)) {
         throw CompileError.create(this.source, 'Array with 0 length');
     }
+    if (this.dimensions.some((e) => e > 256)) {
+        throw CompileError.create(this.source, 'Array index exceeds \'256\'');
+    }
     let dimensions = this.dimensions.map((e, i) => (i === 0 ? e : nearPower(e)));
-    let size = (this.type === 'int' ? 2 : 1) * dimensions.reduce((a, e) => a * e, 1);
+    let size = computeArraySize(this.type, dimensions);
     if (size > 256) {
         throw CompileError.create(this.source, `Array does't fit in memory '${this.name}[${dimensions.join(',')}]'`);
     }

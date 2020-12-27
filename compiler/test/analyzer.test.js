@@ -332,13 +332,40 @@ describe('Analyzer detect error programs', () => {
         expect(check(src)).toThrow('Redefinition of \'a\'');
         done();
     });
-    test('Array too large', (done) => {
+    test('Array index too large', (done) => {
         let src = `
-            char a[5][8][6] = {1, 2, 3};
+            bool a[257];
             void test() {
             }
         `;
-        expect(check(src)).toThrow('Array does\'t fit in memory \'a[5,8,8]\'');
+        expect(check(src)).toThrow('Array index exceeds \'256\'');
+        done();
+    });
+    test('Array bool too large', (done) => {
+        let src = `
+            bool a[129][16];
+            void test() {
+            }
+        `;
+        expect(check(src)).toThrow('Array does\'t fit in memory \'a[129,16]\'');
+        done();
+    });
+    test('Array char too large', (done) => {
+        let src = `
+            char a[3][128];
+            void test() {
+            }
+        `;
+        expect(check(src)).toThrow('Array does\'t fit in memory \'a[3,128]\'');
+        done();
+    });
+    test('Array int too large', (done) => {
+        let src = `
+            int a[129];
+            void test() {
+            }
+        `;
+        expect(check(src)).toThrow('Array does\'t fit in memory \'a[129]\'');
         done();
     });
     test('Array length 0', (done) => {
