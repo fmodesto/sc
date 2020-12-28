@@ -73,17 +73,23 @@ const memory = function (instructions) {
             mem[index] = [...(mem[index] || []), e.bytes[i]];
         }
     });
-    return {
-        registers: registers.map((e) => [
+    return [
+        ...mem.map((e) => [
+            '.data',
+            ...e.map(({ name }) => `${name}:`),
+            `.byte ${e[0].value}`,
+        ]).flat(),
+        ...arrays.map(({ name, value }) => [
+            '.data',
+            `${name}:`,
+            `.block ${value.join(' ')}`,
+        ]).flat(),
+        ...registers.map((e) => [
             `.org $${e.address.toString(16).toUpperCase().padStart(3, '0')}`,
             `${e.name}:`,
             '.byte 0',
         ]).flat(),
-        memory: mem.map((e) => [
-            ...e.map(({ name }) => `${name}:`),
-            `.byte ${e[0].value}`,
-        ]).flat(),
-    };
+    ];
 };
 
 export default memory;

@@ -8,6 +8,7 @@ const methods = {
     '.FUNCTION'([method]) {
         configureLabel(method, 0);
         return [
+            '.code',
             `${method}:`,
         ];
     },
@@ -52,7 +53,7 @@ const generateInstruction = function (opcode, params) {
 
 const generate = function (instructions, format = false) {
     configureLabel('', 0);
-    let ins = (op, params) => `${op} ${params.join(',')}`;
+    let ins = (op, params) => (op === '.ASM' ? '.ASM' : `${op} ${params.join(',')}`);
     let formatInstruction = (first, op, params) => (format ? `${(first || '').padEnd(30)}; ${ins(op, params)}` : first);
     return instructions.map(([op, ...params]) => {
         let [op1, ...ops] = generateInstruction(op, params);

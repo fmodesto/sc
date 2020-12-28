@@ -1,7 +1,7 @@
 import parseVm from '../src/parser.js';
 import memoryVm from '../src/memory.js';
 
-const memory = (src) => memoryVm(parseVm(src)).memory;
+const memory = (src) => memoryVm(parseVm(src));
 
 describe('Handles memory', () => {
 
@@ -44,28 +44,38 @@ describe('Handles memory', () => {
         `;
 
         expect(memory(src)).toEqual([
+            '.data',
             'a:',
             '.byte 24',
+            '.data',
             'b:',
             '.byte 240',
+            '.data',
             'goo_d:',
             '.byte 0',
+            '.data',
             'goo_return:',
             'baz_return:',
             '.byte 0',
+            '.data',
             'goo_a:',
             'baz_a:',
             '.byte 0',
+            '.data',
             'goo_b:',
             'bar_return:',
             '.byte 0',
+            '.data',
             'goo_c:',
             'bar_a:',
             '.byte 0',
+            '.data',
             'foo_return:',
             '.byte 0',
+            '.data',
             'foo_a:',
             '.byte 0',
+            '.data',
             'foo_b:',
             '.byte 0',
         ]);

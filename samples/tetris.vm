@@ -1,0 +1,99 @@
+.ARRAY pieces $66 $00 $66 $00 $66 $00 $66 $00 $0F $00 $22 $22 $FF $F0 $44 $44 $4E $00 $46 $40 $0E $40 $4C $40 $C6 $00 $26 $40 $0C $60 $4C $80 $6C $00 $46 $20 $06 $C0 $8C $40 $2E $00 $44 $60 $0E $80 $C4 $40 $8E $00 $64 $40 $0E $20 $44 $C0
+.ARRAY mask $80 $00 $40 $00 $20 $00 $10 $00 $08 $00 $04 $00 $02 $00 $01 $00 $FF $80 $00 $40 $00 $20 $00 $10 $00 $08 $00 $04 $00 $02 $00 $01
+.ARRAY board $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00
+.ARRAY screen $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00 $00
+.BYTE x $00
+.BYTE y $00
+.BYTE piece $00
+.BYTE next $00
+.BYTE rotation $00
+.BYTE speed $00
+.EXTERN rand
+.BYTE rand_return $00
+.ENDEXTERN rand
+.EXTERN delay
+.BYTE delay_ms_H $00
+.BYTE delay_ms_L $00
+.ENDEXTERN delay
+.FUNCTION initBoard
+.LOCALS
+.BYTE initBoard_i $00
+.BYTE initBoard_j $00
+.TMP
+.BYTE initBoard_0 $00
+.BYTE initBoard_1 $00
+.BYTE initBoard_2 $00
+.CODE
+MOV initBoard_j,#$00
+.LABEL initBoard_vm_2
+LT initBoard_2,initBoard_j,#$14
+JZ initBoard_vm_3,initBoard_2
+SHL initBoard_0,initBoard_j,#$01
+GET initBoard_1,board,initBoard_0
+OR initBoard_1,#$01,initBoard_1
+PUT board,initBoard_0,initBoard_1
+SHL initBoard_0,initBoard_j,#$01
+ADD initBoard_0,initBoard_0,#$01
+GET initBoard_1,board,initBoard_0
+OR initBoard_1,#$08,initBoard_1
+PUT board,initBoard_0,initBoard_1
+MOV initBoard_i,#$01
+.LABEL initBoard_vm_0
+LTE initBoard_2,initBoard_i,#$0A
+JZ initBoard_vm_1,initBoard_2
+SHL initBoard_0,initBoard_j,#$01
+SHL initBoard_1,#$01,initBoard_i
+SHR initBoard_2,initBoard_i,#$03
+ADD initBoard_2,initBoard_0,initBoard_2
+GET initBoard_0,board,initBoard_2
+INV initBoard_1,initBoard_1
+AND initBoard_0,initBoard_0,initBoard_1
+PUT board,initBoard_2,initBoard_0
+ADD initBoard_0,initBoard_i,#$01
+MOV initBoard_i,initBoard_0
+JMP initBoard_vm_0
+.LABEL initBoard_vm_1
+ADD initBoard_0,initBoard_j,#$01
+MOV initBoard_j,initBoard_0
+JMP initBoard_vm_2
+.LABEL initBoard_vm_3
+MOV initBoard_i,#$00
+.LABEL initBoard_vm_4
+LT initBoard_0,initBoard_i,#$0C
+JZ initBoard_vm_5,initBoard_0
+SHL initBoard_2,#$01,initBoard_i
+SHR initBoard_0,initBoard_i,#$03
+ADD initBoard_0,#$28,initBoard_0
+GET initBoard_1,board,initBoard_0
+OR initBoard_1,initBoard_2,initBoard_1
+PUT board,initBoard_0,initBoard_1
+ADD initBoard_2,initBoard_i,#$01
+MOV initBoard_i,initBoard_2
+JMP initBoard_vm_4
+.LABEL initBoard_vm_5
+.LABEL initBoard_end
+.ENDFUNCTION initBoard
+.FUNCTION nextPiece
+.TMP
+.BYTE nextPiece_0 $00
+.CODE
+MOV piece,next
+MOV rotation,#$00
+.LABEL nextPiece_vm_0
+CALL rand
+MOV nextPiece_0,rand_return
+AND nextPiece_0,nextPiece_0,#$07
+MOV next,nextPiece_0
+EQ nextPiece_0,next,#$07
+JNZ nextPiece_vm_0,nextPiece_0
+.LABEL nextPiece_end
+.ENDFUNCTION nextPiece
+.FUNCTION main
+.CODE
+CALL initBoard
+CALL nextPiece
+CALL nextPiece
+.LABEL main_vm_0
+JMP main_vm_0
+.LABEL main_end
+.ENDFUNCTION main

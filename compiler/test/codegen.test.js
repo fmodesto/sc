@@ -1481,7 +1481,7 @@ describe('Generate code', () => {
     });
 
 
-    test('Array booleans', (done) => {
+    test('Array booleans initialization', (done) => {
         let code = `
             bool a[10] = { 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 };
             bool b[3][20] = {
@@ -1569,6 +1569,61 @@ describe('Generate code', () => {
             '.LABEL test_vm_3',
             'PUT array,test_1,test_2',
 
+            '.LABEL test_end',
+            '.ENDFUNCTION test',
+        ]);
+        done();
+    });
+
+    test('Array booleans multidimensional', (done) => {
+        let code = `
+            bool a[3][20] = {
+                { 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 },
+                { 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 },
+                { 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 }
+            };
+            void test(char i, char j) {
+                if (a[0][5]) {
+                    a[i][j] |= a[2][19];
+                }
+            }
+        `;
+        expect(generate(code, false)).toEqual([
+            '.ARRAY a $55 $55 $05 # $AA $AA $0A # $F0 $00 $0F',
+            '.FUNCTION test',
+            '.BYTE test_i $00',
+            '.BYTE test_j $00',
+            '.TMP',
+            '.BYTE test_0 $00',
+            '.BYTE test_1 $00',
+            '.BYTE test_2 $00',
+            '.BYTE test_3 $00',
+            '.CODE',
+            'GET test_0,a,#$00',         // index = (0 * 32 + 5) / 8 = 0
+            'AND test_0,#$20,test_0',    // mask = 1 << (5 % 8) = 32
+            'BOOL test_0,test_0',
+            'JZ test_vm_1,test_0',
+            'SHL test_0,test_i,#$02',
+            'SHL test_1,#$01,test_j',
+            'SHR test_2,test_j,#$03',
+            'ADD test_2,test_0,test_2',
+            'GET test_0,a,test_2',
+            'AND test_0,test_1,test_0',
+            'BOOL test_0,test_0',        // test_0 = a[i][j]
+            'GET test_3,a,#$0A',         // index = (2 * 32 + 19) / 8 = 10
+            'AND test_3,#$08,test_3',    // mask = 1 << (19 % 8) = 8
+            'BOOL test_3,test_3',
+            'OR test_3,test_0,test_3',
+            'GET test_0,a,test_2',
+            'JZ test_vm_2,test_3',
+            'OR test_0,test_1,test_0',
+            'JMP test_vm_3',
+            '.LABEL test_vm_2',
+            'INV test_1,test_1',
+            'AND test_0,test_0,test_1',
+            '.LABEL test_vm_3',
+            'PUT a,test_2,test_0',
+            '.LABEL test_vm_1',
             '.LABEL test_end',
             '.ENDFUNCTION test',
         ]);

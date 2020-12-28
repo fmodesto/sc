@@ -27,15 +27,13 @@ const linker = function (program, options = {}) {
         ...requires.map((e) => loadDep(e)).flat(),
         ...program,
     ];
-    let { memory: mem, registers } = memory(program);
     let instructions = [
-        ...registers,
         '.org $000',
         `jsr ${options.m}`,
         '_end_program_:',
         'jmp _end_program_',
-        ...mem,
         ...generate(program, options.d),
+        ...memory(program),
     ];
     return instructions;
 };
