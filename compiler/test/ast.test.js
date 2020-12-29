@@ -28,7 +28,7 @@ describe('AST', () => {
             ],
             methods: [
                 {
-                    kind: 'MethodDeclaration',
+                    kind: 'SourceMethodDeclaration',
                     type: 'char',
                     name: 'foo',
                     parameters: [
@@ -39,7 +39,6 @@ describe('AST', () => {
                             static: false,
                         },
                     ],
-                    declaration: true,
                     vars: [],
                     statements: [
                         {

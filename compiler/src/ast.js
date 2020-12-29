@@ -21,6 +21,15 @@ const ArrayContents = AST.create({
 const MethodDeclaration = AST.create({
     kind: 'MethodDeclaration',
 });
+const SourceMethod = MethodDeclaration.create({
+    kind: 'SourceMethodDeclaration',
+});
+const AsmMethod = MethodDeclaration.create({
+    kind: 'AsmMethodDeclaration',
+});
+const ExternMethod = MethodDeclaration.create({
+    kind: 'ExternMethodDeclaration',
+});
 const Var = AST.create({
     kind: 'Var',
 });
@@ -82,6 +91,9 @@ export {
     ArrayDeclaration,
     ArrayContents,
     MethodDeclaration,
+    SourceMethod,
+    AsmMethod,
+    ExternMethod,
     Var,
     Statement,
     AssignmentStatement,

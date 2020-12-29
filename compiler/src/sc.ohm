@@ -14,9 +14,12 @@ SimpleC {
    ArrayLit    =  Literal
                |  neglit
 
-   Method      =  methodType id "(" ListOf<Param, ","> ")" "{" Vars* Statements "}" -- declaration
-               |  methodType id "(" ListOf<Param, ","> ")" ";"                      -- extern
+   Method      =  methodType id "(" ListOf<Param, ","> ")" "{" Vars* Statements "}"     -- declaration
+               |  methodType id "(" ListOf<Param, ","> ")" "/*-{" Vars* #asm "}-*/" ";" -- asm
+               |  methodType id "(" ListOf<Param, ","> ")" ";"                          -- extern
    Param       =  type id
+
+   asm         =  (~"}-*/" any)*
 
    Vars        =  type ListOf<Var, ","> ";"   -- local
                |  static type Var "=" Exp ";" -- static
@@ -117,5 +120,5 @@ SimpleC {
    directives  =  "#" (~"\n" any)* "\n"
    space      +=  comment
    comment     =  "//" (~"\n" any)* "\n"  -- singleLine
-               |  "/*" (~"*/" any)* "*/"  -- multiLine
+               |  "/*" ~"-{" ("}-*/" | ~"*/" any)* "*/"  -- multiLine
 }

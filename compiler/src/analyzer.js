@@ -22,6 +22,9 @@ import {
     Variable,
     ArrayContents,
     ArrayStatement,
+    SourceMethod,
+    AsmMethod,
+    ExternMethod,
 } from './ast.js';
 import { nearPower } from './binary.js';
 import createContext from './context.js';
@@ -161,16 +164,21 @@ ArrayContents.checkDimensions = function (type, dimensions) {
     }
 };
 
-MethodDeclaration.analyze = function (context) {
-    if (!this.declaration) {
-        return;
-    }
+SourceMethod.analyze = function (context) {
     this.parameters.forEach((e) => e.analyze(context));
     this.vars.forEach((e) => e.analyze(context));
     this.statements.forEach((e) => e.analyze(context));
     if (this.type !== 'void' && !doesReturn(this.statements)) {
         throw CompileError.create(this.source, 'Missing return statement');
     }
+};
+
+AsmMethod.analyze = function (context) {
+    this.parameters.forEach((e) => e.analyze(context));
+    this.vars.forEach((e) => e.analyze(context));
+};
+
+ExternMethod.analyze = function () {
 };
 
 Var.analyze = function (context) {

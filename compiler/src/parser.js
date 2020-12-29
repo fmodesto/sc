@@ -5,7 +5,9 @@ import {
     GlobalDeclaration,
     ArrayDeclaration,
     ArrayContents,
-    MethodDeclaration,
+    SourceMethod,
+    AsmMethod,
+    ExternMethod,
     Var,
     AssignmentStatement,
     ArrayStatement,
@@ -100,22 +102,31 @@ semantics.addOperation('ast', {
         });
     },
     Method_declaration(type, name, _1, params, _2, _3, vars, statements, _4) {
-        return MethodDeclaration.create({
+        return SourceMethod.create({
             type: type.sourceString,
             name: name.sourceString,
             parameters: params.asIteration().ast(),
             vars: vars.ast().flat(),
             statements: statements.ast(),
-            declaration: true,
+            source: this.source.getLineAndColumnMessage(),
+        });
+    },
+    Method_asm(type, name, _1, params, _2, _3, vars, asm, _4, _5) {
+        return AsmMethod.create({
+            type: type.sourceString,
+            name: name.sourceString,
+            parameters: params.asIteration().ast(),
+            vars: vars.ast().flat(),
+            asm: asm.sourceString.split('\n').filter((e) => e.trim().length),
             source: this.source.getLineAndColumnMessage(),
         });
     },
     Method_extern(type, name, _1, params, _2, _3) {
-        return MethodDeclaration.create({
+        return ExternMethod.create({
             type: type.sourceString,
             name: name.sourceString,
             parameters: params.asIteration().ast(),
-            declaration: false,
+            vars: [],
             source: this.source.getLineAndColumnMessage(),
         });
     },

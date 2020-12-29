@@ -688,6 +688,25 @@ describe('Analyzer correct programs', () => {
         expect(check(src)).not.toThrow();
         done();
     });
+    test('Handles native code', (done) => {
+        let src = `
+            int sum(int a, int b) /*-{
+                lda sum_a_L
+                add sum_b_L
+                sta sum_result_L
+                ldc
+                add sum_a_H
+                add sum_b_H
+                sta sum_result_H
+            }-*/;
+
+            int check(int a, int b) {
+                return sum(a, b);
+            }
+        `;
+        expect(check(src)).not.toThrow();
+        done();
+    });
     test('Handles static variables', (done) => {
         let src = `
             int count() {

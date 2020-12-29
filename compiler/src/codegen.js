@@ -21,6 +21,9 @@ import {
     ArrayAccess,
     ArrayDeclaration,
     ArrayContents,
+    SourceMethod,
+    ExternMethod,
+    AsmMethod,
 } from './ast.js';
 import createContext from './context.js';
 import createRegister from './register.js';
@@ -257,46 +260,65 @@ MethodDeclaration.addToContext = function (context) {
     context.addMethod(this.name, this.type, this.parameters.map((p) => ({ name: p.name, type: p.type })));
 };
 
-MethodDeclaration.generate = function (context) {
+MethodDeclaration.generateMethod = function (context) {
     context.addVar('return', this.type);
-    let ret = returnAddress(this.name, this.type);
-
     this.parameters.forEach((e) => context.addVar(e.name, e.type));
-    let params = this.parameters.map((e) => e.generate(context)).flat();
+    this.vars.forEach((e) => context.addVar(e.name, e.type));
 
-    if (this.declaration) {
-        this.vars.forEach((e) => context.addVar(e.name, e.type));
-        let vars = this.vars.filter((e) => !e.static).map((e) => e.generate(context)).flat();
-        let fixed = this.vars.filter((e) => e.static).map((e) => e.generate(context)).flat();
+    return {
+        ret: returnAddress(this.name, this.type),
+        params: this.parameters.map((e) => e.generate(context)).flat(),
+        fixed: this.vars.filter((e) => e.static).map((e) => e.generate(context)).flat(),
+        vars: this.vars.filter((e) => !e.static).map((e) => e.generate(context)).flat(),
+    };
+};
 
-        let register = createRegister(context.getCurrentMethod());
-        let instructions = this.statements.map((e) => e.generate(context, register)).flat();
-        let tmps = register.getGenerated().map((e) => `.BYTE ${e} $00`);
-
-        const prefix = (label, array) => (array.length ? [label, ...array] : []);
-        if (register.getInUse().length) {
-            throw new Error(`Memory leak detected ${register.getInUse()}`);
-        }
-        return [
-            `.FUNCTION ${this.name}`,
-            ...ret,
-            ...params,
-            ...prefix('.STATIC', fixed),
-            ...prefix('.LOCALS', vars),
-            ...prefix('.TMP', tmps),
-            '.CODE',
-            ...instructions,
-            `.LABEL ${this.name}_end`,
-            `.ENDFUNCTION ${this.name}`,
-        ];
-    } else {
-        return [
-            `.EXTERN ${this.name}`,
-            ...ret,
-            ...params,
-            `.ENDEXTERN ${this.name}`,
-        ];
+SourceMethod.generate = function (context) {
+    let { ret, params, fixed, vars } = this.generateMethod(context);
+    let register = createRegister(context.getCurrentMethod());
+    let instructions = this.statements.map((e) => e.generate(context, register)).flat();
+    let tmps = register.getGenerated().map((e) => `.BYTE ${e} $00`);
+    if (register.getInUse().length) {
+        throw new Error(`Memory leak detected ${register.getInUse()}`);
     }
+    const prefix = (label, array) => (array.length ? [label, ...array] : []);
+    return [
+        `.FUNCTION ${this.name}`,
+        ...ret,
+        ...params,
+        ...prefix('.STATIC', fixed),
+        ...prefix('.LOCALS', vars),
+        ...prefix('.TMP', tmps),
+        '.CODE',
+        ...instructions,
+        `.LABEL ${this.name}_end`,
+        `.ENDFUNCTION ${this.name}`,
+    ];
+};
+
+AsmMethod.generate = function (context) {
+    let { ret, params, fixed, vars } = this.generateMethod(context);
+    const prefix = (label, array) => (array.length ? [label, ...array] : []);
+    return [
+        `.FUNCTION ${this.name}`,
+        ...ret,
+        ...params,
+        ...prefix('.STATIC', fixed),
+        ...prefix('.LOCALS', vars),
+        '.ASM',
+        ...this.asm,
+        `.ENDFUNCTION ${this.name}`,
+    ];
+};
+
+ExternMethod.generate = function (context) {
+    let { ret, params } = this.generateMethod(context);
+    return [
+        `.EXTERN ${this.name}`,
+        ...ret,
+        ...params,
+        `.ENDEXTERN ${this.name}`,
+    ];
 };
 
 Var.generate = function (context) {

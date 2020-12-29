@@ -1218,7 +1218,7 @@ describe('Generate code', () => {
         done();
     });
 
-    test('Cast literals', (done) => {
+    test('Extern method', (done) => {
         let code = `
             int foo(char a, int b, bool c);
             void test() {
@@ -1242,6 +1242,116 @@ describe('Generate code', () => {
             'CALL foo',
             '.LABEL test_end',
             '.ENDFUNCTION test',
+        ]);
+        done();
+    });
+
+    test('Native method', (done) => {
+        let code = `
+            int sum(int a, int b) /*-{
+                lda sum_a_L
+                add sum_b_L
+                sta sum_result_L
+                ldc
+                add sum_a_H
+                add sum_b_H
+                sta sum_result_H
+            }-*/;
+
+            int check(int a, int b) {
+                return sum(a, b);
+            }
+        `;
+        expect(generate(code, false)).toEqual([
+            '.FUNCTION sum',
+            '.BYTE sum_return_H $00',
+            '.BYTE sum_return_L $00',
+            '.BYTE sum_a_H $00',
+            '.BYTE sum_a_L $00',
+            '.BYTE sum_b_H $00',
+            '.BYTE sum_b_L $00',
+            '.ASM',
+            '                lda sum_a_L',
+            '                add sum_b_L',
+            '                sta sum_result_L',
+            '                ldc',
+            '                add sum_a_H',
+            '                add sum_b_H',
+            '                sta sum_result_H',
+            '.ENDFUNCTION sum',
+            '.FUNCTION check',
+            '.BYTE check_return_H $00',
+            '.BYTE check_return_L $00',
+            '.BYTE check_a_H $00',
+            '.BYTE check_a_L $00',
+            '.BYTE check_b_H $00',
+            '.BYTE check_b_L $00',
+            '.TMP',
+            '.BYTE check_0 $00',
+            '.BYTE check_1 $00',
+            '.CODE',
+            'MOV sum_a_H:sum_a_L,check_a_H:check_a_L',
+            'MOV sum_b_H:sum_b_L,check_b_H:check_b_L',
+            'CALL sum',
+            'MOV check_0:check_1,sum_return_H:sum_return_L',
+            'MOV check_return_H:check_return_L,check_0:check_1',
+            'JMP check_end',
+            '.LABEL check_end',
+            '.ENDFUNCTION check',
+        ]);
+        done();
+    });
+
+    test('Native method variables', (done) => {
+        let code = `
+            char foo(char a, char b) /*-{
+                static char count = 5;
+                char tmp;
+
+                lda foo_a
+                sta foo_tmp
+                xor foo_count
+                sta foo_count
+                add foo_b
+                sta foo_return
+            }-*/;
+
+            char check(char a, char b) {
+                return foo(a, b);
+            }
+        `;
+        expect(generate(code, false)).toEqual([
+            '.FUNCTION foo',
+            '.BYTE foo_return $00',
+            '.BYTE foo_a $00',
+            '.BYTE foo_b $00',
+            '.STATIC',
+            '.BYTE foo_count $05',
+            '.LOCALS',
+            '.BYTE foo_tmp $00',
+            '.ASM',
+            '                lda foo_a',
+            '                sta foo_tmp',
+            '                xor foo_count',
+            '                sta foo_count',
+            '                add foo_b',
+            '                sta foo_return',
+            '.ENDFUNCTION foo',
+            '.FUNCTION check',
+            '.BYTE check_return $00',
+            '.BYTE check_a $00',
+            '.BYTE check_b $00',
+            '.TMP',
+            '.BYTE check_0 $00',
+            '.CODE',
+            'MOV foo_a,check_a',
+            'MOV foo_b,check_b',
+            'CALL foo',
+            'MOV check_0,foo_return',
+            'MOV check_return,check_0',
+            'JMP check_end',
+            '.LABEL check_end',
+            '.ENDFUNCTION check',
         ]);
         done();
     });
