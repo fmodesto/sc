@@ -2,7 +2,6 @@ import {
     Program,
     GlobalDeclaration,
     ArrayDeclaration,
-    MethodDeclaration,
     Var,
     Statement,
     AssignmentStatement,
@@ -119,7 +118,7 @@ const computeArraySize = function (type, dimensions) {
         let last = dimensions.length - 1;
         return dimensions.reduce((a, e, i) => a * (i === last ? Math.max(1, e / 8) : e), 1);
     } else {
-        throw CompileError.create(`Unknown type '${type}'`);
+        throw new Error(`Unknown type ${type}`);
     }
 };
 

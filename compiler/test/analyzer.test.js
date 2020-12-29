@@ -35,6 +35,15 @@ describe('Analyzer detect error programs', () => {
         expect(check(src)).toThrow('Incompatible types: can not convert \'bool\' to \'char\'');
         done();
     });
+    test('Static must match the type', (done) => {
+        let src = `
+            void foo() {
+                static char a = true;
+            }
+        `;
+        expect(check(src)).toThrow('Incompatible types: can not convert \'bool\' to \'char\'');
+        done();
+    });
     test('Duplicate global', (done) => {
         let src = `
             char a = 5;
@@ -90,6 +99,16 @@ describe('Analyzer detect error programs', () => {
         let src = `
             char foo(char a) {
                 char a;
+                return 0;
+            }
+        `;
+        expect(check(src)).toThrow('Redefinition of \'a\'');
+        done();
+    });
+    test('Duplicate static', (done) => {
+        let src = `
+            char foo(char a) {
+                static char a = 5;
                 return 0;
             }
         `;
@@ -302,6 +321,28 @@ describe('Analyzer detect error programs', () => {
             }
         `;
         expect(check(src)).toThrow('Value 65536 exceeds \'int\'');
+        done();
+    });
+    test('Comparison out of range lhs', (done) => {
+        let src = `
+            void foo(int a) {
+                char i;
+                for (i = 0; 200 > i; i+=1) {
+                }
+            }
+        `;
+        expect(check(src)).toThrow('Logical comparison of constant out of range: \'int constant\' > \'char\'');
+        done();
+    });
+    test('Comparison out of range rhs', (done) => {
+        let src = `
+            void foo(int a) {
+                char i;
+                for (i = 0; i < 200; i+=1) {
+                }
+            }
+        `;
+        expect(check(src)).toThrow('Logical comparison of constant out of range: \'char\' < \'int constant\'');
         done();
     });
     test('Shift left by int amount', (done) => {
