@@ -88,6 +88,7 @@ const execute = function (instructions, memory) {
     };
 
     while (pc < instructions.length) {
+        // console.log(pc, instructions[pc]);
         let [code, param] = instructions[pc].split(' ');
         switch (code) {
             case 'jmp':
@@ -159,6 +160,26 @@ const execute = function (instructions, memory) {
                 updateFlags();
                 pc += 1;
                 break;
+            case 'ldc':
+                acc = flags & cs ? 1 : 0;
+                updateFlags();
+                pc += 1;
+                break;
+            case 'ldz':
+                acc = flags & zr ? 1 : 0;
+                updateFlags();
+                pc += 1;
+                break;
+            case 'ldn':
+                acc = flags & ng ? 1 : 0;
+                updateFlags();
+                pc += 1;
+                break;
+            case 'not':
+                acc = ~acc & 0xFF;
+                updateFlags();
+                pc += 1;
+                break;
             case 'jsr':
                 let dest = addressOf(param);
                 if (dest >= 0) {
@@ -174,9 +195,13 @@ const execute = function (instructions, memory) {
                 pc = returns[param];
                 break;
             default:
+                if (!code.endsWith(':') || typeof param !== 'undefined') {
+                    throw new Error(`Unknown operation: ${code} ${param || ''}`);
+                }
                 pc += 1;
                 break;
         }
+        // console.log({ ...memory, acc, flags });
     }
 };
 

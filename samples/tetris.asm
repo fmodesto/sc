@@ -193,15 +193,15 @@ lda #$01
 sta initBoard_1
 lda initBoard_i
 and #$07
-sta tmp_0
+sta _tmp_0
 jeq initBoard_asm_11
 initBoard_asm_10:
 lda initBoard_1
 shl
 sta initBoard_1
-lda tmp_0
+lda _tmp_0
 sub #1
-sta tmp_0
+sta _tmp_0
 jne initBoard_asm_10
 initBoard_asm_11:
 lda initBoard_i
@@ -264,15 +264,15 @@ lda #$01
 sta initBoard_2
 lda initBoard_i
 and #$07
-sta tmp_0
+sta _tmp_0
 jeq initBoard_asm_18
 initBoard_asm_17:
 lda initBoard_2
 shl
 sta initBoard_2
-lda tmp_0
+lda _tmp_0
 sub #1
-sta tmp_0
+sta _tmp_0
 jne initBoard_asm_17
 initBoard_asm_18:
 lda initBoard_i

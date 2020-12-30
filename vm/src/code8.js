@@ -74,6 +74,7 @@ const operations = {
             `lda ${lhs}`,
             'sta mul8_a',
             'jsr mul8',
+            'lda mul8_return',
             `sta ${dest}`,
         ];
     },
@@ -84,6 +85,7 @@ const operations = {
             `lda ${lhs}`,
             'sta div8_a',
             'jsr div8',
+            'lda div8_return',
             `sta ${dest}`,
         ];
     },
@@ -94,6 +96,7 @@ const operations = {
             `lda ${lhs}`,
             'sta mod8_a',
             'jsr mod8',
+            'lda mod8_return',
             `sta ${dest}`,
         ];
     },
@@ -110,10 +113,10 @@ const operations = {
             let overwrite = [];
             if (dest === lhs || dest === rhs) {
                 overwrite = [
-                    'lda tmp_1',
+                    'lda _tmp_1',
                     `sta ${dest}`,
                 ];
-                dest = 'tmp_1';
+                dest = '_tmp_1';
             }
             let label = createLabel();
             return [
@@ -121,15 +124,15 @@ const operations = {
                 `sta ${dest}`,
                 `lda ${rhs}`,
                 'and #$07',
-                'sta tmp_0',
+                'sta _tmp_0',
                 ...jeq([
                     `${label}:`,
                     `lda ${dest}`,
                     'shl',
                     `sta ${dest}`,
-                    'lda tmp_0',
+                    'lda _tmp_0',
                     'sub #1',
-                    'sta tmp_0',
+                    'sta _tmp_0',
                     `jne ${label}`,
                 ]),
                 ...overwrite,
@@ -149,10 +152,10 @@ const operations = {
             let overwrite = [];
             if (dest === lhs || dest === rhs) {
                 overwrite = [
-                    'lda tmp_1',
+                    'lda _tmp_1',
                     `sta ${dest}`,
                 ];
-                dest = 'tmp_1';
+                dest = '_tmp_1';
             }
             let label = createLabel();
             return [
@@ -160,15 +163,15 @@ const operations = {
                 `sta ${dest}`,
                 `lda ${rhs}`,
                 'and #$07',
-                'sta tmp_0',
+                'sta _tmp_0',
                 ...jeq([
                     `${label}:`,
                     `lda ${dest}`,
                     'shr',
                     `sta ${dest}`,
-                    'lda tmp_0',
+                    'lda _tmp_0',
                     'sub #1',
-                    'sta tmp_0',
+                    'sta _tmp_0',
                     `jne ${label}`,
                 ]),
                 ...overwrite,

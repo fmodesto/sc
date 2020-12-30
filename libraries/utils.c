@@ -1,11 +1,36 @@
-.FUNCTION rand
-.BYTE rand_return $00
-.STATIC
-.BYTE rand_seed_H $AC
-.BYTE rand_seed_L $E1
-.LOCALS
-.BYTE rand_bit $00
-.ASM
+void delay(int ms) /*-{
+    char counter;
+
+    jmp delay_check
+delay_outer:
+    lda #189
+    sta delay_counter
+delay_inner:
+    nop
+    nop
+    nop
+    lda delay_counter
+    sub #1
+    sta delay_counter
+    jne delay_inner
+    nop
+    lda delay_ms_L
+    sub #1
+    sta delay_ms_L
+    jcs delay_check
+    lda delay_ms_H
+    sub #1
+    sta delay_ms_H
+delay_check:
+    lda delay_ms_H
+    ora delay_ms_L
+    jne delay_outer
+}-*/;
+
+char rand() /*-{
+    static int seed = 0xACE1;
+    char bit;
+
     lda #0
     sta _tmp_1
     lda rand_seed_L
@@ -46,4 +71,4 @@ rand_shift_2:
     ora _tmp_0
     sta rand_seed_L
     sta rand_return
-.ENDFUNCTION rand
+}-*/;

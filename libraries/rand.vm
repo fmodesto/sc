@@ -4,48 +4,46 @@
 .BYTE rand_seed_H $AC
 .BYTE rand_seed_L $E1
 .LOCALS
-.BYTE rand_bit_H 0
-.BYTE rand_bit_L 0
 .BYTE rand_bit 0
-.BYTE rand_temp 0
 .ASM
     lda #0
-    sta rand_bit_H
-    sta rand_bit_L
+    sta _tmp_1
     lda rand_seed_L
     sta rand_bit
     shr
     shr
-    sta rand_temp
+    sta _tmp_0
     xor rand_bit
     sta rand_bit
-    lda rand_temp
+    lda _tmp_0
     shr
-    sta rand_temp
+    sta _tmp_0
     xor rand_bit
     sta rand_bit
-    lda rand_temp
+    lda _tmp_0
     shr
     shr
     xor rand_bit
     shr
     jnc rand_shift_1
     lda #$80
-    sta rand_bit_H
+    sta _tmp_1
 rand_shift_1:
+    lda #0
+    sta _tmp_0
     lda rand_seed_H
     shr
     jnc rand_shift_2
     lda #$80
-    sta rand_bit_L
+    sta _tmp_0
 rand_shift_2:
     lda rand_seed_H
     shr
-    ora rand_bit_H
+    ora _tmp_1
     sta rand_seed_H
     lda rand_seed_L
     shr
-    ora rand_bit_L
+    ora _tmp_0
     sta rand_seed_L
     sta rand_return
 .ENDFUNCTION rand

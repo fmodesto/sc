@@ -11,9 +11,9 @@ const createUnary8 = function (opcode, [destH, destL], [srcH, srcL]) {
     }
     if (destL === srcH) {
         return [
-            ...operations8[opcode]('tmp_0', srcL),
+            ...operations8[opcode]('_tmp_0', srcL),
             ...operations8[opcode](destH, srcH),
-            'lda tmp_0',
+            'lda _tmp_0',
             `sta ${destL}`,
         ];
     } else {
@@ -30,9 +30,9 @@ const createBinary8 = function (opcode, [destH, destL], [lhsH, lhsL], [rhsH, rhs
     }
     if (destL === lhsH || destL === rhsH) {
         return [
-            ...operations8[opcode]('tmp_0', lhsL, rhsL),
+            ...operations8[opcode]('_tmp_0', lhsL, rhsL),
             ...operations8[opcode](destH, lhsH, rhsH),
-            'lda tmp_0',
+            'lda _tmp_0',
             `sta ${destL}`,
         ];
     } else {
@@ -103,10 +103,10 @@ const operations = {
         let overwrite = [];
         if (destL === srcH) {
             overwrite = [
-                'lda tmp_0',
+                'lda _tmp_0',
                 `sta ${destL}`,
             ];
-            destL = 'tmp_0';
+            destL = '_tmp_0';
         }
         return [
             'lda #0',
@@ -136,10 +136,10 @@ const operations = {
         let overwrite = [];
         if (destL === lhsH || destL === rhsH) {
             overwrite = [
-                'lda tmp_0',
+                'lda _tmp_0',
                 `sta ${destL}`,
             ];
-            destL = 'tmp_0';
+            destL = '_tmp_0';
         }
         return [
             `lda ${rhsL}`,
@@ -163,10 +163,10 @@ const operations = {
         let overwrite = [];
         if (destL === lhsH || destL === rhsH) {
             overwrite = [
-                'lda tmp_0',
+                'lda _tmp_0',
                 `sta ${destL}`,
             ];
-            destL = 'tmp_0';
+            destL = '_tmp_0';
         }
         return [
             `lda ${lhsL}`,
@@ -230,7 +230,7 @@ const operations = {
         } else {
             if (typeof destL === 'undefined') {
                 destL = destH;
-                destH = 'tmp_1';
+                destH = '_tmp_1';
             }
             let setup = [
                 `lda ${lhsL}`,
@@ -241,10 +241,10 @@ const operations = {
             if (destL === lhsH) {
                 setup = [
                     `lda ${lhsL}`,
-                    'sta tmp_1',
+                    'sta _tmp_1',
                     `lda ${lhsH}`,
                     `sta ${destH}`,
-                    'lda tmp_1',
+                    'lda _tmp_1',
                     `sta ${destL}`,
                 ];
             }
@@ -252,9 +252,9 @@ const operations = {
             return [
                 `lda ${rhs}`,
                 'and #$0F',
-                'sta tmp_0',
+                'sta _tmp_0',
                 ...setup,
-                'lda tmp_0',
+                'lda _tmp_0',
                 ...jeq([
                     `${label}:`,
                     `lda ${destL}`,
@@ -269,9 +269,9 @@ const operations = {
                         'ora #1',
                     ]),
                     `sta ${destH}`,
-                    'lda tmp_0',
+                    'lda _tmp_0',
                     'sub #1',
-                    'sta tmp_0',
+                    'sta _tmp_0',
                     `jne ${label}`,
                 ]),
             ];
@@ -316,7 +316,7 @@ const operations = {
         } else {
             if (typeof destL === 'undefined') {
                 destL = destH;
-                destH = 'tmp_1';
+                destH = '_tmp_1';
             }
             let setup = [
                 `lda ${lhsL}`,
@@ -327,10 +327,10 @@ const operations = {
             if (destL === lhsH) {
                 setup = [
                     `lda ${lhsL}`,
-                    'sta tmp_1',
+                    'sta _tmp_1',
                     `lda ${lhsH}`,
                     `sta ${destH}`,
-                    'lda tmp_1',
+                    'lda _tmp_1',
                     `sta ${destL}`,
                 ];
             }
@@ -338,9 +338,9 @@ const operations = {
             return [
                 `lda ${rhs}`,
                 'and #$0F',
-                'sta tmp_0',
+                'sta _tmp_0',
                 ...setup,
-                'lda tmp_0',
+                'lda _tmp_0',
                 ...jeq([
                     `${label}:`,
                     `lda ${destH}`,
@@ -355,9 +355,9 @@ const operations = {
                         'ora #$80',
                     ]),
                     `sta ${destL}`,
-                    'lda tmp_0',
+                    'lda _tmp_0',
                     'sub #1',
-                    'sta tmp_0',
+                    'sta _tmp_0',
                     `jne ${label}`,
                 ]),
             ];
