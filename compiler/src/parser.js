@@ -52,32 +52,32 @@ function initArray(dimensions, source) {
 }
 
 semantics.addOperation('ast', {
-    Program(_1, globals, methods) {
+    Program(_1, globals, methods, _2) {
         return Program.create({
             globals: globals.ast(),
             methods: methods.ast(),
             source: this.source.getLineAndColumnMessage(),
         });
     },
-    Global_mem(register, typeNode, id, initialization, _1) {
-        let type = typeNode.sourceString;
+    Global_mem(register, type, id, initialization, _1) {
         let source = this.source.getLineAndColumnMessage();
         let expression = initialization.numChildren === 0 ? zero(source) : initialization.child(0).ast();
         return GlobalDeclaration.create({
-            type,
+            type: type.ast(),
             name: id.sourceString,
             address: register.ast(),
             expression: expression,
             source,
         });
     },
-    Global_array(type, id, dim, initialization, _1) {
+    Global_array(register, type, id, dim, initialization, _1) {
         let source = this.source.getLineAndColumnMessage();
         let dimensions = dim.ast();
         let value = initialization.numChildren === 0 ? initArray(dimensions, source) : initialization.child(0).ast();
         return ArrayDeclaration.create({
-            type: type.sourceString,
+            type: type.ast(),
             dimensions,
+            address: register.ast(),
             value,
             name: id.sourceString,
             source,
@@ -103,7 +103,7 @@ semantics.addOperation('ast', {
     },
     Method_declaration(type, name, _1, params, _2, _3, vars, statements, _4) {
         return SourceMethod.create({
-            type: type.sourceString,
+            type: type.ast(),
             name: name.sourceString,
             parameters: params.asIteration().ast(),
             vars: vars.ast().flat(),
@@ -113,7 +113,7 @@ semantics.addOperation('ast', {
     },
     Method_asm(type, name, _1, params, _2, _3, vars, asm, _4, _5) {
         return AsmMethod.create({
-            type: type.sourceString,
+            type: type.ast(),
             name: name.sourceString,
             parameters: params.asIteration().ast(),
             vars: vars.ast().flat(),
@@ -123,7 +123,7 @@ semantics.addOperation('ast', {
     },
     Method_extern(type, name, _1, params, _2, _3) {
         return ExternMethod.create({
-            type: type.sourceString,
+            type: type.ast(),
             name: name.sourceString,
             parameters: params.asIteration().ast(),
             vars: [],
@@ -133,7 +133,7 @@ semantics.addOperation('ast', {
     Param(type, name) {
         let source = this.source.getLineAndColumnMessage();
         return Var.create({
-            type: type.sourceString,
+            type: type.ast(),
             name: name.sourceString,
             expression: zero(source),
             static: false,
@@ -143,18 +143,17 @@ semantics.addOperation('ast', {
     Vars_local(type, names, _1) {
         let source = this.source.getLineAndColumnMessage();
         return names.asIteration().ast().map((e) => Var.create({
-            type: type.sourceString,
+            type: type.ast(),
             name: e,
             expression: zero(source),
             static: false,
             source,
         }));
     },
-    Vars_static(_1, typeNode, id, _2, expression, _3) {
-        let type = typeNode.sourceString;
+    Vars_static(_1, type, id, _2, expression, _3) {
         let source = this.source.getLineAndColumnMessage();
         return Var.create({
-            type,
+            type: type.ast(),
             name: id.sourceString,
             expression: expression.ast(),
             static: true,
@@ -300,7 +299,7 @@ semantics.addOperation('ast', {
     },
     Exp8_cast(_1, type, _2, exp) {
         return UnaryOperation.create({
-            operation: type.sourceString,
+            operation: type.ast(),
             expression: exp.ast(),
             source: this.source.getLineAndColumnMessage(),
         });
@@ -315,6 +314,12 @@ semantics.addOperation('ast', {
             source: this.source.getLineAndColumnMessage(),
             statement: false,
         });
+    },
+    void(_) {
+        return 'void';
+    },
+    Type(_sign, name) {
+        return name.sourceString === 'short' ? 'int' : name.sourceString;
     },
     boollit(_) {
         return Literal.create({

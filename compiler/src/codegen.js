@@ -203,8 +203,9 @@ ArrayDeclaration.addToContext = function (context) {
 ArrayDeclaration.generate = function (context) {
     let dimensions = context.getArrayDimensions(this.name);
     let values = this.value.generateValues(this.type, dimensions).replace(/( #)*$/, '');
+    const opcode = this.address.length === 0 ? '.ARRAY' : `.RARRAY $${this.address[0].toString(16).toUpperCase().padStart(3, '0')}`;
     return [
-        `.ARRAY ${this.name} ${values}`,
+        `${opcode} ${this.name} ${values}`,
     ];
 };
 

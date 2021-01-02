@@ -1383,6 +1383,33 @@ describe('Generate code', () => {
         done();
     });
 
+    test('Array register declaration', (done) => {
+        let code = `
+            reg(0xF00) int array[2][3][3] = {
+                {
+                    { 1, 2, 3 },
+                    { 4, 5, 6 },
+                    { 7, 8, 9 }
+                },
+                {
+                    { 11, 12, 13 },
+                    { 14, 15, 16 },
+                    { 17, 18, 19 }
+                }
+            };
+            void test() {
+            }
+        `;
+        expect(generate(code, false)).toEqual([
+            '.RARRAY $F00 array $00 $01 $00 $02 $00 $03 # # $00 $04 $00 $05 $00 $06 # # $00 $07 $00 $08 $00 $09 # # # # # # # # # # $00 $0B $00 $0C $00 $0D # # $00 $0E $00 $0F $00 $10 # # $00 $11 $00 $12 $00 $13',
+            '.FUNCTION test',
+            '.CODE',
+            '.LABEL test_end',
+            '.ENDFUNCTION test',
+        ]);
+        done();
+    });
+
     test('Array no initialized', (done) => {
         let code = `
             int array[2][3][3];

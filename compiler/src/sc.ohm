@@ -1,8 +1,8 @@
 SimpleC {
-   Program     =  directives* Global* Method+
+   Program     =  directives* Global* Method+ directives*
 
-   Global      =  Register? type id GlobalValue? ";"       -- mem
-               |  type id ArrayDim* GlobalArray? ";"       -- array
+   Global      =  Register? Type id GlobalValue? ";"            -- mem
+               |  Register? Type id ArrayDim* GlobalArray? ";"  -- array
 
    Register    =  reg "(" numlit ")"
    GlobalValue =  "=" Exp
@@ -14,15 +14,15 @@ SimpleC {
    ArrayLit    =  Literal
                |  neglit
 
-   Method      =  methodType id "(" ListOf<Param, ","> ")" "{" Vars* Statements "}"     -- declaration
-               |  methodType id "(" ListOf<Param, ","> ")" "/*-{" Vars* #asm "}-*/" ";" -- asm
-               |  methodType id "(" ListOf<Param, ","> ")" ";"                          -- extern
-   Param       =  type id
+   Method      =  MethodType id "(" ListOf<Param, ","> ")" "{" Vars* Statements "}"     -- declaration
+               |  MethodType id "(" ListOf<Param, ","> ")" "/*-{" Vars* #asm "}-*/" ";" -- asm
+               |  MethodType id "(" ListOf<Param, ","> ")" ";"                          -- extern
+   Param       =  Type id
 
    asm         =  (~"}-*/" any)*
 
-   Vars        =  type ListOf<Var, ","> ";"   -- local
-               |  static type Var "=" Exp ";" -- static
+   Vars        =  Type ListOf<Var, ","> ";"   -- local
+               |  static Type Var "=" Exp ";" -- static
    Var         =  id
    Statements  =  Stmt* ReturnStmt?
 
@@ -60,7 +60,7 @@ SimpleC {
    Exp7        =  Exp7 mulop Exp8             -- binary
                |  Exp8
    Exp8        =  prefixop Exp8               -- unary
-               |  "(" type ")" Exp8           -- cast
+               |  "(" Type ")" Exp8           -- cast
                |  Exp9
    Exp9        =  Literal
                |  MethodCall
@@ -78,11 +78,17 @@ SimpleC {
 
    MethodCall  =  id "(" ListOf<Exp, ","> ")"
 
-   methodType  = void | type
+   MethodType  = void | Type
 
-   type        =  char | int | bool
+   Type        =  sign? char
+               |  sign? int
+               |  sign? bool
+   sign        =  signed
+               |  unsigned
+
    char        =  "char" ~idrest
    int         =  "int" ~idrest
+               |  "short" ~idrest
    bool        =  "bool" ~idrest
    void        =  "void" ~idrest
    true        =  "true" ~idrest
@@ -94,7 +100,9 @@ SimpleC {
    return      =  "return" ~idrest
    for         =  "for" ~idrest
    do          =  "do" ~idrest
-   static          =  "static" ~idrest
+   static      =  "static" ~idrest
+   signed      =  "signed" ~idrest
+   unsigned    =  "unsigned" ~idrest
 
    keyword     =  char | int | bool | true | false | reg | if | else | while | do | for | return | void | static
    id          =  ~keyword letter idrest*
@@ -117,7 +125,8 @@ SimpleC {
    prefixop    =  "-" | "!" | "~"
    assignop    = "=" | "||=" | "|=" | "^=" | "&&=" | "&=" | "+=" | "-=" | "*=" | "/=" | "%=" | "<<=" | ">>="
 
-   directives  =  "#" (~"\n" any)* "\n"
+   directives  =  "#ifndef" (~"#endif" any)* "#endif"
+               |  "#" (~"\n" any)* "\n"
    space      +=  comment
    comment     =  "//" (~"\n" any)* "\n"  -- singleLine
                |  "/*" ~"-{" ("}-*/" | ~"*/" any)* "*/"  -- multiLine

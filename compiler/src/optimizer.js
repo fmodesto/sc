@@ -3,6 +3,10 @@ import {
     BinaryOperation,
     UnaryOperation,
     Literal,
+    AssignmentStatement,
+    TernaryOperation,
+    IfStatement,
+    Variable,
 } from './ast.js';
 import { word, byte, isPowerOfTwo, logTwo } from './binary.js';
 
@@ -37,6 +41,14 @@ const createBoolLiteral = function (value, source) {
     });
 };
 
+const createUnary = function (operation, expression, source) {
+    return UnaryOperation.create({
+        operation,
+        expression,
+        source,
+    });
+};
+
 const createBinary = function (operation, lhs, rhs, source) {
     return BinaryOperation.create({
         operation,
@@ -51,7 +63,7 @@ AST.optimize = function () {
     let properties = {};
     Object.keys(this).forEach((p) => {
         if (Array.isArray(this[p])) {
-            properties[p] = this[p].map((e) => (AST.isPrototypeOf(e) ? e.optimize() : e));
+            properties[p] = this[p].map((e) => (AST.isPrototypeOf(e) ? e.optimize() : e)).flat();
         } else if (AST.isPrototypeOf(this[p])) {
             properties[p] = this[p].optimize();
         } else {
@@ -59,6 +71,23 @@ AST.optimize = function () {
         }
     });
     return Object.getPrototypeOf(this).create(properties);
+};
+
+AssignmentStatement.optimize = function () {
+    let assign = (expression, source) => AssignmentStatement.create({ name: this.name, expression, source: source });
+    let exp = this.expression.optimize();
+    if (TernaryOperation.isPrototypeOf(exp)) {
+        return IfStatement.create({
+            predicate: exp.predicate,
+            consequent: [assign(exp.consequent, exp.source)],
+            alternate: [assign(exp.alternate, exp.source)],
+            source: this.source,
+        }).optimize();
+    } else if (Variable.isPrototypeOf(exp) && exp.name === this.name) {
+        return [];
+    } else {
+        return assign(exp, this.source);
+    }
 };
 
 UnaryOperation.optimize = function () {
@@ -82,11 +111,7 @@ UnaryOperation.optimize = function () {
                 throw new Error(`Unimplemented for operation ${this.operation}`);
         }
     }
-    return UnaryOperation.create({
-        operation: this.operation,
-        expression,
-        source: this.source,
-    });
+    return createUnary(this.operation, expression, this.source);
 };
 
 BinaryOperation.optimize = function () {
@@ -101,6 +126,7 @@ BinaryOperation.optimize = function () {
         if (isZero(lhs)) return rhs;
     } else if (this.operation === '-') {
         if (isZero(rhs)) return lhs;
+        if (isZero(lhs)) return createUnary('-', rhs, this.source);
     } else if (this.operation === '*') {
         if (isOne(rhs)) return lhs;
         if (isOne(lhs)) return rhs;

@@ -1,0 +1,364 @@
+.FUNCTION mul8
+.BYTE mul8_return $00
+.BYTE mul8_a $00
+.BYTE mul8_b $00
+.LOCALS
+.BYTE mul8_res $00
+.BYTE mul8_flag $00
+.TMP
+.BYTE mul8_0 $00
+.CODE
+MOV mul8_flag,#$01
+MOV mul8_res,#$00
+.LABEL mul8_vm_2
+JZ mul8_vm_3,mul8_flag
+AND mul8_0,mul8_flag,mul8_b
+JZ mul8_vm_1,mul8_0
+ADD mul8_0,mul8_res,mul8_a
+MOV mul8_res,mul8_0
+.LABEL mul8_vm_1
+SHL mul8_0,mul8_a,#$01
+MOV mul8_a,mul8_0
+SHL mul8_0,mul8_flag,#$01
+MOV mul8_flag,mul8_0
+JMP mul8_vm_2
+.LABEL mul8_vm_3
+MOV mul8_return,mul8_res
+JMP mul8_end
+.LABEL mul8_end
+.ENDFUNCTION mul8
+.FUNCTION mul16
+.BYTE mul16_return_H $00
+.BYTE mul16_return_L $00
+.BYTE mul16_a_H $00
+.BYTE mul16_a_L $00
+.BYTE mul16_b_H $00
+.BYTE mul16_b_L $00
+.LOCALS
+.BYTE mul16_res_H $00
+.BYTE mul16_res_L $00
+.BYTE mul16_flag_H $00
+.BYTE mul16_flag_L $00
+.TMP
+.BYTE mul16_0 $00
+.BYTE mul16_1 $00
+.CODE
+MOV mul16_flag_H:mul16_flag_L,#$00:#$01
+MOV mul16_res_H:mul16_res_L,#$00:#$00
+.LABEL mul16_vm_2
+JZ mul16_vm_3,mul16_flag_H:mul16_flag_L
+AND mul16_0:mul16_1,mul16_flag_H:mul16_flag_L,mul16_b_H:mul16_b_L
+JZ mul16_vm_1,mul16_0:mul16_1
+ADD mul16_0:mul16_1,mul16_res_H:mul16_res_L,mul16_a_H:mul16_a_L
+MOV mul16_res_H:mul16_res_L,mul16_0:mul16_1
+.LABEL mul16_vm_1
+SHL mul16_0:mul16_1,mul16_a_H:mul16_a_L,#$01
+MOV mul16_a_H:mul16_a_L,mul16_0:mul16_1
+SHL mul16_0:mul16_1,mul16_flag_H:mul16_flag_L,#$01
+MOV mul16_flag_H:mul16_flag_L,mul16_0:mul16_1
+JMP mul16_vm_2
+.LABEL mul16_vm_3
+MOV mul16_return_H:mul16_return_L,mul16_res_H:mul16_res_L
+JMP mul16_end
+.LABEL mul16_end
+.ENDFUNCTION mul16
+.FUNCTION div8
+.BYTE div8_return $00
+.BYTE div8_a $00
+.BYTE div8_b $00
+.LOCALS
+.BYTE div8_q $00
+.BYTE div8_r $00
+.BYTE div8_flag $00
+.BYTE div8_sign $00
+.TMP
+.BYTE div8_0 $00
+.CODE
+EQ div8_0,div8_a,div8_b
+JZ div8_vm_1,div8_0
+MOV div8_return,#$01
+JMP div8_end
+.LABEL div8_vm_1
+XOR div8_0,div8_a,div8_b
+LT div8_0,div8_0,#$00
+MOV div8_sign,div8_0
+LT div8_0,div8_a,#$00
+JZ div8_vm_3,div8_0
+NEG div8_0,div8_a
+MOV div8_a,div8_0
+.LABEL div8_vm_3
+LT div8_0,div8_b,#$00
+JZ div8_vm_5,div8_0
+NEG div8_0,div8_b
+MOV div8_b,div8_0
+.LABEL div8_vm_5
+LT div8_0,div8_b,#$00
+JZ div8_vm_7,div8_0
+MOV div8_return,#$00
+JMP div8_end
+.LABEL div8_vm_7
+MOV div8_q,#$00
+MOV div8_r,#$00
+MOV div8_flag,#$80
+.LABEL div8_vm_13
+JZ div8_vm_14,div8_flag
+SHL div8_0,div8_r,#$01
+MOV div8_r,div8_0
+AND div8_0,div8_flag,div8_a
+JZ div8_vm_9,div8_0
+OR div8_0,div8_r,#$01
+MOV div8_r,div8_0
+.LABEL div8_vm_9
+LT div8_0,div8_r,#$00
+JNZ div8_vm_12,div8_0
+SUB div8_0,div8_r,div8_b
+GTE div8_0,div8_0,#$00
+.LABEL div8_vm_12
+JZ div8_vm_11,div8_0
+SUB div8_0,div8_r,div8_b
+MOV div8_r,div8_0
+OR div8_0,div8_q,div8_flag
+MOV div8_q,div8_0
+.LABEL div8_vm_11
+SHR div8_0,div8_flag,#$01
+MOV div8_flag,div8_0
+JMP div8_vm_13
+.LABEL div8_vm_14
+JZ div8_vm_15,div8_sign
+NEG div8_0,div8_q
+JMP div8_vm_16
+.LABEL div8_vm_15
+MOV div8_0,div8_q
+.LABEL div8_vm_16
+MOV div8_return,div8_0
+JMP div8_end
+.LABEL div8_end
+.ENDFUNCTION div8
+.FUNCTION div16
+.BYTE div16_return_H $00
+.BYTE div16_return_L $00
+.BYTE div16_a_H $00
+.BYTE div16_a_L $00
+.BYTE div16_b_H $00
+.BYTE div16_b_L $00
+.LOCALS
+.BYTE div16_q_H $00
+.BYTE div16_q_L $00
+.BYTE div16_r_H $00
+.BYTE div16_r_L $00
+.BYTE div16_flag_H $00
+.BYTE div16_flag_L $00
+.BYTE div16_sign $00
+.TMP
+.BYTE div16_0 $00
+.BYTE div16_1 $00
+.CODE
+EQ div16_0,div16_a_H:div16_a_L,div16_b_H:div16_b_L
+JZ div16_vm_1,div16_0
+MOV div16_return_H:div16_return_L,#$00:#$01
+JMP div16_end
+.LABEL div16_vm_1
+XOR div16_0:div16_1,div16_a_H:div16_a_L,div16_b_H:div16_b_L
+LT div16_1,div16_0:div16_1,#$00:#$00
+MOV div16_sign,div16_1
+LT div16_1,div16_a_H:div16_a_L,#$00:#$00
+JZ div16_vm_3,div16_1
+NEG div16_0:div16_1,div16_a_H:div16_a_L
+MOV div16_a_H:div16_a_L,div16_0:div16_1
+.LABEL div16_vm_3
+LT div16_1,div16_b_H:div16_b_L,#$00:#$00
+JZ div16_vm_5,div16_1
+NEG div16_0:div16_1,div16_b_H:div16_b_L
+MOV div16_b_H:div16_b_L,div16_0:div16_1
+.LABEL div16_vm_5
+LT div16_1,div16_b_H:div16_b_L,#$00:#$00
+JZ div16_vm_7,div16_1
+MOV div16_return_H:div16_return_L,#$00:#$00
+JMP div16_end
+.LABEL div16_vm_7
+MOV div16_q_H:div16_q_L,#$00:#$00
+MOV div16_r_H:div16_r_L,#$00:#$00
+MOV div16_flag_H:div16_flag_L,#$80:#$00
+.LABEL div16_vm_13
+JZ div16_vm_14,div16_flag_H:div16_flag_L
+SHL div16_0:div16_1,div16_r_H:div16_r_L,#$01
+MOV div16_r_H:div16_r_L,div16_0:div16_1
+AND div16_0:div16_1,div16_flag_H:div16_flag_L,div16_a_H:div16_a_L
+JZ div16_vm_9,div16_0:div16_1
+OR div16_0:div16_1,div16_r_H:div16_r_L,#$00:#$01
+MOV div16_r_H:div16_r_L,div16_0:div16_1
+.LABEL div16_vm_9
+LT div16_1,div16_r_H:div16_r_L,#$00:#$00
+JNZ div16_vm_12,div16_1
+SUB div16_0:div16_1,div16_r_H:div16_r_L,div16_b_H:div16_b_L
+GTE div16_1,div16_0:div16_1,#$00:#$00
+.LABEL div16_vm_12
+JZ div16_vm_11,div16_1
+SUB div16_0:div16_1,div16_r_H:div16_r_L,div16_b_H:div16_b_L
+MOV div16_r_H:div16_r_L,div16_0:div16_1
+OR div16_0:div16_1,div16_q_H:div16_q_L,div16_flag_H:div16_flag_L
+MOV div16_q_H:div16_q_L,div16_0:div16_1
+.LABEL div16_vm_11
+SHR div16_0:div16_1,div16_flag_H:div16_flag_L,#$01
+MOV div16_flag_H:div16_flag_L,div16_0:div16_1
+JMP div16_vm_13
+.LABEL div16_vm_14
+JZ div16_vm_15,div16_sign
+NEG div16_0:div16_1,div16_q_H:div16_q_L
+JMP div16_vm_16
+.LABEL div16_vm_15
+MOV div16_0:div16_1,div16_q_H:div16_q_L
+.LABEL div16_vm_16
+MOV div16_return_H:div16_return_L,div16_0:div16_1
+JMP div16_end
+.LABEL div16_end
+.ENDFUNCTION div16
+.FUNCTION mod8
+.BYTE mod8_return $00
+.BYTE mod8_a $00
+.BYTE mod8_b $00
+.LOCALS
+.BYTE mod8_q $00
+.BYTE mod8_r $00
+.BYTE mod8_flag $00
+.BYTE mod8_sign $00
+.TMP
+.BYTE mod8_0 $00
+.CODE
+EQ mod8_0,mod8_a,mod8_b
+JZ mod8_vm_1,mod8_0
+MOV mod8_return,#$00
+JMP mod8_end
+.LABEL mod8_vm_1
+LT mod8_0,mod8_a,#$00
+MOV mod8_sign,mod8_0
+LT mod8_0,mod8_b,#$00
+JZ mod8_vm_3,mod8_0
+NEG mod8_0,mod8_b
+MOV mod8_b,mod8_0
+.LABEL mod8_vm_3
+LT mod8_0,mod8_b,#$00
+JZ mod8_vm_5,mod8_0
+MOV mod8_return,mod8_a
+JMP mod8_end
+.LABEL mod8_vm_5
+LT mod8_0,mod8_a,#$00
+JZ mod8_vm_7,mod8_0
+NEG mod8_0,mod8_a
+MOV mod8_a,mod8_0
+.LABEL mod8_vm_7
+MOV mod8_q,#$00
+MOV mod8_r,#$00
+MOV mod8_flag,#$80
+.LABEL mod8_vm_13
+JZ mod8_vm_14,mod8_flag
+SHL mod8_0,mod8_r,#$01
+MOV mod8_r,mod8_0
+AND mod8_0,mod8_flag,mod8_a
+JZ mod8_vm_9,mod8_0
+OR mod8_0,mod8_r,#$01
+MOV mod8_r,mod8_0
+.LABEL mod8_vm_9
+LT mod8_0,mod8_r,#$00
+JNZ mod8_vm_12,mod8_0
+SUB mod8_0,mod8_r,mod8_b
+GTE mod8_0,mod8_0,#$00
+.LABEL mod8_vm_12
+JZ mod8_vm_11,mod8_0
+SUB mod8_0,mod8_r,mod8_b
+MOV mod8_r,mod8_0
+OR mod8_0,mod8_q,mod8_flag
+MOV mod8_q,mod8_0
+.LABEL mod8_vm_11
+SHR mod8_0,mod8_flag,#$01
+MOV mod8_flag,mod8_0
+JMP mod8_vm_13
+.LABEL mod8_vm_14
+JZ mod8_vm_15,mod8_sign
+NEG mod8_0,mod8_r
+JMP mod8_vm_16
+.LABEL mod8_vm_15
+MOV mod8_0,mod8_r
+.LABEL mod8_vm_16
+MOV mod8_return,mod8_0
+JMP mod8_end
+.LABEL mod8_end
+.ENDFUNCTION mod8
+.FUNCTION mod16
+.BYTE mod16_return_H $00
+.BYTE mod16_return_L $00
+.BYTE mod16_a_H $00
+.BYTE mod16_a_L $00
+.BYTE mod16_b_H $00
+.BYTE mod16_b_L $00
+.LOCALS
+.BYTE mod16_q_H $00
+.BYTE mod16_q_L $00
+.BYTE mod16_r_H $00
+.BYTE mod16_r_L $00
+.BYTE mod16_flag_H $00
+.BYTE mod16_flag_L $00
+.BYTE mod16_sign $00
+.TMP
+.BYTE mod16_0 $00
+.BYTE mod16_1 $00
+.CODE
+EQ mod16_0,mod16_a_H:mod16_a_L,mod16_b_H:mod16_b_L
+JZ mod16_vm_1,mod16_0
+MOV mod16_return_H:mod16_return_L,#$00:#$00
+JMP mod16_end
+.LABEL mod16_vm_1
+LT mod16_0,mod16_a_H:mod16_a_L,#$00:#$00
+MOV mod16_sign,mod16_0
+LT mod16_0,mod16_b_H:mod16_b_L,#$00:#$00
+JZ mod16_vm_3,mod16_0
+NEG mod16_0:mod16_1,mod16_b_H:mod16_b_L
+MOV mod16_b_H:mod16_b_L,mod16_0:mod16_1
+.LABEL mod16_vm_3
+LT mod16_1,mod16_b_H:mod16_b_L,#$00:#$00
+JZ mod16_vm_5,mod16_1
+MOV mod16_return_H:mod16_return_L,mod16_a_H:mod16_a_L
+JMP mod16_end
+.LABEL mod16_vm_5
+LT mod16_1,mod16_a_H:mod16_a_L,#$00:#$00
+JZ mod16_vm_7,mod16_1
+NEG mod16_0:mod16_1,mod16_a_H:mod16_a_L
+MOV mod16_a_H:mod16_a_L,mod16_0:mod16_1
+.LABEL mod16_vm_7
+MOV mod16_q_H:mod16_q_L,#$00:#$00
+MOV mod16_r_H:mod16_r_L,#$00:#$00
+MOV mod16_flag_H:mod16_flag_L,#$80:#$00
+.LABEL mod16_vm_13
+JZ mod16_vm_14,mod16_flag_H:mod16_flag_L
+SHL mod16_0:mod16_1,mod16_r_H:mod16_r_L,#$01
+MOV mod16_r_H:mod16_r_L,mod16_0:mod16_1
+AND mod16_0:mod16_1,mod16_flag_H:mod16_flag_L,mod16_a_H:mod16_a_L
+JZ mod16_vm_9,mod16_0:mod16_1
+OR mod16_0:mod16_1,mod16_r_H:mod16_r_L,#$00:#$01
+MOV mod16_r_H:mod16_r_L,mod16_0:mod16_1
+.LABEL mod16_vm_9
+LT mod16_1,mod16_r_H:mod16_r_L,#$00:#$00
+JNZ mod16_vm_12,mod16_1
+SUB mod16_0:mod16_1,mod16_r_H:mod16_r_L,mod16_b_H:mod16_b_L
+GTE mod16_1,mod16_0:mod16_1,#$00:#$00
+.LABEL mod16_vm_12
+JZ mod16_vm_11,mod16_1
+SUB mod16_0:mod16_1,mod16_r_H:mod16_r_L,mod16_b_H:mod16_b_L
+MOV mod16_r_H:mod16_r_L,mod16_0:mod16_1
+OR mod16_0:mod16_1,mod16_q_H:mod16_q_L,mod16_flag_H:mod16_flag_L
+MOV mod16_q_H:mod16_q_L,mod16_0:mod16_1
+.LABEL mod16_vm_11
+SHR mod16_0:mod16_1,mod16_flag_H:mod16_flag_L,#$01
+MOV mod16_flag_H:mod16_flag_L,mod16_0:mod16_1
+JMP mod16_vm_13
+.LABEL mod16_vm_14
+JZ mod16_vm_15,mod16_sign
+NEG mod16_0:mod16_1,mod16_r_H:mod16_r_L
+JMP mod16_vm_16
+.LABEL mod16_vm_15
+MOV mod16_0:mod16_1,mod16_r_H:mod16_r_L
+.LABEL mod16_vm_16
+MOV mod16_return_H:mod16_return_L,mod16_0:mod16_1
+JMP mod16_end
+.LABEL mod16_end
+.ENDFUNCTION mod16

@@ -193,6 +193,19 @@ describe('Optimize', () => {
         done();
     });
 
+    test('Subtract from 0', (done) => {
+        let optimized = optimize('0 - a', 'Exp');
+        expect(optimized).toMatchObject({
+            kind: 'UnaryOperation',
+            operation: '-',
+            expression: {
+                kind: 'Variable',
+                name: 'a',
+            },
+        });
+        done();
+    });
+
     test('If statement', (done) => {
         let optimized = optimize('if (2*3) { a = 1+0; } else { a = 1<<2; }', 'Stmt');
         expect(optimized).toMatchObject({
@@ -224,6 +237,46 @@ describe('Optimize', () => {
                     },
                 },
             ],
+        });
+        done();
+    });
+
+    test('Assingment same variable', (done) => {
+        let optimized = optimize('a = a;', 'Stmt');
+        expect(optimized).toEqual([]);
+        done();
+    });
+
+    test('Assingment ternary', (done) => {
+        let optimized = optimize('a = a < 0 ? -a : a;', 'Stmt');
+        expect(optimized).toMatchObject({
+            kind: 'IfStatement',
+            predicate: {
+                kind: 'BinaryOperation',
+                operation: '<',
+                lhs: {
+                    kind: 'Variable',
+                    name: 'a',
+                },
+                rhs: {
+                    kind: 'Literal',
+                    type: 'char',
+                    value: 0,
+                },
+            },
+            consequent: [{
+                kind: 'AssignmentStatement',
+                name: 'a',
+                expression: {
+                    kind: 'UnaryOperation',
+                    operation: '-',
+                    expression: {
+                        kind: 'Variable',
+                        name: 'a',
+                    },
+                },
+            }],
+            alternate: [],
         });
         done();
     });
